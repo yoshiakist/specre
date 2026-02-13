@@ -1,0 +1,16 @@
+[package]
+name = "specre"
+version = "0.0.1"
+edition = "2024"
+description = "Atomic, living specification cards for AI-agent-friendly development"
+license = "MIT"
+repository = "https://github.com/yoshiakist/specre"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+ulid = "1"
+
+[dev-dependencies]
+assert_cmd = "2"
+assert_fs = "1"
+predicates = "3"
