@@ -218,6 +218,37 @@ fn trace_paths_use_forward_slashes() {
     assert!(!stdout.contains('\\'), "Paths should use forward slashes");
 }
 
+// -- Scenario: Backslash paths are normalized to forward slashes --
+
+#[test]
+fn trace_file_path_backslash_is_normalized() {
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src"]);
+    write_specre(
+        tmp.path(),
+        "docs/specres/cli/spec_a.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "spec_a",
+        "stable",
+    );
+    write_source(
+        tmp.path(),
+        "src/nested/file.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nfn main() {}\n",
+    );
+
+    specre()
+        .args(["trace", "src\\nested\\file.rs"])
+        .current_dir(tmp.path())
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("File: src/nested/file.rs")
+                .and(predicate::str::contains("01AAAAAAAAAAAAAAAAAAAAAAAA"))
+                .and(predicate::str::contains("docs/specres/cli/spec_a.md")),
+        );
+}
+
 // -- Scenario: Multiple source refs across different files --
 
 #[test]

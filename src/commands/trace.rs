@@ -93,13 +93,14 @@ fn trace_by_ulid(ulid: &str) -> Result<(), String> {
 }
 
 fn trace_by_file(file_path: &str) -> Result<(), String> {
-    let path = Path::new(file_path);
+    let file_path = file_path.replace('\\', "/");
+    let path = Path::new(&file_path);
     if !path.exists() {
-        return Err(format!("file not found: {}", file_path.replace('\\', "/")));
+        return Err(format!("file not found: {file_path}"));
     }
 
     let content =
-        fs::read_to_string(path).map_err(|e| format!("Failed to read '{}': {e}", file_path))?;
+        fs::read_to_string(path).map_err(|e| format!("Failed to read '{file_path}': {e}"))?;
 
     // Extract all marker ULIDs from the file (preserving order)
     let mut ulids: Vec<String> = Vec::new();
@@ -129,8 +130,7 @@ fn trace_by_file(file_path: &str) -> Result<(), String> {
     }
 
     // Print output
-    let display_path = file_path.replace('\\', "/");
-    println!("File: {display_path}");
+    println!("File: {file_path}");
     println!();
     println!("Specres:");
     if ulids.is_empty() {

@@ -131,6 +131,7 @@ The output is designed for both human developers navigating a codebase and AI ag
 ### Paths use forward slashes
 
 1. On all platforms, output paths use forward slashes (`/`), not backslashes
+2. Input file paths containing backslashes are normalized to forward slashes before processing (e.g., `src\config.rs` → `src/config.rs`)
 
 ### Argument auto-detection
 
