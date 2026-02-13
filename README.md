@@ -165,10 +165,10 @@ specre uses a single ULID — the specre's `id` — to link specifications and s
 
 ```
 ┌─────────────────────────────┐
-│  specre file (.md)         │  ← Source of truth
+│  specre file (.md)          │  ← Source of truth
 │  ┌────────────────────────┐ │
 │  │ id: ULID               │ │
-│  │ name / status           │ │
+│  │ name / status          │ │
 │  │ last_verified          │ │
 │  └────────────────────────┘ │
 │  ## Related Files           │  ← Path-based reference (human-readable)
@@ -178,13 +178,13 @@ specre uses a single ULID — the specre's `id` — to link specifications and s
                ▼
 ┌──────────────────────────────┐
 │  source file                 │
-│  // @specre <ULID>          │  ← Reverse reference (machine-readable)
+│  // @specre <ULID>           │  ← Reverse reference (machine-readable)
 └──────────────┬───────────────┘
                │
                ▼
 ┌──────────────────────────────┐
 │  index.json                  │  ← Generated cache (CLI-managed)
-│  specres[]: front-matter    │
+│  specres[]: front-matter     │
 │  source_refs[]: marker index │
 └──────────────────────────────┘
 ```
