@@ -19,6 +19,8 @@ status: "draft"
 
 The new command lowers the barrier to creating specres. By auto-generating the ULID and populating boilerplate sections, developers can focus on writing scenarios rather than remembering the front-matter schema. The command should complete in under a second and require no network access.
 
+The primary consumer of this command is expected to be AI coding agents, which generate specres as part of their development workflow. The CLI interface is designed to be equally usable by humans and agents — no interactive prompts, deterministic output, machine-parseable stdout.
+
 ## Key Members
 
 - `target_dir: String` — the directory where the new specre will be created (e.g., `docs/specres/auth/`)
