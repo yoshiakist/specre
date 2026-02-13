@@ -1,0 +1,2 @@
+specre_dir = "docs/specres"
+source_dirs = ["src"]
