@@ -1,7 +1,7 @@
 // @specre 01KHB48DYZDN8GHXPX7MSYJ1NZ
 use crate::cli::TraceArgs;
 use crate::commands::index::{
-    collect_all_files, collect_md_files, parse_frontmatter, to_forward_slash,
+    collect_all_files, collect_md_files, extract_marker_ulid, parse_frontmatter, to_forward_slash,
 };
 use crate::config;
 use std::fs;
@@ -42,7 +42,6 @@ pub fn execute(args: TraceArgs) -> Result<(), String> {
 
     // Find source references
     let mut source_refs: Vec<(String, usize)> = Vec::new();
-    let marker = format!("@specre {}", args.ulid);
     for dir_str in &config.source_dirs {
         let dir = Path::new(dir_str);
         if !dir.exists() {
@@ -55,8 +54,10 @@ pub fn execute(args: TraceArgs) -> Result<(), String> {
             };
             let rel_path = to_forward_slash(path);
             for (line_num, line) in content.lines().enumerate() {
-                if line.contains(&marker) {
-                    source_refs.push((rel_path.clone(), line_num + 1));
+                if let Some(ulid) = extract_marker_ulid(line) {
+                    if ulid == args.ulid {
+                        source_refs.push((rel_path.clone(), line_num + 1));
+                    }
                 }
             }
         });

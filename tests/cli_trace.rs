@@ -254,3 +254,44 @@ fn trace_multiple_source_refs_with_line_numbers() {
                 .and(predicate::str::contains("src/b.rs:3")),
         );
 }
+
+// -- Scenario: Markers inside string literals are ignored --
+
+#[test]
+fn trace_ignores_markers_inside_string_literals() {
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src", "tests"]);
+    write_specre(
+        tmp.path(),
+        "docs/specres/cli/spec_a.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "spec_a",
+        "stable",
+    );
+    // Real marker
+    write_source(
+        tmp.path(),
+        "src/real.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nfn real() {}\n",
+    );
+    // Fake marker inside a string literal in test code
+    write_source(
+        tmp.path(),
+        "tests/test.rs",
+        &format!(
+            "{}\n{}",
+            r#"    write_source(tmp.path(), "src/a.rs", "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n");"#,
+            "",
+        ),
+    );
+
+    specre()
+        .args(["trace", "01AAAAAAAAAAAAAAAAAAAAAAAA"])
+        .current_dir(tmp.path())
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("src/real.rs:1")
+                .and(predicate::str::contains("tests/test.rs").not()),
+        );
+}

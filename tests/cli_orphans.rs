@@ -279,3 +279,60 @@ fn orphans_linked_specre_is_not_orphan() {
                 .and(predicate::str::contains("docs/specres/cli/linked.md").not()),
         );
 }
+
+// -- Scenario: Markers inside string literals are ignored --
+
+#[test]
+fn orphans_ignores_markers_inside_string_literals() {
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src", "tests"]);
+    write_specre(
+        tmp.path(),
+        "docs/specres/cli/spec_a.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "spec_a",
+        "stable",
+    );
+    // Only a fake marker inside a string literal — should NOT count as a real marker
+    write_source(
+        tmp.path(),
+        "tests/test.rs",
+        r#"    write_source(tmp.path(), "src/a.rs", "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n");"#,
+    );
+    fs::create_dir_all(tmp.path().join("src")).unwrap();
+
+    // spec_a should be an orphan because the only "marker" is inside a string literal
+    specre()
+        .args(["orphans"])
+        .current_dir(tmp.path())
+        .assert()
+        .failure()
+        .stdout(
+            predicate::str::contains("Orphan specres (no source markers):")
+                .and(predicate::str::contains("docs/specres/cli/spec_a.md")),
+        );
+}
+
+#[test]
+fn orphans_string_literal_marker_not_dangling() {
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src", "tests"]);
+    fs::create_dir_all(tmp.path().join("docs/specres")).unwrap();
+    // A fake marker inside a string literal referencing a nonexistent specre
+    write_source(
+        tmp.path(),
+        "tests/test.rs",
+        r#"    write_source(tmp.path(), "src/a.rs", "// @specre 01ZZZZZZZZZZZZZZZZZZZZZZZZ\n");"#,
+    );
+    fs::create_dir_all(tmp.path().join("src")).unwrap();
+
+    // Should NOT report the fake marker as dangling
+    specre()
+        .args(["orphans"])
+        .current_dir(tmp.path())
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(
+            "No orphans or dangling markers found.",
+        ));
+}

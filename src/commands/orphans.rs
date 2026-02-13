@@ -1,6 +1,6 @@
 // @specre 01KHB48EES4FR5TFV6ZP2W3MGT
 use crate::commands::index::{
-    collect_all_files, collect_md_files, parse_frontmatter, to_forward_slash,
+    collect_all_files, collect_md_files, extract_marker_ulid, parse_frontmatter, to_forward_slash,
 };
 use crate::config;
 use std::collections::HashSet;
@@ -70,23 +70,14 @@ pub fn execute() -> Result<(), String> {
             };
             let rel_path = to_forward_slash(path);
             for (line_num, line) in content.lines().enumerate() {
-                if let Some(pos) = line.find("@specre ") {
-                    let after = &line[pos + 8..];
-                    if after.len() >= 26 {
-                        let candidate = &after[..26];
-                        if candidate
-                            .chars()
-                            .all(|c| c.is_ascii_uppercase() || c.is_ascii_digit())
-                        {
-                            marker_ulids.insert(candidate.to_string());
-                            if !specre_ids.contains(candidate) {
-                                dangling.push(DanglingMarker {
-                                    file: rel_path.clone(),
-                                    line: line_num + 1,
-                                    ulid: candidate.to_string(),
-                                });
-                            }
-                        }
+                if let Some(candidate) = extract_marker_ulid(line) {
+                    marker_ulids.insert(candidate.to_string());
+                    if !specre_ids.contains(candidate) {
+                        dangling.push(DanglingMarker {
+                            file: rel_path.clone(),
+                            line: line_num + 1,
+                            ulid: candidate.to_string(),
+                        });
                     }
                 }
             }
