@@ -4,11 +4,19 @@
 
 specre is a minimal specification format and toolkit for Spec-Driven Development (SDD). Each specre is a single Markdown file describing exactly one behavior, with machine-readable front-matter for lifecycle tracking and agent navigation.
 
+## The Problem
+
+Specifications are essential for keeping development intent visible and traceable. But in practice, they rot:
+
+- **Specs drift from code in silence.** No one notices when an implementation diverges from its specification — until the next developer (or AI agent) builds on stale assumptions.
+- **Monolithic specs waste AI context.** Large specification documents force agents to parse entire features just to understand a single behavior, consuming the finite context window that should be reserved for code and tests.
+- **Small changes never get specced.** When the cost of writing a specification is high, only greenfield features get documented. Bug fixes, refactors, and incremental changes slip through unspecified.
+
+specre exists to make specifications so small and so cheap to write that there is no reason to skip them.
+
 ## Philosophy
 
-Most SDD tools (GitHub Spec Kit, Amazon Kiro, BMAD) treat specifications as large, monolithic documents that feed into linear pipelines. This works for greenfield features but becomes a sledgehammer for everyday development — small fixes, incremental changes, and brownfield evolution.
-
-specre takes the opposite approach:
+Most SDD tools (GitHub Spec Kit, Amazon Kiro, BMAD) treat specifications as large, monolithic documents that feed into linear pipelines. specre takes the opposite approach:
 
 - **One file, one behavior.** Keep the unit of specification atomic. An AI agent should never need to parse an entire feature to understand a single behavior.
 - **Context-window aware.** LLM context is a finite resource. A specre is sized to fit comfortably alongside its test file and implementation in a single agent session.
@@ -31,12 +39,17 @@ Create a Markdown file under your project's specres directory. Organize subdirec
 ```
 docs/specres/
   auth/
-    001_user_can_sign_up_with_email.md
-    002_user_can_reset_password.md
+    signup/
+      user_can_sign_up_with_email.md
+      system_sends_verification_email_on_signup.md
+    password/
+      user_can_reset_password.md
   cart/
-    001_items_can_be_added_to_cart.md
-    002_cart_total_reflects_quantity_changes.md
+    user_can_add_item_to_cart.md
+    cart_total_reflects_quantity_changes.md
 ```
+
+Subdirectories within a domain are optional — use them when related behaviors benefit from grouping, but keep the tree flat where a single level is sufficient.
 
 ## specre Card Format
 
@@ -45,10 +58,8 @@ Every specre follows this structure:
 ```markdown
 ---
 id: "01HZYPMZRK8F9R2DGBGGMM2N8T"
-name: "001_user_can_sign_up_with_email"
-type: "behavior"
+name: "user_can_sign_up_with_email"
 status: "draft"
-last_verified: "2026-02-12"
 ---
 
 ## Related Files
@@ -100,10 +111,9 @@ client-side and uniqueness server-side to provide fast feedback.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `id` | ULID | Yes | Universally unique identifier in [ULID](https://github.com/ulid/spec) format. The single key for bidirectional traceability between specres and source code. |
-| `name` | string | Yes | Matches the filename (without `.md`). Human-readable behavior title. |
-| `type` | string | No | Free-form classification (e.g., `behavior`, `constraint`, `usecase`, `ui-interaction`). Projects define their own vocabulary. |
+| `name` | string | Yes | Matches the filename (without `.md`). A sentence with a clear subject and predicate that describes the behavior (e.g., `user_can_sign_up_with_email`, `system_rejects_invalid_email`). Avoid function-style nouns like `create_quotation`. |
 | `status` | enum | Yes | `draft` · `in-development` · `stable` · `deprecated` |
-| `last_verified` | date | Yes | `YYYY-MM-DD` — when this specre was last confirmed to match the implementation. |
+| `last_verified` | date | No | `YYYY-MM-DD` — when this specre was last confirmed to match the implementation. Applicable to `stable` specres. Not required for `draft` or `in-development`. |
 
 ### Status Lifecycle
 
@@ -121,6 +131,8 @@ draft ──→ in-development ──→ stable ──→ deprecated
 - **stable**: Implementation matches the specre. Tests pass. Verified by `last_verified` date.
 - **deprecated**: Behavior has been removed or superseded. Kept for historical reference.
 
+Status records the current state of a specre, not a prescribed workflow. Projects may skip states, move backwards, or adopt only a subset — specre does not enforce transitions.
+
 ### Recommended Sections
 
 | Section | Required | Purpose |
@@ -131,6 +143,12 @@ draft ──→ in-development ──→ stable ──→ deprecated
 | Key Members | No | Important state and parameters in natural language |
 | Scenarios | Yes | Step-by-step behavior descriptions |
 | Failures / Exceptions | No | Edge cases and error handling |
+
+### Naming Conventions
+
+- **Name as a sentence.** Every specre name must have a clear subject and predicate describing the behavior: `user_can_reset_password`, `system_rejects_expired_token`, `cart_total_reflects_quantity_changes`. Avoid function-style nouns like `create_quotation` or `password_reset`.
+- **No sequential numbering.** Do not prefix filenames with `001_`, `002_`, etc. The specre's ULID already provides chronological ordering. Sequential numbers create management overhead and friction with AI agents.
+- **Use subdirectories for grouping.** When a domain contains many related behaviors, group them with subdirectories instead of numbering. Prefer `quotation/approval/manager_can_approve_quotation.md` over `quotation/201_manager_can_approve_quotation.md`. Keep the tree flat where a single level is sufficient.
 
 ### Writing Guidelines
 
@@ -150,7 +168,7 @@ specre uses a single ULID — the specre's `id` — to link specifications and s
 │  specre file (.md)         │  ← Source of truth
 │  ┌────────────────────────┐ │
 │  │ id: ULID               │ │
-│  │ name / type / status   │ │
+│  │ name / status           │ │
 │  │ last_verified          │ │
 │  └────────────────────────┘ │
 │  ## Related Files           │  ← Path-based reference (human-readable)
@@ -227,11 +245,10 @@ The marker can be placed at the top of a file, above a class or function definit
   "specres": [
     {
       "id": "01HZYPMZRK8F9R2DGBGGMM2N8T",
-      "name": "見積を新規作成できる",
-      "type": "usecase",
+      "name": "user_can_create_new_quotation",
       "status": "draft",
       "domain": "quotation",
-      "path": "docs/specres/quotation/001_見積を新規作成できる.md",
+      "path": "docs/specres/quotation/creation/user_can_create_new_quotation.md",
       "last_verified": "2026-03-01"
     }
   ],
@@ -253,9 +270,8 @@ Each entry mirrors the front-matter of a specre file, with two derived fields:
 |-------|--------|-------------|
 | `id` | front-matter | The specre's ULID |
 | `name` | front-matter | Human-readable title |
-| `type` | front-matter | Classification (free-form string) |
 | `status` | front-matter | Current lifecycle status |
-| `domain` | directory name | Extracted from the specre's parent directory (e.g., `docs/specres/quotation/` → `"quotation"`) |
+| `domain` | directory name | Extracted from the top-level directory under the specres root (e.g., `docs/specres/quotation/creation/foo.md` → `"quotation"`). Subdirectories within a domain do not affect the domain value. |
 | `path` | file system | Relative path from project root to the specre file |
 | `last_verified` | front-matter | Date of last verification |
 
@@ -277,18 +293,18 @@ Each entry records a `@specre` marker found in the source tree:
 
 ## Comparison with Other Tools
 
-| | specre | GitHub Spec Kit | Amazon Kiro | ADR | Gherkin |
+| | specre | Plain Markdown | GitHub Spec Kit | Amazon Kiro | Gherkin |
 |---|---|---|---|---|---|
-| Granularity | One behavior | One feature | One feature | One decision | One feature (multi-scenario) |
-| Unique ID | ULID per specre | None | None | Sequential number | None |
-| Lifecycle status | Yes (4 states) | No | No | Yes (3-4 states) | No |
-| Verification date | Yes | No | No | No | No |
+| Granularity | One behavior | Varies | One feature | One feature | One feature (multi-scenario) |
+| Unique ID | ULID per specre | None | None | None | None |
+| Lifecycle status | Yes (4 states) | None | No | No | No |
+| Verification date | Yes | None | No | No | No |
 | Code traceability | Bidirectional (ULID) | None | None | None | Step definitions |
-| Test integration | By convention | Optional | Optional | No | Executable |
-| Process coupling | None | Linear pipeline | Linear pipeline | None | Test runner |
-| Files per spec | 1 | 3-4 | 3 | 1 | 1 |
-| IDE dependency | None | None | Kiro IDE | None | None |
-| Index generation | CLI (JSON + Markdown) | None | Built-in | CLI (optional) | None |
+| Test integration | By convention | None | Optional | Optional | Executable |
+| Process coupling | None | None | Linear pipeline | Linear pipeline | Test runner |
+| Files per spec | 1 | Varies | 3-4 | 3 | 1 |
+| IDE dependency | None | None | None | Kiro IDE | None |
+| Index generation | CLI (JSON + Markdown) | None | None | Built-in | None |
 
 ## Roadmap
 
@@ -313,15 +329,15 @@ Each entry records a `@specre` marker found in the source tree:
 ### v0.4 — Agent Integration
 
 - [ ] Skill / prompt templates for Claude Code, Cursor, and other AI coding assistants
-- [ ] `specre search <query>` — Full-text + type/status/domain filtering across all specres, with JSON output for agent consumption
+- [ ] `specre search <query>` — Full-text + status/domain filtering across all specres, with JSON output for agent consumption
 - [ ] Agent-friendly output formats across all commands (`--json`, `--md`)
 
 ### Future Considerations
 
+- Plugin system for custom front-matter fields (`type`, `tags`, etc.) with optional validation — enabling searches like `specre search --tag "quotation edit"` across project-defined vocabularies
 - Mermaid diagram generation from cross-references between specres
 - Dependency graph visualization
 - Multi-language support for specre content (i18n metadata)
-- Plugin system for custom front-matter fields and validation rules
 
 ## Contributing
 
