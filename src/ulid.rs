@@ -1,3 +1,4 @@
+// @specre 01JMBJK7QRVX3N4P5G6H8W9Y0Z
 use ulid::Ulid;
 
 pub fn generate() -> String {

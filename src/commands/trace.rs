@@ -1,3 +1,4 @@
+// @specre 01KHB48DYZDN8GHXPX7MSYJ1NZ
 use crate::cli::TraceArgs;
 use crate::commands::index::{
     collect_all_files, collect_md_files, parse_frontmatter, to_forward_slash,

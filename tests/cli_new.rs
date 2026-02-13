@@ -1,3 +1,4 @@
+// @specre 01JMBJK7QRVX3N4P5G6H8W9Y0Z
 use assert_cmd::cargo::cargo_bin_cmd;
 use assert_fs::TempDir;
 use assert_fs::prelude::*;

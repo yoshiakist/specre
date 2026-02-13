@@ -1,3 +1,4 @@
+// @specre 01KHB48EYB9686YYQMYFYQ5R1Z
 use assert_cmd::cargo::cargo_bin_cmd;
 use assert_fs::TempDir;
 use predicates::prelude::*;
