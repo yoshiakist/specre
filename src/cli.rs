@@ -13,8 +13,22 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
+    /// Initialize specre in a project
+    Init(InitArgs),
+
     /// Create a new specre card from a template
     New(NewArgs),
+}
+
+#[derive(Args)]
+pub struct InitArgs {
+    /// Directory where specre cards are stored
+    #[arg(long, default_value = "docs/specres")]
+    pub specre_dir: String,
+
+    /// Directories to scan for @specre markers (comma-separated)
+    #[arg(long, default_value = "src", value_delimiter = ',')]
+    pub source_dirs: Vec<String>,
 }
 
 #[derive(Args)]

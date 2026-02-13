@@ -11,6 +11,7 @@ fn main() {
     let cli = Cli::parse();
 
     let result = match cli.command {
+        Commands::Init(args) => commands::init::execute(args),
         Commands::New(args) => commands::new::execute(args),
     };
 
