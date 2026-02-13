@@ -144,10 +144,10 @@ fn trace_ulid_not_found_exits_with_error() {
         );
 }
 
-// -- Scenario: Invalid ULID format --
+// -- Scenario: Non-ULID strings are treated as file paths --
 
 #[test]
-fn trace_invalid_ulid_too_short() {
+fn trace_short_string_treated_as_file_path() {
     let tmp = TempDir::new().unwrap();
     write_config(tmp.path(), "docs/specres", &["src"]);
 
@@ -156,13 +156,11 @@ fn trace_invalid_ulid_too_short() {
         .current_dir(tmp.path())
         .assert()
         .failure()
-        .stderr(predicate::str::contains(
-            "invalid ULID format. Expected 26 uppercase alphanumeric characters.",
-        ));
+        .stderr(predicate::str::contains("file not found: abc123"));
 }
 
 #[test]
-fn trace_invalid_ulid_lowercase() {
+fn trace_lowercase_ulid_treated_as_file_path() {
     let tmp = TempDir::new().unwrap();
     write_config(tmp.path(), "docs/specres", &["src"]);
 
@@ -172,7 +170,7 @@ fn trace_invalid_ulid_lowercase() {
         .assert()
         .failure()
         .stderr(predicate::str::contains(
-            "invalid ULID format. Expected 26 uppercase alphanumeric characters.",
+            "file not found: 01aaaaaaaaaaaaaaaaaaaaaaaa",
         ));
 }
 
@@ -293,5 +291,169 @@ fn trace_ignores_markers_inside_string_literals() {
         .stdout(
             predicate::str::contains("src/real.rs:1")
                 .and(predicate::str::contains("tests/test.rs").not()),
+        );
+}
+
+// -- Scenario: File path invocation shows linked specres --
+
+#[test]
+fn trace_file_path_shows_linked_specres() {
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src"]);
+    write_specre(
+        tmp.path(),
+        "docs/specres/cli/spec_a.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "spec_a",
+        "stable",
+    );
+    write_specre(
+        tmp.path(),
+        "docs/specres/cli/spec_b.md",
+        "01BBBBBBBBBBBBBBBBBBBBBBBB",
+        "spec_b",
+        "draft",
+    );
+    write_source(
+        tmp.path(),
+        "src/config.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n// @specre 01BBBBBBBBBBBBBBBBBBBBBBBB\nfn config() {}\n",
+    );
+
+    specre()
+        .args(["trace", "src/config.rs"])
+        .current_dir(tmp.path())
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("File: src/config.rs")
+                .and(predicate::str::contains("Specres:"))
+                .and(predicate::str::contains("01AAAAAAAAAAAAAAAAAAAAAAAA"))
+                .and(predicate::str::contains("docs/specres/cli/spec_a.md"))
+                .and(predicate::str::contains("01BBBBBBBBBBBBBBBBBBBBBBBB"))
+                .and(predicate::str::contains("docs/specres/cli/spec_b.md")),
+        );
+}
+
+// -- Scenario: File path with a ULID that has no matching specre --
+
+#[test]
+fn trace_file_path_unresolved_ulid_shows_not_found() {
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src"]);
+    fs::create_dir_all(tmp.path().join("docs/specres")).unwrap();
+    write_source(
+        tmp.path(),
+        "src/example.rs",
+        "// @specre 01ZZZZZZZZZZZZZZZZZZZZZZZZ\nfn main() {}\n",
+    );
+
+    specre()
+        .args(["trace", "src/example.rs"])
+        .current_dir(tmp.path())
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("File: src/example.rs")
+                .and(predicate::str::contains("01ZZZZZZZZZZZZZZZZZZZZZZZZ"))
+                .and(predicate::str::contains("(not found)")),
+        );
+}
+
+// -- Scenario: File path with no markers --
+
+#[test]
+fn trace_file_path_no_markers_exits_with_error() {
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src"]);
+    fs::create_dir_all(tmp.path().join("docs/specres")).unwrap();
+    write_source(tmp.path(), "src/utils.rs", "fn helper() {}\n");
+
+    specre()
+        .args(["trace", "src/utils.rs"])
+        .current_dir(tmp.path())
+        .assert()
+        .failure()
+        .stdout(
+            predicate::str::contains("File: src/utils.rs")
+                .and(predicate::str::contains("Specres:"))
+                .and(predicate::str::contains("(none)")),
+        );
+}
+
+// -- Scenario: File does not exist --
+
+#[test]
+fn trace_file_path_not_found() {
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src"]);
+
+    specre()
+        .args(["trace", "src/nonexistent.rs"])
+        .current_dir(tmp.path())
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("file not found: src/nonexistent.rs"));
+}
+
+// -- Scenario: File path output uses forward slashes --
+
+#[test]
+fn trace_file_path_output_uses_forward_slashes() {
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src"]);
+    write_specre(
+        tmp.path(),
+        "docs/specres/cli/spec_a.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "spec_a",
+        "stable",
+    );
+    write_source(
+        tmp.path(),
+        "src/nested/deep/file.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n",
+    );
+
+    let output = specre()
+        .args(["trace", "src/nested/deep/file.rs"])
+        .current_dir(tmp.path())
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(!stdout.contains('\\'), "Paths should use forward slashes");
+}
+
+// -- Scenario: File path ignores markers inside string literals --
+
+#[test]
+fn trace_file_path_ignores_string_literal_markers() {
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src"]);
+    write_specre(
+        tmp.path(),
+        "docs/specres/cli/spec_a.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "spec_a",
+        "stable",
+    );
+    write_source(
+        tmp.path(),
+        "src/test_helper.rs",
+        &format!(
+            "{}\n{}\n",
+            "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA",
+            r#"    let s = "// @specre 01BBBBBBBBBBBBBBBBBBBBBBBB";"#,
+        ),
+    );
+
+    specre()
+        .args(["trace", "src/test_helper.rs"])
+        .current_dir(tmp.path())
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("01AAAAAAAAAAAAAAAAAAAAAAAA")
+                .and(predicate::str::contains("01BBBBBBBBBBBBBBBBBBBBBBBB").not()),
         );
 }

@@ -14,19 +14,21 @@ last_verified: "2026-02-13"
 
 ## Functional Overview
 
-`specre trace <ULID>` performs a bidirectional traceability lookup. Given a ULID, it shows the specre file that owns it and all source files containing `@specre` markers referencing it.
+`specre trace <query>` performs a bidirectional traceability lookup. The argument is auto-detected: if it matches a 26-character uppercase alphanumeric ULID, the command shows the specre file and all source files referencing it. If it is a file path, the command reads the file for `@specre` markers and shows all linked specre cards.
 
 ## Design Intent
 
-Traceability is a core promise of specre. The trace command makes it trivial to answer "where is this behavior specified?" and "where is this behavior implemented?" in a single invocation. The output is designed for both human developers navigating a codebase and AI agents resolving references during code generation.
+Traceability is a core promise of specre. The trace command makes it trivial to answer "where is this behavior specified?" and "where is this behavior implemented?" in a single invocation. By accepting both ULIDs and file paths, it supports both directions of the traceability link without requiring a separate command.
+
+The output is designed for both human developers navigating a codebase and AI agents resolving references during code generation.
 
 ## Key Members
 
-- `ulid: String` — the 26-character ULID to look up (positional argument)
+- `query: String` — either a 26-character ULID or a file path (positional argument, auto-detected)
 
 ## Scenarios
 
-### Basic invocation shows specre and source references
+### Basic ULID invocation shows specre and source references
 
 1. User runs `specre trace 01HZYPMZRK8F9R2DGBGGMM2N8T` in a project with `specre.toml`
 2. CLI reads `specre.toml` to determine `specre_dir` and `source_dirs`
@@ -79,10 +81,47 @@ Traceability is a core promise of specre. The trace command makes it trivial to 
    ```
 3. CLI exits with exit code 1
 
-### Invalid ULID format
+### File path invocation shows linked specres
 
-1. User runs `specre trace abc123` (not a valid 26-character uppercase alphanumeric ULID)
-2. CLI exits with error: `Error: invalid ULID format. Expected 26 uppercase alphanumeric characters.`
+1. User runs `specre trace src/config.rs` where the file contains multiple `@specre` markers
+2. CLI reads the file and extracts all `@specre <ULID>` markers (using the same detection logic as index, ignoring string literals)
+3. CLI reads `specre.toml` to determine `specre_dir`, then scans specre files to resolve each ULID to its specre card path
+4. CLI prints:
+   ```
+   File: src/config.rs
+
+   Specres:
+     01KHAGG8NQQ7RSNYZ6SWBCYH3N  docs/specres/cli/specre_init_initializes_project_configuration.md
+     01KHAKAYN5WPTDVR99D5Q5TMJE  docs/specres/cli/specre_index_generates_project_index.md
+   ```
+
+### File path with a ULID that has no matching specre
+
+1. User runs `specre trace src/example.rs` where the file contains `@specre <ULID>` but no specre has that `id`
+2. CLI prints the ULID with `(not found)` instead of a path:
+   ```
+   File: src/example.rs
+
+   Specres:
+     01ZZZZZZZZZZZZZZZZZZZZZZZZ  (not found)
+   ```
+
+### File path with no markers
+
+1. User runs `specre trace src/utils.rs` where the file contains no `@specre` markers
+2. CLI prints:
+   ```
+   File: src/utils.rs
+
+   Specres:
+     (none)
+   ```
+3. CLI exits with exit code 1
+
+### File does not exist
+
+1. User runs `specre trace nonexistent.rs`
+2. CLI exits with error: `Error: file not found: nonexistent.rs`
 
 ### specre.toml does not exist
 
@@ -93,9 +132,14 @@ Traceability is a core promise of specre. The trace command makes it trivial to 
 
 1. On all platforms, output paths use forward slashes (`/`), not backslashes
 
+### Argument auto-detection
+
+1. If the argument is exactly 26 characters and all uppercase alphanumeric → treated as ULID
+2. Otherwise → treated as a file path
+
 ## Failures / Exceptions
 
 - If `specre.toml` is missing, CLI exits with error: `Error: specre.toml not found. Run 'specre init' first.`
 - If `specre_dir` does not exist, CLI treats it as no specre found
 - If a `source_dirs` entry does not exist, CLI skips it silently
-- If ULID format is invalid, CLI exits with error before scanning
+- If the file path does not exist, CLI exits with error: `Error: file not found: <path>`

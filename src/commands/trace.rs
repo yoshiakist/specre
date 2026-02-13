@@ -4,6 +4,7 @@ use crate::commands::index::{
     collect_all_files, collect_md_files, extract_marker_ulid, parse_frontmatter, to_forward_slash,
 };
 use crate::config;
+use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
@@ -12,12 +13,14 @@ fn is_valid_ulid(s: &str) -> bool {
 }
 
 pub fn execute(args: TraceArgs) -> Result<(), String> {
-    if !is_valid_ulid(&args.ulid) {
-        return Err(
-            "invalid ULID format. Expected 26 uppercase alphanumeric characters.".to_string(),
-        );
+    if is_valid_ulid(&args.query) {
+        trace_by_ulid(&args.query)
+    } else {
+        trace_by_file(&args.query)
     }
+}
 
+fn trace_by_ulid(ulid: &str) -> Result<(), String> {
     let config = config::load()?;
     let specre_dir = Path::new(&config.specre_dir);
 
@@ -33,7 +36,7 @@ pub fn execute(args: TraceArgs) -> Result<(), String> {
                 Err(_) => return,
             };
             if let Some(fm) = parse_frontmatter(&content) {
-                if fm.id == args.ulid {
+                if fm.id == ulid {
                     specre_path = Some(to_forward_slash(path));
                 }
             }
@@ -54,8 +57,8 @@ pub fn execute(args: TraceArgs) -> Result<(), String> {
             };
             let rel_path = to_forward_slash(path);
             for (line_num, line) in content.lines().enumerate() {
-                if let Some(ulid) = extract_marker_ulid(line) {
-                    if ulid == args.ulid {
+                if let Some(found_ulid) = extract_marker_ulid(line) {
+                    if found_ulid == ulid {
                         source_refs.push((rel_path.clone(), line_num + 1));
                     }
                 }
@@ -83,6 +86,65 @@ pub fn execute(args: TraceArgs) -> Result<(), String> {
 
     // Exit with error if nothing found at all
     if specre_path.is_none() && source_refs.is_empty() {
+        return Err(String::new());
+    }
+
+    Ok(())
+}
+
+fn trace_by_file(file_path: &str) -> Result<(), String> {
+    let path = Path::new(file_path);
+    if !path.exists() {
+        return Err(format!("file not found: {}", file_path.replace('\\', "/")));
+    }
+
+    let content =
+        fs::read_to_string(path).map_err(|e| format!("Failed to read '{}': {e}", file_path))?;
+
+    // Extract all marker ULIDs from the file (preserving order)
+    let mut ulids: Vec<String> = Vec::new();
+    for line in content.lines() {
+        if let Some(ulid) = extract_marker_ulid(line) {
+            if !ulids.iter().any(|u| u == ulid) {
+                ulids.push(ulid.to_string());
+            }
+        }
+    }
+
+    let config = config::load()?;
+    let specre_dir = Path::new(&config.specre_dir);
+
+    // Build ULID → specre path map
+    let mut ulid_to_path: HashMap<String, String> = HashMap::new();
+    if specre_dir.exists() {
+        collect_md_files(specre_dir, &mut |path| {
+            let content = match fs::read_to_string(path) {
+                Ok(c) => c,
+                Err(_) => return,
+            };
+            if let Some(fm) = parse_frontmatter(&content) {
+                ulid_to_path.insert(fm.id, to_forward_slash(path));
+            }
+        });
+    }
+
+    // Print output
+    let display_path = file_path.replace('\\', "/");
+    println!("File: {display_path}");
+    println!();
+    println!("Specres:");
+    if ulids.is_empty() {
+        println!("  (none)");
+    } else {
+        for ulid in &ulids {
+            match ulid_to_path.get(ulid) {
+                Some(specre_path) => println!("  {ulid}  {specre_path}"),
+                None => println!("  {ulid}  (not found)"),
+            }
+        }
+    }
+
+    if ulids.is_empty() {
         return Err(String::new());
     }
 

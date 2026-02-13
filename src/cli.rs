@@ -25,7 +25,7 @@ pub enum Commands {
     /// Report specre counts by status and flag stale last_verified dates
     Status(StatusArgs),
 
-    /// Bidirectional traceability lookup by ULID
+    /// Bidirectional traceability lookup by ULID or file path
     Trace(TraceArgs),
 
     /// Detect unlinked specres or dangling markers
@@ -55,8 +55,8 @@ pub struct StatusArgs {
 
 #[derive(Args)]
 pub struct TraceArgs {
-    /// ULID to look up (26 uppercase alphanumeric characters)
-    pub ulid: String,
+    /// ULID (26 uppercase alphanumeric characters) or file path to look up
+    pub query: String,
 }
 
 #[derive(Args)]
