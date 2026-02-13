@@ -18,6 +18,9 @@ pub enum Commands {
 
     /// Create a new specre card from a template
     New(NewArgs),
+
+    /// Generate index.json and per-domain INDEX.md
+    Index,
 }
 
 #[derive(Args)]

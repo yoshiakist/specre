@@ -9,6 +9,10 @@ repository = "https://github.com/yoshiakist/specre"
 [dependencies]
 clap = { version = "4", features = ["derive"] }
 ulid = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+chrono = { version = "0.4", default-features = false, features = ["now", "std"] }
 
 [dev-dependencies]
 assert_cmd = "2"
