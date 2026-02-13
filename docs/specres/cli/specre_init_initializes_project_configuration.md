@@ -1,7 +1,7 @@
 ---
 id: "01KHAGG8NQQ7RSNYZ6SWBCYH3N"
 name: "specre_init_initializes_project_configuration"
-status: "draft"
+status: "in-development"
 ---
 
 ## Related Files
