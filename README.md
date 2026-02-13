@@ -310,7 +310,7 @@ Each entry records a `@specre` marker found in the source tree:
 
 ### v0.1 — Core CLI
 
-- [ ] `specre init` — Scaffold a new specre from a template, auto-generating a ULID for the `id` field
+- [ ] `specre new` — Scaffold a new specre from a template, auto-generating a ULID for the `id` field
 - [ ] `specre index` — Scan specre directory and source tree; generate `index.json` and per-domain `INDEX.md`
 - [ ] `specre status` — Report specre counts by status and flag stale `last_verified` dates
 
@@ -320,17 +320,17 @@ Each entry records a `@specre` marker found in the source tree:
 - [ ] `specre orphans` — Detect specres with no `@specre` markers in source, or markers with no matching specre
 - [ ] `specre tag <ULID> <file>` — Insert a `@specre` marker into a source file at the appropriate location
 
-### v0.3 — Drift Detection
+### v0.3 — Agent Integration
+
+- [ ] Agent-friendly output formats across all commands (`--json`, `--md`)
+- [ ] Skill / prompt templates for Claude Code, Cursor, and other AI coding assistants
+- [ ] `specre search <query>` — Full-text + status/domain filtering across all specres, with JSON output for agent consumption
+
+### v0.4 — Drift Detection
 
 - [ ] `specre drift` — Compare `last_verified` dates against git history of related files; flag specres where source has changed since last verification
 - [ ] `specre ci` — Exit with non-zero status if drift or orphans are detected (for CI integration)
 - [ ] GitHub Actions workflow template
-
-### v0.4 — Agent Integration
-
-- [ ] Skill / prompt templates for Claude Code, Cursor, and other AI coding assistants
-- [ ] `specre search <query>` — Full-text + status/domain filtering across all specres, with JSON output for agent consumption
-- [ ] Agent-friendly output formats across all commands (`--json`, `--md`)
 
 ### Future Considerations
 
