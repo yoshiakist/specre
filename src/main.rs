@@ -1,5 +1,6 @@
 mod cli;
 mod commands;
+mod config;
 mod template;
 mod ulid;
 
@@ -13,6 +14,7 @@ fn main() {
     let result = match cli.command {
         Commands::Init(args) => commands::init::execute(args),
         Commands::New(args) => commands::new::execute(args),
+        Commands::Index => commands::index::execute(),
     };
 
     if let Err(e) = result {
