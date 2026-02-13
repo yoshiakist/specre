@@ -51,6 +51,7 @@ Per-domain `INDEX.md` files provide a browsable overview of all specres in a dom
 1. A source file containing `// @specre 01HZYPMZRK8F9R2DGBGGMM2N8T` on line 3 produces an entry: `{ "specre_id": "01HZYPMZRK8F9R2DGBGGMM2N8T", "file": "src/example.rs", "line": 3 }`
 2. A file with multiple `@specre` markers produces one entry per marker
 3. The marker pattern is `@specre [0-9A-Z]{26}`, ignoring surrounding comment syntax
+4. Markers inside string literals are ignored: if a quote character (`"` or `'`) appears before `@specre` on the same line, the marker is not detected
 
 ### Per-domain INDEX.md is generated
 

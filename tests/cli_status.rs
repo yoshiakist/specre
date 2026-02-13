@@ -1,3 +1,4 @@
+// @specre 01KHAN6JE712ZAKXPP97854PKJ
 use assert_cmd::cargo::cargo_bin_cmd;
 use assert_fs::TempDir;
 use chrono::{Days, Utc};

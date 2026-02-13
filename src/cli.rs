@@ -24,6 +24,15 @@ pub enum Commands {
 
     /// Report specre counts by status and flag stale last_verified dates
     Status(StatusArgs),
+
+    /// Bidirectional traceability lookup by ULID or file path
+    Trace(TraceArgs),
+
+    /// Detect unlinked specres or dangling markers
+    Orphans,
+
+    /// Insert a @specre marker into a source file
+    Tag(TagArgs),
 }
 
 #[derive(Args)]
@@ -42,6 +51,21 @@ pub struct StatusArgs {
     /// Number of days after which a stable specre's last_verified is considered stale
     #[arg(long, default_value_t = 30)]
     pub threshold: u32,
+}
+
+#[derive(Args)]
+pub struct TraceArgs {
+    /// ULID (26 uppercase alphanumeric characters) or file path to look up
+    pub query: String,
+}
+
+#[derive(Args)]
+pub struct TagArgs {
+    /// ULID to insert as a marker (26 uppercase alphanumeric characters)
+    pub ulid: String,
+
+    /// Path to the source file where the marker will be inserted
+    pub file: String,
 }
 
 #[derive(Args)]

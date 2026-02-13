@@ -1,2 +1,2 @@
 specre_dir = "docs/specres"
-source_dirs = ["src"]
+source_dirs = ["src", "tests"]

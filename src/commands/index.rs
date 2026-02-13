@@ -1,3 +1,7 @@
+// @specre 01KHB48EYB9686YYQMYFYQ5R1Z
+// @specre 01KHB48EES4FR5TFV6ZP2W3MGT
+// @specre 01KHB48DYZDN8GHXPX7MSYJ1NZ
+// @specre 01KHAKAYN5WPTDVR99D5Q5TMJE
 use crate::config;
 use chrono::Utc;
 use serde::Serialize;
@@ -182,6 +186,30 @@ fn extract_domain(rel_path: &str, specre_dir: &str) -> String {
         .to_string()
 }
 
+/// Extracts a ULID from a `@specre` marker on a line.
+/// Returns None if the marker appears inside a string literal
+/// (preceded by a quote character `"` or `'` on the same line).
+pub fn extract_marker_ulid(line: &str) -> Option<&str> {
+    let pos = line.find("@specre ")?;
+    let before = &line[..pos];
+    if before.contains('"') || before.contains('\'') {
+        return None;
+    }
+    let after = &line[pos + 8..];
+    if after.len() < 26 {
+        return None;
+    }
+    let candidate = &after[..26];
+    if candidate
+        .chars()
+        .all(|c| c.is_ascii_uppercase() || c.is_ascii_digit())
+    {
+        Some(candidate)
+    } else {
+        None
+    }
+}
+
 fn scan_source_refs(source_dirs: &[String]) -> Vec<SourceRef> {
     let mut refs = Vec::new();
     for dir_str in source_dirs {
@@ -196,21 +224,12 @@ fn scan_source_refs(source_dirs: &[String]) -> Vec<SourceRef> {
             };
             let rel_path = to_forward_slash(path);
             for (line_num, line) in content.lines().enumerate() {
-                if let Some(pos) = line.find("@specre ") {
-                    let after = &line[pos + 8..];
-                    if after.len() >= 26 {
-                        let candidate = &after[..26];
-                        if candidate
-                            .chars()
-                            .all(|c| c.is_ascii_uppercase() || c.is_ascii_digit())
-                        {
-                            refs.push(SourceRef {
-                                specre_id: candidate.to_string(),
-                                file: rel_path.clone(),
-                                line: line_num + 1,
-                            });
-                        }
-                    }
+                if let Some(ulid) = extract_marker_ulid(line) {
+                    refs.push(SourceRef {
+                        specre_id: ulid.to_string(),
+                        file: rel_path.clone(),
+                        line: line_num + 1,
+                    });
                 }
             }
         });
@@ -219,7 +238,7 @@ fn scan_source_refs(source_dirs: &[String]) -> Vec<SourceRef> {
     refs
 }
 
-fn collect_all_files(dir: &Path, cb: &mut dyn FnMut(&Path)) {
+pub fn collect_all_files(dir: &Path, cb: &mut dyn FnMut(&Path)) {
     let read_dir = match fs::read_dir(dir) {
         Ok(rd) => rd,
         Err(_) => return,

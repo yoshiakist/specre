@@ -1,3 +1,4 @@
+// @specre 01KHAKAYN5WPTDVR99D5Q5TMJE
 use assert_cmd::cargo::cargo_bin_cmd;
 use assert_fs::TempDir;
 use predicates::prelude::*;
@@ -386,4 +387,42 @@ fn index_json_paths_use_forward_slashes() {
         "docs/specres/auth/signup/user_can_sign_up.md"
     );
     assert_eq!(json["source_refs"][0]["file"], "src/auth/signup.rs");
+}
+
+// -- Scenario: Markers inside string literals are ignored --
+
+#[test]
+fn index_ignores_markers_inside_string_literals() {
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src", "tests"]);
+    fs::create_dir_all(tmp.path().join("docs/specres/cli")).unwrap();
+
+    // Real marker (comment) — should be detected
+    // Fake markers (inside string literals) — should be ignored
+    write_source(
+        tmp.path(),
+        "tests/cli_test.rs",
+        &[
+            "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA",
+            r#"    write_source(tmp.path(), "src/a.rs", "// @specre 01BBBBBBBBBBBBBBBBBBBBBBBB\n");"#,
+            r#"    let s = '// @specre 01CCCCCCCCCCCCCCCCCCCCCCCC';"#,
+            "",
+        ]
+        .join("\n"),
+    );
+
+    specre()
+        .args(["index"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let json_str = fs::read_to_string(tmp.path().join("index.json")).unwrap();
+    let json: serde_json::Value = serde_json::from_str(&json_str).unwrap();
+
+    let refs = json["source_refs"].as_array().unwrap();
+    // Only the real marker at line 1 should be detected
+    assert_eq!(refs.len(), 1);
+    assert_eq!(refs[0]["specre_id"], "01AAAAAAAAAAAAAAAAAAAAAAAA");
+    assert_eq!(refs[0]["line"], 1);
 }

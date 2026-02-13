@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-02-13T05:11:17Z",
+  "generated_at": "2026-02-13T10:15:00Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -33,7 +33,157 @@
       "domain": "cli",
       "path": "docs/specres/cli/specre_status_reports_project_health.md",
       "last_verified": "2026-02-13"
+    },
+    {
+      "id": "01KHB48DYZDN8GHXPX7MSYJ1NZ",
+      "name": "specre_trace_resolves_bidirectional_references",
+      "status": "stable",
+      "domain": "cli",
+      "path": "docs/specres/cli/specre_trace_resolves_bidirectional_references.md",
+      "last_verified": "2026-02-13"
+    },
+    {
+      "id": "01KHB48EES4FR5TFV6ZP2W3MGT",
+      "name": "specre_orphans_detects_unlinked_specres_and_markers",
+      "status": "stable",
+      "domain": "cli",
+      "path": "docs/specres/cli/specre_orphans_detects_unlinked_specres_and_markers.md",
+      "last_verified": "2026-02-13"
+    },
+    {
+      "id": "01KHB48EYB9686YYQMYFYQ5R1Z",
+      "name": "specre_tag_inserts_marker_into_source_file",
+      "status": "stable",
+      "domain": "cli",
+      "path": "docs/specres/cli/specre_tag_inserts_marker_into_source_file.md",
+      "last_verified": "2026-02-13"
     }
   ],
-  "source_refs": []
+  "source_refs": [
+    {
+      "specre_id": "01KHB48EYB9686YYQMYFYQ5R1Z",
+      "file": "src/commands/index.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHB48EES4FR5TFV6ZP2W3MGT",
+      "file": "src/commands/index.rs",
+      "line": 2
+    },
+    {
+      "specre_id": "01KHB48DYZDN8GHXPX7MSYJ1NZ",
+      "file": "src/commands/index.rs",
+      "line": 3
+    },
+    {
+      "specre_id": "01KHAKAYN5WPTDVR99D5Q5TMJE",
+      "file": "src/commands/index.rs",
+      "line": 4
+    },
+    {
+      "specre_id": "01KHAGG8NQQ7RSNYZ6SWBCYH3N",
+      "file": "src/commands/init.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
+      "file": "src/commands/new.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHB48EES4FR5TFV6ZP2W3MGT",
+      "file": "src/commands/orphans.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHAN6JE712ZAKXPP97854PKJ",
+      "file": "src/commands/status.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHB48EYB9686YYQMYFYQ5R1Z",
+      "file": "src/commands/tag.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHB48DYZDN8GHXPX7MSYJ1NZ",
+      "file": "src/commands/trace.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHB48EYB9686YYQMYFYQ5R1Z",
+      "file": "src/config.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHB48EES4FR5TFV6ZP2W3MGT",
+      "file": "src/config.rs",
+      "line": 2
+    },
+    {
+      "specre_id": "01KHB48DYZDN8GHXPX7MSYJ1NZ",
+      "file": "src/config.rs",
+      "line": 3
+    },
+    {
+      "specre_id": "01KHAN6JE712ZAKXPP97854PKJ",
+      "file": "src/config.rs",
+      "line": 4
+    },
+    {
+      "specre_id": "01KHAKAYN5WPTDVR99D5Q5TMJE",
+      "file": "src/config.rs",
+      "line": 5
+    },
+    {
+      "specre_id": "01KHAGG8NQQ7RSNYZ6SWBCYH3N",
+      "file": "src/config.rs",
+      "line": 6
+    },
+    {
+      "specre_id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
+      "file": "src/template.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
+      "file": "src/ulid.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHAKAYN5WPTDVR99D5Q5TMJE",
+      "file": "tests/cli_index.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHAGG8NQQ7RSNYZ6SWBCYH3N",
+      "file": "tests/cli_init.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
+      "file": "tests/cli_new.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHB48EES4FR5TFV6ZP2W3MGT",
+      "file": "tests/cli_orphans.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHAN6JE712ZAKXPP97854PKJ",
+      "file": "tests/cli_status.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHB48EYB9686YYQMYFYQ5R1Z",
+      "file": "tests/cli_tag.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHB48DYZDN8GHXPX7MSYJ1NZ",
+      "file": "tests/cli_trace.rs",
+      "line": 1
+    }
+  ]
 }
