@@ -2,6 +2,7 @@
 id: "01JMBJK7QRVX3N4P5G6H8W9Y0Z"
 name: "specre_new_scaffolds_a_new_specre"
 status: "stable"
+last_verified: "2026-02-13"
 ---
 
 ## Related Files

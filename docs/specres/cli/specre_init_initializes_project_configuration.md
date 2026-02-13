@@ -2,6 +2,7 @@
 id: "01KHAGG8NQQ7RSNYZ6SWBCYH3N"
 name: "specre_init_initializes_project_configuration"
 status: "stable"
+last_verified: "2026-02-13"
 ---
 
 ## Related Files
