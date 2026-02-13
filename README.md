@@ -313,7 +313,7 @@ Each entry records a `@specre` marker found in the source tree:
 - [x] `specre init` — Initialize specre in a project, creating the specre directory and configuration file
 - [x] `specre new` — Scaffold a new specre from a template, auto-generating a ULID for the `id` field
 - [x] `specre index` — Scan specre directory and source tree; generate `index.json` and per-domain `INDEX.md`
-- [ ] `specre status` — Report specre counts by status and flag stale `last_verified` dates
+- [x] `specre status` — Report specre counts by status and flag stale `last_verified` dates
 
 ### v0.2 — Traceability
 
