@@ -18,6 +18,7 @@ fn main() {
         Commands::Status(args) => commands::status::execute(args),
         Commands::Trace(args) => commands::trace::execute(args),
         Commands::Orphans => commands::orphans::execute(),
+        Commands::Tag(args) => commands::tag::execute(args),
     };
 
     if let Err(e) = result {

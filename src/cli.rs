@@ -30,6 +30,9 @@ pub enum Commands {
 
     /// Detect unlinked specres or dangling markers
     Orphans,
+
+    /// Insert a @specre marker into a source file
+    Tag(TagArgs),
 }
 
 #[derive(Args)]
@@ -54,6 +57,15 @@ pub struct StatusArgs {
 pub struct TraceArgs {
     /// ULID to look up (26 uppercase alphanumeric characters)
     pub ulid: String,
+}
+
+#[derive(Args)]
+pub struct TagArgs {
+    /// ULID to insert as a marker (26 uppercase alphanumeric characters)
+    pub ulid: String,
+
+    /// Path to the source file where the marker will be inserted
+    pub file: String,
 }
 
 #[derive(Args)]
