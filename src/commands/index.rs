@@ -97,7 +97,7 @@ fn scan_specre_files(dir: &Path, specre_dir_str: &str) -> Vec<SpecreEntry> {
     entries
 }
 
-fn collect_md_files(dir: &Path, cb: &mut dyn FnMut(&Path)) {
+pub fn collect_md_files(dir: &Path, cb: &mut dyn FnMut(&Path)) {
     let read_dir = match fs::read_dir(dir) {
         Ok(rd) => rd,
         Err(_) => return,
@@ -121,14 +121,14 @@ fn collect_md_files(dir: &Path, cb: &mut dyn FnMut(&Path)) {
     }
 }
 
-struct Frontmatter {
-    id: String,
-    name: String,
-    status: String,
-    last_verified: Option<String>,
+pub struct Frontmatter {
+    pub id: String,
+    pub name: String,
+    pub status: String,
+    pub last_verified: Option<String>,
 }
 
-fn parse_frontmatter(content: &str) -> Option<Frontmatter> {
+pub fn parse_frontmatter(content: &str) -> Option<Frontmatter> {
     let content = content.trim_start_matches('\u{feff}'); // BOM
     if !content.starts_with("---") {
         return None;
@@ -239,7 +239,7 @@ fn collect_all_files(dir: &Path, cb: &mut dyn FnMut(&Path)) {
     }
 }
 
-fn to_forward_slash(path: &Path) -> String {
+pub fn to_forward_slash(path: &Path) -> String {
     path.to_string_lossy().replace('\\', "/")
 }
 

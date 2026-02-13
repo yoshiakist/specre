@@ -15,6 +15,7 @@ fn main() {
         Commands::Init(args) => commands::init::execute(args),
         Commands::New(args) => commands::new::execute(args),
         Commands::Index => commands::index::execute(),
+        Commands::Status(args) => commands::status::execute(args),
     };
 
     if let Err(e) = result {

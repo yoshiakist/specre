@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-02-13T04:43:07Z",
+  "generated_at": "2026-02-13T05:11:17Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -24,6 +24,14 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_index_generates_project_index.md",
+      "last_verified": "2026-02-13"
+    },
+    {
+      "id": "01KHAN6JE712ZAKXPP97854PKJ",
+      "name": "specre_status_reports_project_health",
+      "status": "stable",
+      "domain": "cli",
+      "path": "docs/specres/cli/specre_status_reports_project_health.md",
       "last_verified": "2026-02-13"
     }
   ],

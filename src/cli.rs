@@ -21,6 +21,9 @@ pub enum Commands {
 
     /// Generate index.json and per-domain INDEX.md
     Index,
+
+    /// Report specre counts by status and flag stale last_verified dates
+    Status(StatusArgs),
 }
 
 #[derive(Args)]
@@ -32,6 +35,13 @@ pub struct InitArgs {
     /// Directories to scan for @specre markers (comma-separated)
     #[arg(long, default_value = "src", value_delimiter = ',')]
     pub source_dirs: Vec<String>,
+}
+
+#[derive(Args)]
+pub struct StatusArgs {
+    /// Number of days after which a stable specre's last_verified is considered stale
+    #[arg(long, default_value_t = 30)]
+    pub threshold: u32,
 }
 
 #[derive(Args)]
