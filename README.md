@@ -317,9 +317,9 @@ Each entry records a `@specre` marker found in the source tree:
 
 ### v0.2 — Traceability
 
-- [ ] `specre trace <ULID>` — Given a ULID, show the specre file and all source files referencing it (or vice versa)
-- [ ] `specre orphans` — Detect specres with no `@specre` markers in source, or markers with no matching specre
-- [ ] `specre tag <ULID> <file>` — Insert a `@specre` marker into a source file at the appropriate location
+- [x] `specre trace <ULID>` — Given a ULID, show the specre file and all source files referencing it (or vice versa)
+- [x] `specre orphans` — Detect specres with no `@specre` markers in source, or markers with no matching specre
+- [x] `specre tag <ULID> <file>` — Insert a `@specre` marker into a source file at the appropriate location
 
 ### v0.3 — Agent Integration
 
