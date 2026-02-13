@@ -1,0 +1,6 @@
+# Claude
+.claude
+.claude/settings.local.json
+
+# Rust
+/target
