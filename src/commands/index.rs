@@ -219,7 +219,7 @@ fn scan_source_refs(source_dirs: &[String]) -> Vec<SourceRef> {
     refs
 }
 
-fn collect_all_files(dir: &Path, cb: &mut dyn FnMut(&Path)) {
+pub fn collect_all_files(dir: &Path, cb: &mut dyn FnMut(&Path)) {
     let read_dir = match fs::read_dir(dir) {
         Ok(rd) => rd,
         Err(_) => return,

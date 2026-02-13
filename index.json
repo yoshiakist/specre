@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-02-13T05:11:17Z",
+  "generated_at": "2026-02-13T09:17:56Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -33,6 +33,30 @@
       "domain": "cli",
       "path": "docs/specres/cli/specre_status_reports_project_health.md",
       "last_verified": "2026-02-13"
+    },
+    {
+      "id": "01KHB48DYZDN8GHXPX7MSYJ1NZ",
+      "name": "specre_trace_resolves_bidirectional_references",
+      "status": "stable",
+      "domain": "cli",
+      "path": "docs/specres/cli/specre_trace_resolves_bidirectional_references.md",
+      "last_verified": "2026-02-13"
+    },
+    {
+      "id": "01KHB48EES4FR5TFV6ZP2W3MGT",
+      "name": "specre_orphans_detects_unlinked_specres_and_markers",
+      "status": "draft",
+      "domain": "cli",
+      "path": "docs/specres/cli/specre_orphans_detects_unlinked_specres_and_markers.md",
+      "last_verified": null
+    },
+    {
+      "id": "01KHB48EYB9686YYQMYFYQ5R1Z",
+      "name": "specre_tag_inserts_marker_into_source_file",
+      "status": "draft",
+      "domain": "cli",
+      "path": "docs/specres/cli/specre_tag_inserts_marker_into_source_file.md",
+      "last_verified": null
     }
   ],
   "source_refs": []

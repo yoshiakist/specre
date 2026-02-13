@@ -24,6 +24,9 @@ pub enum Commands {
 
     /// Report specre counts by status and flag stale last_verified dates
     Status(StatusArgs),
+
+    /// Bidirectional traceability lookup by ULID
+    Trace(TraceArgs),
 }
 
 #[derive(Args)]
@@ -42,6 +45,12 @@ pub struct StatusArgs {
     /// Number of days after which a stable specre's last_verified is considered stale
     #[arg(long, default_value_t = 30)]
     pub threshold: u32,
+}
+
+#[derive(Args)]
+pub struct TraceArgs {
+    /// ULID to look up (26 uppercase alphanumeric characters)
+    pub ulid: String,
 }
 
 #[derive(Args)]
