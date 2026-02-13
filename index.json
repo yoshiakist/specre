@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-02-13T09:17:56Z",
+  "generated_at": "2026-02-13T09:31:17Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -45,10 +45,10 @@
     {
       "id": "01KHB48EES4FR5TFV6ZP2W3MGT",
       "name": "specre_orphans_detects_unlinked_specres_and_markers",
-      "status": "draft",
+      "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_orphans_detects_unlinked_specres_and_markers.md",
-      "last_verified": null
+      "last_verified": "2026-02-13"
     },
     {
       "id": "01KHB48EYB9686YYQMYFYQ5R1Z",

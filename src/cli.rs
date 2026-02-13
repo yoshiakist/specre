@@ -27,6 +27,9 @@ pub enum Commands {
 
     /// Bidirectional traceability lookup by ULID
     Trace(TraceArgs),
+
+    /// Detect unlinked specres or dangling markers
+    Orphans,
 }
 
 #[derive(Args)]

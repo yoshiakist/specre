@@ -17,6 +17,7 @@ fn main() {
         Commands::Index => commands::index::execute(),
         Commands::Status(args) => commands::status::execute(args),
         Commands::Trace(args) => commands::trace::execute(args),
+        Commands::Orphans => commands::orphans::execute(),
     };
 
     if let Err(e) = result {
