@@ -326,37 +326,13 @@ Each entry records a `@specre` marker found in the source tree:
 
 ## Roadmap
 
-### v0.1 — Core CLI
+> Full details: [docs/project/ROADMAP.md](docs/project/ROADMAP.md)
 
-- [x] `specre init` — Initialize specre in a project, creating the specre directory and configuration file
-- [x] `specre new` — Scaffold a new specre from a template, auto-generating a ULID for the `id` field
-- [x] `specre index` — Scan specre directory and source tree; generate `index.json` and per-domain `INDEX.md`
-- [x] `specre status` — Report specre counts by status and flag stale `last_verified` dates
-
-### v0.2 — Traceability
-
-- [x] `specre trace <ULID>` — Given a ULID, show the specre file and all source files referencing it (or vice versa)
-- [x] `specre orphans` — Detect specres with no `@specre` markers in source, or markers with no matching specre
-- [x] `specre tag <ULID> <file>` — Insert a `@specre` marker into a source file at the appropriate location
-
-### v0.3 — Agent Integration
-
-- [ ] Agent-friendly output formats across all commands (`--json`, `--md`)
-- [ ] Skill / prompt templates for Claude Code, Cursor, and other AI coding assistants
-- [ ] `specre search <query>` — Full-text + status/domain filtering across all specres, with JSON output for agent consumption
-
-### v0.4 — Drift Detection
-
-- [ ] `specre drift` — Compare `last_verified` dates against git history of related files; flag specres where source has changed since last verification
-- [ ] `specre ci` — Exit with non-zero status if drift or orphans are detected (for CI integration)
-- [ ] GitHub Actions workflow template
-
-### Future Considerations
-
-- Plugin system for custom front-matter fields (`type`, `tags`, etc.) with optional validation — enabling searches like `specre search --tag "quotation edit"` across project-defined vocabularies
-- Mermaid diagram generation from cross-references between specres
-- Dependency graph visualization
-- Multi-language support for specre content (i18n metadata)
+- **v0.1 — Core CLI** ✅ `init`, `new`, `index`, `status`
+- **v0.2 — Traceability** ✅ `trace`, `orphans`, `tag`
+- **v0.3 — Agent Integration** — MCP server, `search`, `--json` output
+- **v0.4 — Drift Detection** — `drift`, `ci`, GitHub Actions template
+- **v0.5 — QA Support** — `impact`, `diff`, `export`
 
 ## Contributing
 
