@@ -111,7 +111,11 @@ pub fn collect_md_files(dir: &Path, cb: &mut dyn FnMut(&Path)) {
     for entry in sub_entries {
         let path = entry.path();
         if path.is_dir() {
-            if path.file_name().map(|n| n.to_string_lossy().starts_with('.')).unwrap_or(false) {
+            if path
+                .file_name()
+                .map(|n| n.to_string_lossy().starts_with('.'))
+                .unwrap_or(false)
+            {
                 continue;
             }
             collect_md_files(&path, cb);
@@ -179,11 +183,7 @@ fn extract_domain(rel_path: &str, specre_dir: &str) -> String {
         format!("{specre_dir}/")
     };
     let after = rel_path.strip_prefix(&prefix).unwrap_or(rel_path);
-    after
-        .split('/')
-        .next()
-        .unwrap_or("unknown")
-        .to_string()
+    after.split('/').next().unwrap_or("unknown").to_string()
 }
 
 /// Extracts a ULID from a `@specre` marker on a line.
@@ -248,7 +248,11 @@ pub fn collect_all_files(dir: &Path, cb: &mut dyn FnMut(&Path)) {
     for entry in sub_entries {
         let path = entry.path();
         if path.is_dir() {
-            if path.file_name().map(|n| n.to_string_lossy().starts_with('.')).unwrap_or(false) {
+            if path
+                .file_name()
+                .map(|n| n.to_string_lossy().starts_with('.'))
+                .unwrap_or(false)
+            {
                 continue;
             }
             collect_all_files(&path, cb);
@@ -287,7 +291,9 @@ fn generate_index_md(
         let index_path = domain_dir.join("INDEX.md");
         let domain_prefix = format!("{prefix}{domain}/");
 
-        let mut md = format!("# {domain}\n\n| Name | Status | Last Verified |\n|------|--------|---------------|\n");
+        let mut md = format!(
+            "# {domain}\n\n| Name | Status | Last Verified |\n|------|--------|---------------|\n"
+        );
 
         for entry in entries {
             let rel_to_domain = entry
@@ -295,10 +301,7 @@ fn generate_index_md(
                 .strip_prefix(&domain_prefix)
                 .unwrap_or(&entry.path);
             let display_name = &entry.name;
-            let last_verified = entry
-                .last_verified
-                .as_deref()
-                .unwrap_or("-");
+            let last_verified = entry.last_verified.as_deref().unwrap_or("-");
             md.push_str(&format!(
                 "| [{display_name}]({rel_to_domain}) | {} | {last_verified} |\n",
                 entry.status
@@ -308,7 +311,8 @@ fn generate_index_md(
         fs::write(&index_path, &md)
             .map_err(|e| format!("Failed to write '{}': {e}", index_path.display()))?;
 
-        let index_rel = to_forward_slash(&PathBuf::from(specre_dir_str).join(domain).join("INDEX.md"));
+        let index_rel =
+            to_forward_slash(&PathBuf::from(specre_dir_str).join(domain).join("INDEX.md"));
         println!("Generated {index_rel}");
     }
 

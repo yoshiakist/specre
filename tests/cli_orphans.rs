@@ -20,7 +20,9 @@ fn write_config(dir: &std::path::Path, specre_dir: &str, source_dirs: &[&str]) {
 fn write_specre(dir: &std::path::Path, rel_path: &str, id: &str, name: &str, status: &str) {
     let path = dir.join(rel_path);
     fs::create_dir_all(path.parent().unwrap()).unwrap();
-    let fm = format!("---\nid: \"{id}\"\nname: \"{name}\"\nstatus: \"{status}\"\n---\n\n## Related Files\n\n-\n");
+    let fm = format!(
+        "---\nid: \"{id}\"\nname: \"{name}\"\nstatus: \"{status}\"\n---\n\n## Related Files\n\n-\n"
+    );
     fs::write(path, fm).unwrap();
 }
 
@@ -152,7 +154,9 @@ fn orphans_detects_both() {
         .stdout(
             predicate::str::contains("Orphan specres (no source markers):")
                 .and(predicate::str::contains("docs/specres/auth/spec_a.md"))
-                .and(predicate::str::contains("Dangling markers (no matching specre):"))
+                .and(predicate::str::contains(
+                    "Dangling markers (no matching specre):",
+                ))
                 .and(predicate::str::contains("src/example.rs:1"))
                 .and(predicate::str::contains("01CCCCCCCCCCCCCCCCCCCCCCCC")),
         );

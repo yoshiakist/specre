@@ -4,7 +4,9 @@ use std::fs;
 use std::path::Path;
 
 fn is_valid_ulid(s: &str) -> bool {
-    s.len() == 26 && s.chars().all(|c| c.is_ascii_uppercase() || c.is_ascii_digit())
+    s.len() == 26
+        && s.chars()
+            .all(|c| c.is_ascii_uppercase() || c.is_ascii_digit())
 }
 
 fn comment_syntax(ext: &str) -> Option<(&'static str, &'static str)> {
@@ -12,36 +14,25 @@ fn comment_syntax(ext: &str) -> Option<(&'static str, &'static str)> {
         // // style — C-family, JVM, modern languages, shaders
         "rs" | "js" | "ts" | "jsx" | "tsx" | "java" | "c" | "cpp" | "h" | "hpp" | "cs" | "go"
         | "swift" | "kt" | "kts" | "scala" | "groovy" | "gradle" | "dart" | "php" | "zig"
-        | "proto" | "prisma" | "jsonc"
-        | "shader" | "hlsl" | "cginc" | "compute"
-        | "usf" | "ush"
-        | "gdshader"
-        | "glsl" | "vert" | "frag" | "geom" | "wgsl" => Some(("// ", "")),
+        | "proto" | "prisma" | "jsonc" | "shader" | "hlsl" | "cginc" | "compute" | "usf"
+        | "ush" | "gdshader" | "glsl" | "vert" | "frag" | "geom" | "wgsl" => Some(("// ", "")),
         // # style — scripting, config, data
-        "rb" | "py" | "sh" | "bash" | "zsh" | "yaml" | "yml" | "toml"
-        | "gd"
-        | "pl" | "pm" | "r" | "R" | "ex" | "exs" | "nim"
-        | "ps1" | "psm1" | "psd1" | "fish" | "nix"
-        | "tf" | "tfvars" | "hcl" | "cmake" | "mk"
-        | "env" | "conf" | "properties"
-        | "graphql" | "gql"
+        "rb" | "py" | "sh" | "bash" | "zsh" | "yaml" | "yml" | "toml" | "gd" | "pl" | "pm"
+        | "r" | "R" | "ex" | "exs" | "nim" | "ps1" | "psm1" | "psd1" | "fish" | "nix" | "tf"
+        | "tfvars" | "hcl" | "cmake" | "mk" | "env" | "conf" | "properties" | "graphql" | "gql"
         | "unity" | "prefab" | "asset" | "mat" | "meta" => Some(("# ", "")),
         // /* */ style — stylesheets
-        "css" | "scss" | "sass" | "less"
-        | "uss" => Some(("/* ", " */")),
+        "css" | "scss" | "sass" | "less" | "uss" => Some(("/* ", " */")),
         // <!-- --> style — markup, SFC
-        "html" | "htm" | "xml" | "svg"
-        | "vue" | "svelte" | "astro"
-        | "uxml"
-        | "xsl" | "xslt" => Some(("<!-- ", " -->")),
+        "html" | "htm" | "xml" | "svg" | "vue" | "svelte" | "astro" | "uxml" | "xsl" | "xslt" => {
+            Some(("<!-- ", " -->"))
+        }
         // -- style — SQL, Lua, Haskell
         "sql" | "lua" | "hs" => Some(("-- ", "")),
         // ; style — Godot data, INI
-        "tscn" | "tres" | "godot"
-        | "ini" | "cfg" => Some(("; ", "")),
+        "tscn" | "tres" | "godot" | "ini" | "cfg" => Some(("; ", "")),
         // {# #} style — Jinja / Twig templates
-        "j2" | "jinja" | "jinja2"
-        | "twig" => Some(("{# ", " #}")),
+        "j2" | "jinja" | "jinja2" | "twig" => Some(("{# ", " #}")),
         // <%# %> style — embedded templates
         "erb" | "ejs" => Some(("<%# ", " %>")),
         // {{!-- --}} style — Handlebars
@@ -81,24 +72,18 @@ pub fn execute(args: TagArgs) -> Result<(), String> {
         ));
     }
 
-    let content =
-        fs::read_to_string(file_path).map_err(|e| format!("Failed to read '{}': {e}", args.file))?;
+    let content = fs::read_to_string(file_path)
+        .map_err(|e| format!("Failed to read '{}': {e}", args.file))?;
 
     // Check if marker already exists
     let marker_pattern = format!("@specre {}", args.ulid);
     if content.contains(&marker_pattern) {
-        println!(
-            "Marker already exists in {}",
-            to_forward_slash(&args.file)
-        );
+        println!("Marker already exists in {}", to_forward_slash(&args.file));
         return Ok(());
     }
 
     // Determine comment syntax from file extension
-    let ext = file_path
-        .extension()
-        .and_then(|e| e.to_str())
-        .unwrap_or("");
+    let ext = file_path.extension().and_then(|e| e.to_str()).unwrap_or("");
     let (prefix, suffix) = comment_syntax(ext).ok_or_else(|| {
         format!(
             "unsupported file extension '.{}' — comment syntax is unknown",
@@ -112,11 +97,7 @@ pub fn execute(args: TagArgs) -> Result<(), String> {
     fs::write(file_path, &new_content)
         .map_err(|e| format!("Failed to write '{}': {e}", args.file))?;
 
-    println!(
-        "Tagged {} with {}",
-        to_forward_slash(&args.file),
-        args.ulid
-    );
+    println!("Tagged {} with {}", to_forward_slash(&args.file), args.ulid);
 
     Ok(())
 }

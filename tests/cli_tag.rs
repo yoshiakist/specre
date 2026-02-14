@@ -244,7 +244,10 @@ fn tag_output_uses_forward_slashes() {
         stdout.contains("src/nested/deep/example.rs"),
         "Output should contain forward-slash paths"
     );
-    assert!(!stdout.contains('\\'), "Output should not contain backslashes");
+    assert!(
+        !stdout.contains('\\'),
+        "Output should not contain backslashes"
+    );
 }
 
 // -- Scenario: Hash comment for shell files --
@@ -320,7 +323,11 @@ fn tag_uses_semicolon_comment_for_godot_tscn() {
 #[test]
 fn tag_uses_semicolon_comment_for_godot_tres() {
     let tmp = TempDir::new().unwrap();
-    write_source(tmp.path(), "resources/data.tres", "[gd_resource format=3]\n");
+    write_source(
+        tmp.path(),
+        "resources/data.tres",
+        "[gd_resource format=3]\n",
+    );
 
     specre()
         .args(["tag", "01AAAAAAAAAAAAAAAAAAAAAAAA", "resources/data.tres"])
@@ -541,7 +548,11 @@ fn tag_uses_haml_comment_for_haml() {
 #[test]
 fn tag_uses_slash_slash_for_unity_shader() {
     let tmp = TempDir::new().unwrap();
-    write_source(tmp.path(), "Shaders/Custom.shader", "Shader \"Custom\" {}\n");
+    write_source(
+        tmp.path(),
+        "Shaders/Custom.shader",
+        "Shader \"Custom\" {}\n",
+    );
 
     specre()
         .args(["tag", "01AAAAAAAAAAAAAAAAAAAAAAAA", "Shaders/Custom.shader"])
@@ -592,10 +603,18 @@ fn tag_uses_block_comment_for_unity_uss() {
 #[test]
 fn tag_uses_slash_slash_for_gdshader() {
     let tmp = TempDir::new().unwrap();
-    write_source(tmp.path(), "shaders/effect.gdshader", "shader_type canvas_item;\n");
+    write_source(
+        tmp.path(),
+        "shaders/effect.gdshader",
+        "shader_type canvas_item;\n",
+    );
 
     specre()
-        .args(["tag", "01AAAAAAAAAAAAAAAAAAAAAAAA", "shaders/effect.gdshader"])
+        .args([
+            "tag",
+            "01AAAAAAAAAAAAAAAAAAAAAAAA",
+            "shaders/effect.gdshader",
+        ])
         .current_dir(tmp.path())
         .assert()
         .success();

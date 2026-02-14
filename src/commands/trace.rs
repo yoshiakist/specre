@@ -9,7 +9,9 @@ use std::fs;
 use std::path::Path;
 
 fn is_valid_ulid(s: &str) -> bool {
-    s.len() == 26 && s.chars().all(|c| c.is_ascii_uppercase() || c.is_ascii_digit())
+    s.len() == 26
+        && s.chars()
+            .all(|c| c.is_ascii_uppercase() || c.is_ascii_digit())
 }
 
 pub fn execute(args: TraceArgs) -> Result<(), String> {

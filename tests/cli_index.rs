@@ -29,9 +29,7 @@ fn write_specre(
 ) {
     let path = dir.join(rel_path);
     fs::create_dir_all(path.parent().unwrap()).unwrap();
-    let mut fm = format!(
-        "---\nid: \"{id}\"\nname: \"{name}\"\nstatus: \"{status}\"\n"
-    );
+    let mut fm = format!("---\nid: \"{id}\"\nname: \"{name}\"\nstatus: \"{status}\"\n");
     if let Some(lv) = last_verified {
         fm.push_str(&format!("last_verified: \"{lv}\"\n"));
     }
@@ -254,8 +252,16 @@ fn index_handles_subdirectories_within_domain() {
     assert!(index_md.contains("system_rejects_expired_token.md"));
 
     // No INDEX.md in subdirectories
-    assert!(!tmp.path().join("docs/specres/auth/signup/INDEX.md").exists());
-    assert!(!tmp.path().join("docs/specres/auth/password/INDEX.md").exists());
+    assert!(
+        !tmp.path()
+            .join("docs/specres/auth/signup/INDEX.md")
+            .exists()
+    );
+    assert!(
+        !tmp.path()
+            .join("docs/specres/auth/password/INDEX.md")
+            .exists()
+    );
 }
 
 // -- Scenario: specre.toml does not exist --
