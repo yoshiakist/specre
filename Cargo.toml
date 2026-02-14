@@ -1,6 +1,6 @@
 [package]
 name = "specre"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
 description = "Atomic, living specification cards for AI-agent-friendly development"
 license = "MIT"
@@ -18,3 +18,8 @@ chrono = { version = "0.4", default-features = false, features = ["now", "std"] 
 assert_cmd = "2"
 assert_fs = "1"
 predicates = "3"
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
