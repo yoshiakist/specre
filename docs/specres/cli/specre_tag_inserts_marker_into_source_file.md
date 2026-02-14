@@ -2,7 +2,7 @@
 id: "01KHB48EYB9686YYQMYFYQ5R1Z"
 name: "specre_tag_inserts_marker_into_source_file"
 status: "stable"
-last_verified: "2026-02-13"
+last_verified: "2026-02-14"
 ---
 
 ## Related Files
@@ -38,12 +38,82 @@ Inserting at line 1 is the simplest unambiguous strategy. Developers can reposit
 
 ### Comment syntax varies by language
 
-1. For `.rs`, `.js`, `.ts`, `.java`, `.c`, `.cpp`, `.cs`, `.go`, `.swift` files: `// @specre <ULID>`
-2. For `.rb`, `.py`, `.sh`, `.yaml`, `.yml`, `.toml` files: `# @specre <ULID>`
-3. For `.css`, `.scss` files: `/* @specre <ULID> */`
-4. For `.html`, `.xml`, `.svg` files: `<!-- @specre <ULID> -->`
-5. For `.sql` files: `-- @specre <ULID>`
-6. For unrecognized extensions: `// @specre <ULID>` (default)
+The command supports the following file extensions, organized by domain:
+
+**`// @specre <ULID>` — C-family, JVM, modern languages, shaders:**
+
+- General: `.rs`, `.js`, `.ts`, `.jsx`, `.tsx`, `.java`, `.c`, `.cpp`, `.h`, `.hpp`, `.cs`, `.go`, `.swift`, `.kt`, `.kts`, `.scala`, `.groovy`, `.gradle`, `.dart`, `.php`, `.zig`
+- Data / schema: `.proto`, `.prisma`, `.jsonc`
+- Unity shaders: `.shader`, `.hlsl`, `.cginc`, `.compute`
+- Unreal Engine shaders: `.usf`, `.ush`
+- Godot shaders: `.gdshader`
+- Graphics shaders: `.glsl`, `.vert`, `.frag`, `.geom`, `.wgsl`
+
+**`# @specre <ULID>` — scripting, config, data:**
+
+- General: `.rb`, `.py`, `.sh`, `.bash`, `.zsh`, `.yaml`, `.yml`, `.toml`
+- Godot: `.gd` (GDScript)
+- Additional languages: `.pl`, `.pm` (Perl), `.r`, `.R` (R), `.ex`, `.exs` (Elixir), `.nim`
+- Shell: `.ps1`, `.psm1`, `.psd1` (PowerShell), `.fish`, `.nix`
+- Infrastructure: `.tf`, `.tfvars`, `.hcl` (Terraform / HCL), `.cmake`, `.mk`
+- Config: `.env`, `.conf`, `.properties`
+- Query / schema: `.graphql`, `.gql`
+- Unity serialized (YAML): `.unity`, `.prefab`, `.asset`, `.mat`, `.meta`
+
+**`/* @specre <ULID> */` — stylesheets:**
+
+- `.css`, `.scss`, `.sass`, `.less`
+- Unity: `.uss` (UI StyleSheet)
+
+**`<!-- @specre <ULID> -->` — markup, SFC:**
+
+- General: `.html`, `.htm`, `.xml`, `.svg`
+- Frontend frameworks: `.vue`, `.svelte`, `.astro`
+- Unity: `.uxml` (UI XML)
+- XML transforms: `.xsl`, `.xslt`
+
+**`-- @specre <ULID>` — SQL, Lua, Haskell:**
+
+- `.sql`, `.lua`, `.hs`
+
+**`; @specre <ULID>` — Godot data, INI:**
+
+- Godot: `.tscn` (scene), `.tres` (resource), `.godot` (project)
+- Config: `.ini`, `.cfg`
+
+**`{# @specre <ULID> #}` — Jinja / Twig templates:**
+
+- `.j2`, `.jinja`, `.jinja2` (Jinja2 — Django, Flask, Ansible)
+- `.twig` (Twig — Symfony)
+
+**`<%# @specre <ULID> %>` — embedded templates:**
+
+- `.erb` (ERB — Rails)
+- `.ejs` (EJS — Express)
+
+**`{{!-- @specre <ULID> --}}` — Handlebars:**
+
+- `.hbs`, `.handlebars`
+
+**`@* @specre <ULID> *@` — Razor:**
+
+- `.cshtml` (ASP.NET Razor)
+
+**`//- @specre <ULID>` — Pug / Jade:**
+
+- `.pug`, `.jade`
+
+**`-# @specre <ULID>` — Haml:**
+
+- `.haml`
+
+**Unsupported extensions:** The command refuses to insert a marker and exits with an error. No fallback.
+
+### Unsupported file extension
+
+1. User runs `specre tag <ULID> data/config.xyz` where `.xyz` is not in the supported list
+2. CLI does not modify the file
+3. CLI exits with error: `Error: unsupported file extension '.xyz' — comment syntax is unknown`
 
 ### Marker already exists in file
 
@@ -84,4 +154,5 @@ Inserting at line 1 is the simplest unambiguous strategy. Developers can reposit
 - If the target file does not exist, CLI exits with error: `Error: file not found: <path>`
 - If the target path is a directory, CLI exits with error: `Error: '<path>' is a directory, not a file`
 - If ULID format is invalid, CLI exits with error before any file operations
+- If the file extension is not in the supported list, CLI exits with error: `Error: unsupported file extension '.<ext>' — comment syntax is unknown`
 - If the filesystem is read-only or permissions are insufficient, CLI exits with the OS-level error message

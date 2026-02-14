@@ -115,7 +115,7 @@ fn tag_uses_dash_dash_comment_for_sql() {
 }
 
 #[test]
-fn tag_uses_slash_slash_for_unknown_extension() {
+fn tag_rejects_unsupported_extension() {
     let tmp = TempDir::new().unwrap();
     write_source(tmp.path(), "src/file.xyz", "data\n");
 
@@ -123,10 +123,14 @@ fn tag_uses_slash_slash_for_unknown_extension() {
         .args(["tag", "01AAAAAAAAAAAAAAAAAAAAAAAA", "src/file.xyz"])
         .current_dir(tmp.path())
         .assert()
-        .success();
+        .failure()
+        .stderr(predicate::str::contains(
+            "unsupported file extension '.xyz'",
+        ));
 
+    // File must not be modified
     let content = fs::read_to_string(tmp.path().join("src/file.xyz")).unwrap();
-    assert!(content.starts_with("// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n"));
+    assert_eq!(content, "data\n");
 }
 
 // -- Scenario: Marker already exists in file --
@@ -275,4 +279,364 @@ fn tag_uses_hash_comment_for_yaml() {
 
     let content = fs::read_to_string(tmp.path().join("config/settings.yml")).unwrap();
     assert!(content.starts_with("# @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n"));
+}
+
+// -- Scenario: Godot GDScript uses # --
+
+#[test]
+fn tag_uses_hash_comment_for_gdscript() {
+    let tmp = TempDir::new().unwrap();
+    write_source(tmp.path(), "src/player.gd", "extends Node2D\n");
+
+    specre()
+        .args(["tag", "01AAAAAAAAAAAAAAAAAAAAAAAA", "src/player.gd"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("src/player.gd")).unwrap();
+    assert!(content.starts_with("# @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n"));
+}
+
+// -- Scenario: Godot scene file uses ; --
+
+#[test]
+fn tag_uses_semicolon_comment_for_godot_tscn() {
+    let tmp = TempDir::new().unwrap();
+    write_source(tmp.path(), "scenes/main.tscn", "[gd_scene format=3]\n");
+
+    specre()
+        .args(["tag", "01AAAAAAAAAAAAAAAAAAAAAAAA", "scenes/main.tscn"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("scenes/main.tscn")).unwrap();
+    assert!(content.starts_with("; @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n"));
+}
+
+// -- Scenario: Godot resource file uses ; --
+
+#[test]
+fn tag_uses_semicolon_comment_for_godot_tres() {
+    let tmp = TempDir::new().unwrap();
+    write_source(tmp.path(), "resources/data.tres", "[gd_resource format=3]\n");
+
+    specre()
+        .args(["tag", "01AAAAAAAAAAAAAAAAAAAAAAAA", "resources/data.tres"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("resources/data.tres")).unwrap();
+    assert!(content.starts_with("; @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n"));
+}
+
+// -- Scenario: INI file uses ; --
+
+#[test]
+fn tag_uses_semicolon_comment_for_ini() {
+    let tmp = TempDir::new().unwrap();
+    write_source(tmp.path(), "config/settings.ini", "[section]\nkey=value\n");
+
+    specre()
+        .args(["tag", "01AAAAAAAAAAAAAAAAAAAAAAAA", "config/settings.ini"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("config/settings.ini")).unwrap();
+    assert!(content.starts_with("; @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n"));
+}
+
+// -- Scenario: Lua uses -- --
+
+#[test]
+fn tag_uses_dash_dash_comment_for_lua() {
+    let tmp = TempDir::new().unwrap();
+    write_source(tmp.path(), "scripts/init.lua", "print('hello')\n");
+
+    specre()
+        .args(["tag", "01AAAAAAAAAAAAAAAAAAAAAAAA", "scripts/init.lua"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("scripts/init.lua")).unwrap();
+    assert!(content.starts_with("-- @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n"));
+}
+
+// -- Scenario: Vue SFC uses <!-- --> --
+
+#[test]
+fn tag_uses_html_comment_for_vue() {
+    let tmp = TempDir::new().unwrap();
+    write_source(tmp.path(), "src/App.vue", "<template></template>\n");
+
+    specre()
+        .args(["tag", "01AAAAAAAAAAAAAAAAAAAAAAAA", "src/App.vue"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("src/App.vue")).unwrap();
+    assert!(content.starts_with("<!-- @specre 01AAAAAAAAAAAAAAAAAAAAAAAA -->\n"));
+}
+
+// -- Scenario: Svelte uses <!-- --> --
+
+#[test]
+fn tag_uses_html_comment_for_svelte() {
+    let tmp = TempDir::new().unwrap();
+    write_source(tmp.path(), "src/App.svelte", "<script></script>\n");
+
+    specre()
+        .args(["tag", "01AAAAAAAAAAAAAAAAAAAAAAAA", "src/App.svelte"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("src/App.svelte")).unwrap();
+    assert!(content.starts_with("<!-- @specre 01AAAAAAAAAAAAAAAAAAAAAAAA -->\n"));
+}
+
+// -- Scenario: Jinja2 template uses {# #} --
+
+#[test]
+fn tag_uses_jinja_comment_for_j2() {
+    let tmp = TempDir::new().unwrap();
+    write_source(tmp.path(), "templates/base.j2", "{{ content }}\n");
+
+    specre()
+        .args(["tag", "01AAAAAAAAAAAAAAAAAAAAAAAA", "templates/base.j2"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("templates/base.j2")).unwrap();
+    assert!(content.starts_with("{# @specre 01AAAAAAAAAAAAAAAAAAAAAAAA #}\n"));
+}
+
+// -- Scenario: Twig template uses {# #} --
+
+#[test]
+fn tag_uses_jinja_comment_for_twig() {
+    let tmp = TempDir::new().unwrap();
+    write_source(tmp.path(), "templates/base.twig", "{{ content }}\n");
+
+    specre()
+        .args(["tag", "01AAAAAAAAAAAAAAAAAAAAAAAA", "templates/base.twig"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("templates/base.twig")).unwrap();
+    assert!(content.starts_with("{# @specre 01AAAAAAAAAAAAAAAAAAAAAAAA #}\n"));
+}
+
+// -- Scenario: ERB template uses <%# %> --
+
+#[test]
+fn tag_uses_erb_comment_for_erb() {
+    let tmp = TempDir::new().unwrap();
+    write_source(tmp.path(), "views/index.erb", "<%= @title %>\n");
+
+    specre()
+        .args(["tag", "01AAAAAAAAAAAAAAAAAAAAAAAA", "views/index.erb"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("views/index.erb")).unwrap();
+    assert!(content.starts_with("<%# @specre 01AAAAAAAAAAAAAAAAAAAAAAAA %>\n"));
+}
+
+// -- Scenario: EJS template uses <%# %> --
+
+#[test]
+fn tag_uses_erb_comment_for_ejs() {
+    let tmp = TempDir::new().unwrap();
+    write_source(tmp.path(), "views/index.ejs", "<%= title %>\n");
+
+    specre()
+        .args(["tag", "01AAAAAAAAAAAAAAAAAAAAAAAA", "views/index.ejs"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("views/index.ejs")).unwrap();
+    assert!(content.starts_with("<%# @specre 01AAAAAAAAAAAAAAAAAAAAAAAA %>\n"));
+}
+
+// -- Scenario: Handlebars uses {{!-- --}} --
+
+#[test]
+fn tag_uses_handlebars_comment_for_hbs() {
+    let tmp = TempDir::new().unwrap();
+    write_source(tmp.path(), "views/index.hbs", "{{content}}\n");
+
+    specre()
+        .args(["tag", "01AAAAAAAAAAAAAAAAAAAAAAAA", "views/index.hbs"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("views/index.hbs")).unwrap();
+    assert!(content.starts_with("{{!-- @specre 01AAAAAAAAAAAAAAAAAAAAAAAA --}}\n"));
+}
+
+// -- Scenario: Razor uses @* *@ --
+
+#[test]
+fn tag_uses_razor_comment_for_cshtml() {
+    let tmp = TempDir::new().unwrap();
+    write_source(tmp.path(), "Views/Index.cshtml", "@model string\n");
+
+    specre()
+        .args(["tag", "01AAAAAAAAAAAAAAAAAAAAAAAA", "Views/Index.cshtml"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("Views/Index.cshtml")).unwrap();
+    assert!(content.starts_with("@* @specre 01AAAAAAAAAAAAAAAAAAAAAAAA *@\n"));
+}
+
+// -- Scenario: Pug uses //- --
+
+#[test]
+fn tag_uses_pug_comment_for_pug() {
+    let tmp = TempDir::new().unwrap();
+    write_source(tmp.path(), "views/index.pug", "h1 Hello\n");
+
+    specre()
+        .args(["tag", "01AAAAAAAAAAAAAAAAAAAAAAAA", "views/index.pug"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("views/index.pug")).unwrap();
+    assert!(content.starts_with("//- @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n"));
+}
+
+// -- Scenario: Haml uses -# --
+
+#[test]
+fn tag_uses_haml_comment_for_haml() {
+    let tmp = TempDir::new().unwrap();
+    write_source(tmp.path(), "views/index.haml", "%h1 Hello\n");
+
+    specre()
+        .args(["tag", "01AAAAAAAAAAAAAAAAAAAAAAAA", "views/index.haml"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("views/index.haml")).unwrap();
+    assert!(content.starts_with("-# @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n"));
+}
+
+// -- Scenario: Unity shader uses // --
+
+#[test]
+fn tag_uses_slash_slash_for_unity_shader() {
+    let tmp = TempDir::new().unwrap();
+    write_source(tmp.path(), "Shaders/Custom.shader", "Shader \"Custom\" {}\n");
+
+    specre()
+        .args(["tag", "01AAAAAAAAAAAAAAAAAAAAAAAA", "Shaders/Custom.shader"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("Shaders/Custom.shader")).unwrap();
+    assert!(content.starts_with("// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n"));
+}
+
+// -- Scenario: Unity meta (YAML) uses # --
+
+#[test]
+fn tag_uses_hash_comment_for_unity_meta() {
+    let tmp = TempDir::new().unwrap();
+    write_source(tmp.path(), "Assets/Script.cs.meta", "guid: abc123\n");
+
+    specre()
+        .args(["tag", "01AAAAAAAAAAAAAAAAAAAAAAAA", "Assets/Script.cs.meta"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("Assets/Script.cs.meta")).unwrap();
+    assert!(content.starts_with("# @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n"));
+}
+
+// -- Scenario: Unity USS uses /* */ --
+
+#[test]
+fn tag_uses_block_comment_for_unity_uss() {
+    let tmp = TempDir::new().unwrap();
+    write_source(tmp.path(), "UI/style.uss", ".label { color: white; }\n");
+
+    specre()
+        .args(["tag", "01AAAAAAAAAAAAAAAAAAAAAAAA", "UI/style.uss"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("UI/style.uss")).unwrap();
+    assert!(content.starts_with("/* @specre 01AAAAAAAAAAAAAAAAAAAAAAAA */\n"));
+}
+
+// -- Scenario: Godot shader uses // --
+
+#[test]
+fn tag_uses_slash_slash_for_gdshader() {
+    let tmp = TempDir::new().unwrap();
+    write_source(tmp.path(), "shaders/effect.gdshader", "shader_type canvas_item;\n");
+
+    specre()
+        .args(["tag", "01AAAAAAAAAAAAAAAAAAAAAAAA", "shaders/effect.gdshader"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("shaders/effect.gdshader")).unwrap();
+    assert!(content.starts_with("// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n"));
+}
+
+// -- Scenario: PHP uses // --
+
+#[test]
+fn tag_uses_slash_slash_for_php() {
+    let tmp = TempDir::new().unwrap();
+    write_source(tmp.path(), "src/index.php", "<?php echo 'hi'; ?>\n");
+
+    specre()
+        .args(["tag", "01AAAAAAAAAAAAAAAAAAAAAAAA", "src/index.php"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("src/index.php")).unwrap();
+    assert!(content.starts_with("// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n"));
+}
+
+// -- Scenario: Unsupported extension is rejected --
+
+#[test]
+fn tag_unsupported_extension_does_not_modify_file() {
+    let tmp = TempDir::new().unwrap();
+    write_source(tmp.path(), "data/file.bin", "\x00\x01\x02\n");
+
+    specre()
+        .args(["tag", "01AAAAAAAAAAAAAAAAAAAAAAAA", "data/file.bin"])
+        .current_dir(tmp.path())
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains(
+            "unsupported file extension '.bin'",
+        ));
+
+    let content = fs::read_to_string(tmp.path().join("data/file.bin")).unwrap();
+    assert_eq!(content, "\x00\x01\x02\n");
 }

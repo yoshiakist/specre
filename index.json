@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-02-14T07:10:07Z",
+  "generated_at": "2026-02-14T11:38:52Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -56,7 +56,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_tag_inserts_marker_into_source_file.md",
-      "last_verified": "2026-02-13"
+      "last_verified": "2026-02-14"
     },
     {
       "id": "01KHDF9WHR5HFM4RQCF6HS3KCC",
