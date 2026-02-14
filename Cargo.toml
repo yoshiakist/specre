@@ -18,3 +18,8 @@ chrono = { version = "0.4", default-features = false, features = ["now", "std"] 
 assert_cmd = "2"
 assert_fs = "1"
 predicates = "3"
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
