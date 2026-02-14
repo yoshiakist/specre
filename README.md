@@ -26,6 +26,16 @@ Most SDD tools (GitHub Spec Kit, Amazon Kiro, BMAD) treat specifications as larg
 
 ## Quick Start
 
+### Install Pre-built Binary
+
+```bash
+# Linux / macOS
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/yoshiakist/specre/releases/latest/download/specre-installer.sh | sh
+
+# Windows (PowerShell)
+powershell -ExecutionPolicy ByPass -c "irm https://github.com/yoshiakist/specre/releases/latest/download/specre-installer.ps1 | iex"
+```
+
 ### Install via Cargo (Rust users)
 
 ```bash
