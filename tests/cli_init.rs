@@ -133,3 +133,31 @@ fn init_does_not_modify_anything_when_config_exists() {
     // specre directory should not be created
     assert!(!tmp.path().join("docs/specres").exists());
 }
+
+#[test]
+fn init_with_language_ja() {
+    let tmp = TempDir::new().unwrap();
+
+    specre()
+        .args(["init", "--language", "ja"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("specre.toml")).unwrap();
+    assert!(content.contains(r#"language = "ja""#));
+}
+
+#[test]
+fn init_without_language_omits_field() {
+    let tmp = TempDir::new().unwrap();
+
+    specre()
+        .args(["init"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("specre.toml")).unwrap();
+    assert!(!content.contains("language"));
+}

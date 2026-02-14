@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-02-13T10:15:00Z",
+  "generated_at": "2026-02-14T07:10:07Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -57,6 +57,14 @@
       "domain": "cli",
       "path": "docs/specres/cli/specre_tag_inserts_marker_into_source_file.md",
       "last_verified": "2026-02-13"
+    },
+    {
+      "id": "01KHDF9WHR5HFM4RQCF6HS3KCC",
+      "name": "user_can_set_language_config",
+      "status": "stable",
+      "domain": "cli",
+      "path": "docs/specres/cli/user_can_set_language_config.md",
+      "last_verified": "2026-02-14"
     }
   ],
   "source_refs": [
@@ -89,6 +97,11 @@
       "specre_id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
       "file": "src/commands/new.rs",
       "line": 1
+    },
+    {
+      "specre_id": "01KHDF9WHR5HFM4RQCF6HS3KCC",
+      "file": "src/commands/new.rs",
+      "line": 2
     },
     {
       "specre_id": "01KHB48EES4FR5TFV6ZP2W3MGT",
@@ -141,9 +154,19 @@
       "line": 6
     },
     {
+      "specre_id": "01KHDF9WHR5HFM4RQCF6HS3KCC",
+      "file": "src/config.rs",
+      "line": 7
+    },
+    {
       "specre_id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
       "file": "src/template.rs",
       "line": 1
+    },
+    {
+      "specre_id": "01KHDF9WHR5HFM4RQCF6HS3KCC",
+      "file": "src/template.rs",
+      "line": 2
     },
     {
       "specre_id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",

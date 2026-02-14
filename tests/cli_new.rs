@@ -148,3 +148,93 @@ fn new_stdout_is_the_created_path() {
                 .and(predicate::str::is_match("^[^\n]+\n$").unwrap()),
         );
 }
+
+#[test]
+fn new_generates_japanese_template_when_language_is_ja() {
+    let tmp = TempDir::new().unwrap();
+    let target = tmp.path().join("specres");
+    let target_str = target.to_str().unwrap();
+
+    // Create specre.toml with language = "ja"
+    fs::write(
+        tmp.path().join("specre.toml"),
+        "specre_dir = \"specres\"\nsource_dirs = [\"src\"]\nlanguage = \"ja\"\n",
+    )
+    .unwrap();
+
+    specre()
+        .args(["new", target_str, "--name", "test_ja"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(target.join("test_ja.md")).unwrap();
+    assert!(content.contains("## 関連ファイル"));
+    assert!(content.contains("## 機能概要"));
+    assert!(content.contains("## シナリオ"));
+    assert!(!content.contains("## Related Files"));
+}
+
+#[test]
+fn new_generates_english_template_when_no_config() {
+    let tmp = TempDir::new().unwrap();
+    let target = tmp.path().to_str().unwrap();
+
+    // No specre.toml exists
+    specre()
+        .args(["new", target, "--name", "test_en"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("test_en.md")).unwrap();
+    assert!(content.contains("## Related Files"));
+    assert!(content.contains("## Functional Overview"));
+    assert!(content.contains("## Scenarios"));
+}
+
+#[test]
+fn new_falls_back_to_english_for_unknown_language() {
+    let tmp = TempDir::new().unwrap();
+    let target = tmp.path().join("specres");
+    let target_str = target.to_str().unwrap();
+
+    // Create specre.toml with unknown language
+    fs::write(
+        tmp.path().join("specre.toml"),
+        "specre_dir = \"specres\"\nsource_dirs = [\"src\"]\nlanguage = \"fr\"\n",
+    )
+    .unwrap();
+
+    specre()
+        .args(["new", target_str, "--name", "test_fr"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(target.join("test_fr.md")).unwrap();
+    assert!(content.contains("## Related Files"));
+}
+
+#[test]
+fn new_works_with_config_missing_language_field() {
+    let tmp = TempDir::new().unwrap();
+    let target = tmp.path().join("specres");
+    let target_str = target.to_str().unwrap();
+
+    // Create specre.toml without language field (backward compat)
+    fs::write(
+        tmp.path().join("specre.toml"),
+        "specre_dir = \"specres\"\nsource_dirs = [\"src\"]\n",
+    )
+    .unwrap();
+
+    specre()
+        .args(["new", target_str, "--name", "test_compat"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(target.join("test_compat.md")).unwrap();
+    assert!(content.contains("## Related Files"));
+}

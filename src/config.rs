@@ -4,6 +4,7 @@
 // @specre 01KHAN6JE712ZAKXPP97854PKJ
 // @specre 01KHAKAYN5WPTDVR99D5Q5TMJE
 // @specre 01KHAGG8NQQ7RSNYZ6SWBCYH3N
+// @specre 01KHDF9WHR5HFM4RQCF6HS3KCC
 use serde::Deserialize;
 use std::fs;
 use std::path::Path;
@@ -14,6 +15,7 @@ const CONFIG_FILE: &str = "specre.toml";
 pub struct Config {
     pub specre_dir: String,
     pub source_dirs: Vec<String>,
+    pub language: Option<String>,
 }
 
 pub fn load() -> Result<Config, String> {
@@ -26,4 +28,11 @@ pub fn load() -> Result<Config, String> {
     let content =
         fs::read_to_string(path).map_err(|e| format!("Failed to read {CONFIG_FILE}: {e}"))?;
     toml::from_str(&content).map_err(|e| format!("Failed to parse {CONFIG_FILE}: {e}"))
+}
+
+pub fn load_language() -> String {
+    load()
+        .ok()
+        .and_then(|c| c.language)
+        .unwrap_or_else(|| "en".to_string())
 }
