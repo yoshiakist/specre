@@ -332,6 +332,7 @@ Each entry records a `@specre` marker found in the source tree:
 - **v0.2 — Traceability** ✅ `trace`, `orphans`, `tag`
 - **v0.3 — Agent Integration** — MCP server, `search`, `--json` output
 - **v0.4 — Drift Detection** — `drift`, `ci`, GitHub Actions template
+- **v0.5 — QA Support** — `impact`, `diff`, `export`
 
 ## Contributing
 
