@@ -44,6 +44,10 @@ pub struct InitArgs {
     /// Directories to scan for @specre markers (comma-separated)
     #[arg(long, default_value = "src", value_delimiter = ',')]
     pub source_dirs: Vec<String>,
+
+    /// Language for specre card templates (e.g., "en", "ja")
+    #[arg(long)]
+    pub language: Option<String>,
 }
 
 #[derive(Args)]

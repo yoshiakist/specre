@@ -30,8 +30,12 @@ pub fn execute(args: InitArgs) -> Result<(), String> {
         .iter()
         .map(|s| format!("\"{s}\""))
         .collect();
+    let language_line = match &args.language {
+        Some(lang) => format!("language = \"{lang}\"\n"),
+        None => String::new(),
+    };
     let config_content = format!(
-        "specre_dir = \"{}\"\nsource_dirs = [{}]\n",
+        "specre_dir = \"{}\"\nsource_dirs = [{}]\n{language_line}",
         args.specre_dir,
         source_dirs_toml.join(", ")
     );

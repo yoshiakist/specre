@@ -1,5 +1,7 @@
 // @specre 01JMBJK7QRVX3N4P5G6H8W9Y0Z
+// @specre 01KHDF9WHR5HFM4RQCF6HS3KCC
 use crate::cli::NewArgs;
+use crate::config;
 use crate::template;
 use crate::ulid;
 use std::fs;
@@ -24,8 +26,9 @@ pub fn execute(args: NewArgs) -> Result<(), String> {
             .map_err(|e| format!("Failed to create directory '{}': {e}", target.display()))?;
     }
 
+    let language = config::load_language();
     let id = ulid::generate();
-    let content = template::render(&id, &args.name);
+    let content = template::render(&id, &args.name, &language);
 
     fs::write(&file_path, &content)
         .map_err(|e| format!("Failed to write '{}': {e}", file_path.display()))?;
