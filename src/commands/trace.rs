@@ -4,18 +4,13 @@ use crate::commands::index::{
     collect_all_files, collect_md_files, extract_marker_ulid, parse_frontmatter, to_forward_slash,
 };
 use crate::config;
+use crate::ulid;
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
-fn is_valid_ulid(s: &str) -> bool {
-    s.len() == 26
-        && s.chars()
-            .all(|c| c.is_ascii_uppercase() || c.is_ascii_digit())
-}
-
 pub fn execute(args: TraceArgs) -> Result<(), String> {
-    if is_valid_ulid(&args.query) {
+    if ulid::is_valid(&args.query) {
         trace_by_ulid(&args.query)
     } else {
         trace_by_file(&args.query)

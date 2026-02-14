@@ -1,13 +1,8 @@
 // @specre 01KHB48EYB9686YYQMYFYQ5R1Z
 use crate::cli::TagArgs;
+use crate::ulid;
 use std::fs;
 use std::path::Path;
-
-fn is_valid_ulid(s: &str) -> bool {
-    s.len() == 26
-        && s.chars()
-            .all(|c| c.is_ascii_uppercase() || c.is_ascii_digit())
-}
 
 fn comment_syntax(ext: &str) -> Option<(&'static str, &'static str)> {
     match ext {
@@ -53,7 +48,7 @@ fn to_forward_slash(s: &str) -> String {
 }
 
 pub fn execute(args: TagArgs) -> Result<(), String> {
-    if !is_valid_ulid(&args.ulid) {
+    if !ulid::is_valid(&args.ulid) {
         return Err(
             "invalid ULID format. Expected 26 uppercase alphanumeric characters.".to_string(),
         );
