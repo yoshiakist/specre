@@ -37,10 +37,10 @@ fn trace_by_ulid(ulid: &str) -> Result<(), String> {
                 Ok(c) => c,
                 Err(_) => return,
             };
-            if let Some(fm) = parse_frontmatter(&content) {
-                if fm.id == ulid {
-                    specre_path = Some(to_forward_slash(path));
-                }
+            if let Some(fm) = parse_frontmatter(&content)
+                && fm.id == ulid
+            {
+                specre_path = Some(to_forward_slash(path));
             }
         });
     }
@@ -59,10 +59,10 @@ fn trace_by_ulid(ulid: &str) -> Result<(), String> {
             };
             let rel_path = to_forward_slash(path);
             for (line_num, line) in content.lines().enumerate() {
-                if let Some(found_ulid) = extract_marker_ulid(line) {
-                    if found_ulid == ulid {
-                        source_refs.push((rel_path.clone(), line_num + 1));
-                    }
+                if let Some(found_ulid) = extract_marker_ulid(line)
+                    && found_ulid == ulid
+                {
+                    source_refs.push((rel_path.clone(), line_num + 1));
                 }
             }
         });
@@ -107,10 +107,10 @@ fn trace_by_file(file_path: &str) -> Result<(), String> {
     // Extract all marker ULIDs from the file (preserving order)
     let mut ulids: Vec<String> = Vec::new();
     for line in content.lines() {
-        if let Some(ulid) = extract_marker_ulid(line) {
-            if !ulids.iter().any(|u| u == ulid) {
-                ulids.push(ulid.to_string());
-            }
+        if let Some(ulid) = extract_marker_ulid(line)
+            && !ulids.iter().any(|u| u == ulid)
+        {
+            ulids.push(ulid.to_string());
         }
     }
 
