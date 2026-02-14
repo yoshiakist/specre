@@ -1,6 +1,12 @@
 // @specre 01JMBJK7QRVX3N4P5G6H8W9Y0Z
 use ulid::Ulid;
 
+pub fn is_valid(s: &str) -> bool {
+    s.len() == 26
+        && s.chars()
+            .all(|c| c.is_ascii_uppercase() || c.is_ascii_digit())
+}
+
 pub fn generate() -> String {
     Ulid::new().to_string()
 }
