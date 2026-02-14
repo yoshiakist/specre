@@ -7,21 +7,53 @@ fn is_valid_ulid(s: &str) -> bool {
     s.len() == 26 && s.chars().all(|c| c.is_ascii_uppercase() || c.is_ascii_digit())
 }
 
-fn comment_syntax(ext: &str) -> (&'static str, &'static str) {
+fn comment_syntax(ext: &str) -> Option<(&'static str, &'static str)> {
     match ext {
-        // // style
+        // // style — C-family, JVM, modern languages, shaders
         "rs" | "js" | "ts" | "jsx" | "tsx" | "java" | "c" | "cpp" | "h" | "hpp" | "cs" | "go"
-        | "swift" => ("// ", ""),
-        // # style
-        "rb" | "py" | "sh" | "bash" | "zsh" | "yaml" | "yml" | "toml" => ("# ", ""),
-        // /* */ style
-        "css" | "scss" | "sass" | "less" => ("/* ", " */"),
-        // <!-- --> style
-        "html" | "htm" | "xml" | "svg" => ("<!-- ", " -->"),
-        // -- style
-        "sql" => ("-- ", ""),
-        // default
-        _ => ("// ", ""),
+        | "swift" | "kt" | "kts" | "scala" | "groovy" | "gradle" | "dart" | "php" | "zig"
+        | "proto" | "prisma" | "jsonc"
+        | "shader" | "hlsl" | "cginc" | "compute"
+        | "usf" | "ush"
+        | "gdshader"
+        | "glsl" | "vert" | "frag" | "geom" | "wgsl" => Some(("// ", "")),
+        // # style — scripting, config, data
+        "rb" | "py" | "sh" | "bash" | "zsh" | "yaml" | "yml" | "toml"
+        | "gd"
+        | "pl" | "pm" | "r" | "R" | "ex" | "exs" | "nim"
+        | "ps1" | "psm1" | "psd1" | "fish" | "nix"
+        | "tf" | "tfvars" | "hcl" | "cmake" | "mk"
+        | "env" | "conf" | "properties"
+        | "graphql" | "gql"
+        | "unity" | "prefab" | "asset" | "mat" | "meta" => Some(("# ", "")),
+        // /* */ style — stylesheets
+        "css" | "scss" | "sass" | "less"
+        | "uss" => Some(("/* ", " */")),
+        // <!-- --> style — markup, SFC
+        "html" | "htm" | "xml" | "svg"
+        | "vue" | "svelte" | "astro"
+        | "uxml"
+        | "xsl" | "xslt" => Some(("<!-- ", " -->")),
+        // -- style — SQL, Lua, Haskell
+        "sql" | "lua" | "hs" => Some(("-- ", "")),
+        // ; style — Godot data, INI
+        "tscn" | "tres" | "godot"
+        | "ini" | "cfg" => Some(("; ", "")),
+        // {# #} style — Jinja / Twig templates
+        "j2" | "jinja" | "jinja2"
+        | "twig" => Some(("{# ", " #}")),
+        // <%# %> style — embedded templates
+        "erb" | "ejs" => Some(("<%# ", " %>")),
+        // {{!-- --}} style — Handlebars
+        "hbs" | "handlebars" => Some(("{{!-- ", " --}}")),
+        // @* *@ style — Razor
+        "cshtml" => Some(("@* ", " *@")),
+        // //- style — Pug / Jade
+        "pug" | "jade" => Some(("//- ", "")),
+        // -# style — Haml
+        "haml" => Some(("-# ", "")),
+        // unsupported
+        _ => None,
     }
 }
 
@@ -67,7 +99,12 @@ pub fn execute(args: TagArgs) -> Result<(), String> {
         .extension()
         .and_then(|e| e.to_str())
         .unwrap_or("");
-    let (prefix, suffix) = comment_syntax(ext);
+    let (prefix, suffix) = comment_syntax(ext).ok_or_else(|| {
+        format!(
+            "unsupported file extension '.{}' — comment syntax is unknown",
+            ext
+        )
+    })?;
 
     let marker_line = format!("{prefix}@specre {}{suffix}\n", args.ulid);
     let new_content = format!("{marker_line}{content}");
