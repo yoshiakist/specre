@@ -26,6 +26,14 @@ Most SDD tools (GitHub Spec Kit, Amazon Kiro, BMAD) treat specifications as larg
 
 ## Quick Start
 
+### Install via Cargo (Rust users)
+
+```bash
+cargo install specre
+```
+
+This installs the `specre` CLI from [crates.io](https://crates.io/crates/specre). Requires Rust 1.85+.
+
 ### As a Git Submodule
 
 ```bash
