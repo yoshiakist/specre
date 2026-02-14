@@ -20,7 +20,9 @@ fn write_config(dir: &std::path::Path, specre_dir: &str, source_dirs: &[&str]) {
 fn write_specre(dir: &std::path::Path, rel_path: &str, id: &str, name: &str, status: &str) {
     let path = dir.join(rel_path);
     fs::create_dir_all(path.parent().unwrap()).unwrap();
-    let fm = format!("---\nid: \"{id}\"\nname: \"{name}\"\nstatus: \"{status}\"\n---\n\n## Related Files\n\n-\n");
+    let fm = format!(
+        "---\nid: \"{id}\"\nname: \"{name}\"\nstatus: \"{status}\"\n---\n\n## Related Files\n\n-\n"
+    );
     fs::write(path, fm).unwrap();
 }
 
@@ -278,10 +280,7 @@ fn trace_multiple_source_refs_with_line_numbers() {
         .current_dir(tmp.path())
         .assert()
         .success()
-        .stdout(
-            predicate::str::contains("src/a.rs:2")
-                .and(predicate::str::contains("src/b.rs:3")),
-        );
+        .stdout(predicate::str::contains("src/a.rs:2").and(predicate::str::contains("src/b.rs:3")));
 }
 
 // -- Scenario: Markers inside string literals are ignored --
@@ -424,7 +423,9 @@ fn trace_file_path_not_found() {
         .current_dir(tmp.path())
         .assert()
         .failure()
-        .stderr(predicate::str::contains("file not found: src/nonexistent.rs"));
+        .stderr(predicate::str::contains(
+            "file not found: src/nonexistent.rs",
+        ));
 }
 
 // -- Scenario: File path output uses forward slashes --

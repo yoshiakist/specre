@@ -262,9 +262,10 @@ fn status_invalid_last_verified_format() {
             predicate::str::contains("bad_date_spec")
                 .and(predicate::str::contains("(invalid last_verified)")),
         )
-        .stderr(predicate::str::contains(
-            "Warning: invalid last_verified in",
-        ).and(predicate::str::contains("\"yesterday\"")));
+        .stderr(
+            predicate::str::contains("Warning: invalid last_verified in")
+                .and(predicate::str::contains("\"yesterday\"")),
+        );
 }
 
 // -- Scenario: Impossible date in last_verified is flagged as stale --
@@ -291,9 +292,10 @@ fn status_impossible_date_in_last_verified() {
             predicate::str::contains("impossible_date_spec")
                 .and(predicate::str::contains("(invalid last_verified)")),
         )
-        .stderr(predicate::str::contains(
-            "Warning: invalid last_verified in",
-        ).and(predicate::str::contains("\"2026-02-30\"")));
+        .stderr(
+            predicate::str::contains("Warning: invalid last_verified in")
+                .and(predicate::str::contains("\"2026-02-30\"")),
+        );
 }
 
 // -- Scenario: last_verified on non-stable specres is ignored --

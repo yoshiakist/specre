@@ -21,9 +21,7 @@ pub struct Config {
 pub fn load() -> Result<Config, String> {
     let path = Path::new(CONFIG_FILE);
     if !path.exists() {
-        return Err(format!(
-            "{CONFIG_FILE} not found. Run 'specre init' first."
-        ));
+        return Err(format!("{CONFIG_FILE} not found. Run 'specre init' first."));
     }
     let content =
         fs::read_to_string(path).map_err(|e| format!("Failed to read {CONFIG_FILE}: {e}"))?;
