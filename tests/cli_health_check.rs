@@ -52,7 +52,9 @@ fn write_index_json(dir: &std::path::Path, generated_at: &str) {
     let content = format!(
         r#"{{"version":1,"generated_at":"{generated_at}","specres":[],"source_refs":[]}}"#
     );
-    fs::write(dir.join("index.json"), content).unwrap();
+    let path = dir.join("docs/specres/index.json");
+    fs::create_dir_all(path.parent().unwrap()).unwrap();
+    fs::write(path, content).unwrap();
 }
 
 fn recent_timestamp() -> String {
@@ -461,7 +463,7 @@ fn health_check_malformed_index_json() {
     );
 
     // Malformed index.json
-    fs::write(tmp.path().join("index.json"), "not valid json").unwrap();
+    fs::write(tmp.path().join("docs/specres/index.json"), "not valid json").unwrap();
 
     let output = specre()
         .args(["health-check"])

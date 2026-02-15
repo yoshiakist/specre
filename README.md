@@ -256,7 +256,7 @@ The marker can be placed at the top of a file, above a class or function definit
 
 ## Index Format
 
-`specre index` scans the specification directory and source tree to generate `index.json` — a machine-readable cache for fast lookups.
+`specre index` scans the specification directory and source tree to generate `index.json` inside `specre_dir` — a machine-readable cache for fast lookups.
 
 ```json
 {
@@ -309,7 +309,7 @@ Each entry records a `@specre` marker found in the source tree:
 
 - **index.json is a cache, not a source of truth.** If it's missing or stale, run `specre index` to regenerate. Never edit it manually.
 - **specre files are the source of truth.** All authoritative data lives in the front-matter and body of each `.md` file.
-- **Per-directory INDEX.md** can also be generated for human browsing — a Markdown table summarizing all specres in a subdirectory.
+- **Per-directory _INDEX.md** can also be generated for human browsing — a Markdown table summarizing all specres in a subdirectory.
 
 ## Comparison with Other Tools
 

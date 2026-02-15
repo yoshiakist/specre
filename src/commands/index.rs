@@ -58,15 +58,18 @@ pub fn execute(json_flag: bool) -> Result<(), String> {
         source_refs,
     };
 
+    let index_json_path = specre_dir.join("index.json");
+    let index_json_rel = format!("{}/index.json", config.specre_dir);
     let json =
         serde_json::to_string_pretty(&index).map_err(|e| format!("Failed to serialize: {e}"))?;
-    fs::write("index.json", &json).map_err(|e| format!("Failed to write index.json: {e}"))?;
+    fs::write(&index_json_path, &json)
+        .map_err(|e| format!("Failed to write {index_json_rel}: {e}"))?;
 
     let index_md_files = generate_index_md(specre_dir, &config.specre_dir, &index.specres)?;
 
     if json_flag {
         let output = IndexOutput {
-            index_file: "index.json".to_string(),
+            index_file: index_json_rel,
             specre_count: index.specres.len(),
             source_ref_count: index.source_refs.len(),
             index_md_files,
@@ -76,7 +79,7 @@ pub fn execute(json_flag: bool) -> Result<(), String> {
         println!("{json_str}");
     } else {
         println!(
-            "Generated index.json ({} specres, {} source refs)",
+            "Generated {index_json_rel} ({} specres, {} source refs)",
             index.specres.len(),
             index.source_refs.len()
         );
@@ -145,8 +148,8 @@ pub fn collect_md_files(dir: &Path, cb: &mut dyn FnMut(&Path)) {
             }
             collect_md_files(&path, cb);
         } else if path.extension().is_some_and(|ext| ext == "md") {
-            // Skip INDEX.md files
-            if path.file_name().is_some_and(|n| n == "INDEX.md") {
+            // Skip _INDEX.md files
+            if path.file_name().is_some_and(|n| n == "_INDEX.md") {
                 continue;
             }
             cb(&path);
@@ -330,7 +333,7 @@ fn generate_index_md(
 
     for (domain, entries) in &by_domain {
         let domain_dir = specre_dir.join(domain);
-        let index_path = domain_dir.join("INDEX.md");
+        let index_path = domain_dir.join("_INDEX.md");
         let domain_prefix = format!("{prefix}{domain}/");
 
         let mut md = format!(
@@ -354,7 +357,7 @@ fn generate_index_md(
             .map_err(|e| format!("Failed to write '{}': {e}", index_path.display()))?;
 
         let index_rel =
-            to_forward_slash(&PathBuf::from(specre_dir_str).join(domain).join("INDEX.md"));
+            to_forward_slash(&PathBuf::from(specre_dir_str).join(domain).join("_INDEX.md"));
         generated_files.push(index_rel);
     }
 

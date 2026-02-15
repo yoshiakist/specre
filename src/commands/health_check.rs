@@ -22,8 +22,9 @@ struct Thresholds {
     index_age_hours: f64,
 }
 
-fn get_index_age_hours() -> Option<f64> {
-    let content = fs::read_to_string("index.json").ok()?;
+fn get_index_age_hours(specre_dir: &str) -> Option<f64> {
+    let index_path = std::path::Path::new(specre_dir).join("index.json");
+    let content = fs::read_to_string(index_path).ok()?;
     let parsed: serde_json::Value = serde_json::from_str(&content).ok()?;
     let generated_at = parsed["generated_at"].as_str()?;
     let generated =
@@ -57,7 +58,7 @@ pub fn execute() -> Result<(), String> {
     let orphan_count = orphan_result.orphan_specres + orphan_result.dangling_markers;
 
     // Index freshness
-    let index_age_hours = get_index_age_hours();
+    let index_age_hours = get_index_age_hours(&cfg.specre_dir);
 
     // Healthy check
     let coverage_ok = coverage_ratio >= threshold_coverage;
