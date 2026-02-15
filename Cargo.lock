@@ -663,7 +663,7 @@ dependencies = [
 
 [[package]]
 name = "specre"
-version = "0.2.5"
+version = "0.2.6"
 dependencies = [
  "assert_cmd",
  "assert_fs",
