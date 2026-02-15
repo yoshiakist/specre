@@ -6,10 +6,11 @@ Follow these phases strictly. There is exactly ONE human checkpoint — after th
 
 ## Phase 1: Analysis
 
-1. Read the existing specre cards in `docs/specres/` to identify which specre(s) are affected by the change
-2. Read the related source files and test files listed in the specre card's "Related Files" section
-3. Understand the current behavior by reading the scenarios and comparing with the implementation
-4. Identify the gap between the current behavior and the requested change
+1. Read `README.md` and `docs/project/ROADMAP.md` to understand the project philosophy and roadmap context
+2. Read the existing specre cards in `docs/specres/` to identify which specre(s) are affected by the change
+3. Read the related source files and test files listed in the specre card's "Related Files" section
+4. Understand the current behavior by reading the scenarios and comparing with the implementation
+5. Identify the gap between the current behavior and the requested change
 
 ## Phase 2: Specre Update
 
@@ -25,6 +26,8 @@ Follow these phases strictly. There is exactly ONE human checkpoint — after th
 ## --- CHECKPOINT ---
 
 Stop here and present the updated specre card to the user for review. Show what was changed and why. Do NOT proceed until the user approves. If the user requests changes, update the specre card and present it again.
+
+Notify the user that the checkpoint has been reached (if a notification script is configured in the user's environment).
 
 ## Phase 3: Test-First Implementation (after user approval)
 
