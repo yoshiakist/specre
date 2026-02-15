@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-02-15T02:20:02Z",
+  "generated_at": "2026-02-15T05:27:25Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -97,6 +97,14 @@
       "domain": "cli",
       "path": "docs/specres/cli/specre_health_check_verifies_ecosystem_trustworthiness.md",
       "last_verified": "2026-02-15"
+    },
+    {
+      "id": "01KHFTCYJN8YJMW2RNHJTAQV49",
+      "name": "specre_search_finds_specre_cards_by_query",
+      "status": "stable",
+      "domain": "cli",
+      "path": "docs/specres/cli/specre_search_finds_specre_cards_by_query.md",
+      "last_verified": "2026-02-15"
     }
   ],
   "source_refs": [
@@ -168,6 +176,11 @@
     {
       "specre_id": "01KHB48EES4FR5TFV6ZP2W3MGT",
       "file": "src/commands/orphans.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHFTCYJN8YJMW2RNHJTAQV49",
+      "file": "src/commands/search.rs",
       "line": 1
     },
     {
@@ -278,6 +291,11 @@
     {
       "specre_id": "01KHB48EES4FR5TFV6ZP2W3MGT",
       "file": "tests/cli_orphans.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHFTCYJN8YJMW2RNHJTAQV49",
+      "file": "tests/cli_search.rs",
       "line": 1
     },
     {

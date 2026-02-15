@@ -22,6 +22,7 @@ fn main() {
         Commands::Tag(args) => commands::tag::execute(args),
         Commands::Coverage(args) => commands::coverage::execute(args),
         Commands::HealthCheck => commands::health_check::execute(),
+        Commands::Search(args) => commands::search::execute(args),
     };
 
     if let Err(e) = result {
