@@ -440,12 +440,12 @@ fn index_json_outputs_structured_json() {
         .success();
 
     let json = parse_json(&assert);
-    assert_eq!(json["index_file"], "index.json");
+    assert_eq!(json["index_file"], "docs/specres/index.json");
     assert_eq!(json["specre_count"], 1);
     assert_eq!(json["source_ref_count"], 1);
     let md_files = json["index_md_files"].as_array().unwrap();
     assert_eq!(md_files.len(), 1);
-    assert!(md_files[0].as_str().unwrap().contains("INDEX.md"));
+    assert!(md_files[0].as_str().unwrap().contains("_INDEX.md"));
 }
 
 // ============================================================

@@ -81,9 +81,9 @@ fn index_generates_index_json() {
         .current_dir(tmp.path())
         .assert()
         .success()
-        .stdout(predicate::str::contains("Generated index.json"));
+        .stdout(predicate::str::contains("Generated docs/specres/index.json"));
 
-    assert!(tmp.path().join("index.json").is_file());
+    assert!(tmp.path().join("docs/specres/index.json").is_file());
 }
 
 // -- Scenario: specres array contains correct entries --
@@ -107,7 +107,7 @@ fn index_json_contains_specre_entries() {
         .assert()
         .success();
 
-    let json_str = fs::read_to_string(tmp.path().join("index.json")).unwrap();
+    let json_str = fs::read_to_string(tmp.path().join("docs/specres/index.json")).unwrap();
     let json: serde_json::Value = serde_json::from_str(&json_str).unwrap();
 
     assert_eq!(json["version"], 1);
@@ -151,7 +151,7 @@ fn index_json_contains_source_refs() {
         .assert()
         .success();
 
-    let json_str = fs::read_to_string(tmp.path().join("index.json")).unwrap();
+    let json_str = fs::read_to_string(tmp.path().join("docs/specres/index.json")).unwrap();
     let json: serde_json::Value = serde_json::from_str(&json_str).unwrap();
 
     let refs = json["source_refs"].as_array().unwrap();
@@ -178,7 +178,7 @@ fn index_detects_multiple_markers_in_one_file() {
         .assert()
         .success();
 
-    let json_str = fs::read_to_string(tmp.path().join("index.json")).unwrap();
+    let json_str = fs::read_to_string(tmp.path().join("docs/specres/index.json")).unwrap();
     let json: serde_json::Value = serde_json::from_str(&json_str).unwrap();
 
     let refs = json["source_refs"].as_array().unwrap();
@@ -207,9 +207,9 @@ fn index_generates_domain_index_md() {
         .current_dir(tmp.path())
         .assert()
         .success()
-        .stdout(predicate::str::contains("docs/specres/auth/INDEX.md"));
+        .stdout(predicate::str::contains("docs/specres/auth/_INDEX.md"));
 
-    let index_md = fs::read_to_string(tmp.path().join("docs/specres/auth/INDEX.md")).unwrap();
+    let index_md = fs::read_to_string(tmp.path().join("docs/specres/auth/_INDEX.md")).unwrap();
     assert!(index_md.contains("| Name |"));
     assert!(index_md.contains("user_can_sign_up"));
     assert!(index_md.contains("stable"));
@@ -253,7 +253,7 @@ fn index_handles_subdirectories_within_domain() {
         .success();
 
     // All three should have domain "auth"
-    let json_str = fs::read_to_string(tmp.path().join("index.json")).unwrap();
+    let json_str = fs::read_to_string(tmp.path().join("docs/specres/index.json")).unwrap();
     let json: serde_json::Value = serde_json::from_str(&json_str).unwrap();
     let specres = json["specres"].as_array().unwrap();
     assert_eq!(specres.len(), 3);
@@ -261,22 +261,22 @@ fn index_handles_subdirectories_within_domain() {
         assert_eq!(entry["domain"], "auth");
     }
 
-    // INDEX.md should be at domain level only
-    let index_md = fs::read_to_string(tmp.path().join("docs/specres/auth/INDEX.md")).unwrap();
+    // _INDEX.md should be at domain level only
+    let index_md = fs::read_to_string(tmp.path().join("docs/specres/auth/_INDEX.md")).unwrap();
     // Links should use paths relative to domain directory
     assert!(index_md.contains("signup/user_can_sign_up.md"));
     assert!(index_md.contains("password/user_can_reset_password.md"));
     assert!(index_md.contains("system_rejects_expired_token.md"));
 
-    // No INDEX.md in subdirectories
+    // No _INDEX.md in subdirectories
     assert!(
         !tmp.path()
-            .join("docs/specres/auth/signup/INDEX.md")
+            .join("docs/specres/auth/signup/_INDEX.md")
             .exists()
     );
     assert!(
         !tmp.path()
-            .join("docs/specres/auth/password/INDEX.md")
+            .join("docs/specres/auth/password/_INDEX.md")
             .exists()
     );
 }
@@ -311,7 +311,7 @@ fn index_handles_empty_specre_dir() {
         .assert()
         .success();
 
-    let json_str = fs::read_to_string(tmp.path().join("index.json")).unwrap();
+    let json_str = fs::read_to_string(tmp.path().join("docs/specres/index.json")).unwrap();
     let json: serde_json::Value = serde_json::from_str(&json_str).unwrap();
     assert_eq!(json["specres"].as_array().unwrap().len(), 0);
     assert_eq!(json["source_refs"].as_array().unwrap().len(), 0);
@@ -332,8 +332,8 @@ fn index_overwrites_existing_index() {
         None,
     );
 
-    // Write stale index.json
-    fs::write(tmp.path().join("index.json"), "old content").unwrap();
+    // Write stale index.json in specre_dir
+    fs::write(tmp.path().join("docs/specres/index.json"), "old content").unwrap();
 
     specre()
         .args(["index"])
@@ -341,7 +341,7 @@ fn index_overwrites_existing_index() {
         .assert()
         .success();
 
-    let json_str = fs::read_to_string(tmp.path().join("index.json")).unwrap();
+    let json_str = fs::read_to_string(tmp.path().join("docs/specres/index.json")).unwrap();
     assert_ne!(json_str, "old content");
     // Verify it's valid JSON
     let json: serde_json::Value = serde_json::from_str(&json_str).unwrap();
@@ -369,7 +369,7 @@ fn index_json_last_verified_is_null_when_absent() {
         .assert()
         .success();
 
-    let json_str = fs::read_to_string(tmp.path().join("index.json")).unwrap();
+    let json_str = fs::read_to_string(tmp.path().join("docs/specres/index.json")).unwrap();
     let json: serde_json::Value = serde_json::from_str(&json_str).unwrap();
     let entry = &json["specres"][0];
     assert!(entry["last_verified"].is_null());
@@ -401,7 +401,7 @@ fn index_json_paths_use_forward_slashes() {
         .assert()
         .success();
 
-    let json_str = fs::read_to_string(tmp.path().join("index.json")).unwrap();
+    let json_str = fs::read_to_string(tmp.path().join("docs/specres/index.json")).unwrap();
     // No backslashes in paths
     assert!(!json_str.contains('\\'));
     let json: serde_json::Value = serde_json::from_str(&json_str).unwrap();
@@ -440,7 +440,7 @@ fn index_ignores_markers_inside_string_literals() {
         .assert()
         .success();
 
-    let json_str = fs::read_to_string(tmp.path().join("index.json")).unwrap();
+    let json_str = fs::read_to_string(tmp.path().join("docs/specres/index.json")).unwrap();
     let json: serde_json::Value = serde_json::from_str(&json_str).unwrap();
 
     let refs = json["source_refs"].as_array().unwrap();
@@ -483,7 +483,7 @@ fn index_target_extensions_filters_source_files() {
         .assert()
         .success();
 
-    let json_str = fs::read_to_string(tmp.path().join("index.json")).unwrap();
+    let json_str = fs::read_to_string(tmp.path().join("docs/specres/index.json")).unwrap();
     let json: serde_json::Value = serde_json::from_str(&json_str).unwrap();
 
     let refs = json["source_refs"].as_array().unwrap();
@@ -516,7 +516,7 @@ fn index_empty_target_extensions_scans_nothing() {
         .assert()
         .success();
 
-    let json_str = fs::read_to_string(tmp.path().join("index.json")).unwrap();
+    let json_str = fs::read_to_string(tmp.path().join("docs/specres/index.json")).unwrap();
     let json: serde_json::Value = serde_json::from_str(&json_str).unwrap();
 
     let refs = json["source_refs"].as_array().unwrap();
@@ -554,7 +554,7 @@ fn index_without_target_extensions_scans_all_files() {
         .assert()
         .success();
 
-    let json_str = fs::read_to_string(tmp.path().join("index.json")).unwrap();
+    let json_str = fs::read_to_string(tmp.path().join("docs/specres/index.json")).unwrap();
     let json: serde_json::Value = serde_json::from_str(&json_str).unwrap();
 
     let refs = json["source_refs"].as_array().unwrap();

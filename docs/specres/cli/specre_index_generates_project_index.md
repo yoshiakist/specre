@@ -2,7 +2,7 @@
 id: "01KHAKAYN5WPTDVR99D5Q5TMJE"
 name: "specre_index_generates_project_index"
 status: "stable"
-last_verified: "2026-02-13"
+last_verified: "2026-02-15"
 ---
 
 ## Related Files
@@ -13,13 +13,13 @@ last_verified: "2026-02-13"
 
 ## Functional Overview
 
-`specre index` scans the specre directory and source tree, then generates `index.json` (a machine-readable cache) at the project root and per-domain `INDEX.md` files (human-readable summaries) in each domain directory. It reads `specre.toml` to determine the specre directory and source directories.
+`specre index` scans the specre directory and source tree, then generates `index.json` (a machine-readable cache) inside `specre_dir` and per-domain `_INDEX.md` files (human-readable summaries) in each domain directory. It reads `specre.toml` to determine the specre directory and source directories.
 
 ## Design Intent
 
 The index command produces a derived artifact that other commands and external tools can consume for fast lookups without re-parsing every specre file. `index.json` is a cache — it can be regenerated at any time and should never be edited manually.
 
-Per-domain `INDEX.md` files provide a browsable overview of all specres in a domain, useful for both human developers and AI agents navigating the specification tree.
+Per-domain `_INDEX.md` files provide a browsable overview of all specres in a domain, useful for both human developers and AI agents navigating the specification tree.
 
 ## Key Members
 
@@ -36,8 +36,8 @@ Per-domain `INDEX.md` files provide a browsable overview of all specres in a dom
 2. CLI reads `specre.toml` to determine `specre_dir` and `source_dirs`
 3. CLI scans all `.md` files under `specre_dir` recursively, parsing YAML front-matter
 4. CLI scans files under `source_dirs` recursively for `@specre <ULID>` markers (filtered by `target_extensions` if set)
-5. CLI writes `index.json` at the project root with `version`, `generated_at`, `specres`, and `source_refs`
-6. CLI prints a summary to stdout: `Generated index.json (N specres, M source refs)`
+5. CLI writes `index.json` inside `specre_dir` (e.g., `docs/specres/index.json`) with `version`, `generated_at`, `specres`, and `source_refs`
+6. CLI prints a summary to stdout: `Generated <specre_dir>/index.json (N specres, M source refs)`
 
 ### specres array contains correct entries
 
@@ -54,13 +54,13 @@ Per-domain `INDEX.md` files provide a browsable overview of all specres in a dom
 4. Markers inside string literals are ignored: if a quote character (`"` or `'`) appears before `@specre` on the same line, the marker is not detected
 5. When `target_extensions` is set in `specre.toml`, only files whose extension matches the list are scanned. When unset, all files are scanned.
 
-### Per-domain INDEX.md is generated
+### Per-domain _INDEX.md is generated
 
-1. For each domain directory (top-level directory under `specre_dir`), CLI generates an `INDEX.md` in that domain directory
-2. `INDEX.md` contains a Markdown table with columns: Name, Status, Last Verified
+1. For each domain directory (top-level directory under `specre_dir`), CLI generates an `_INDEX.md` in that domain directory
+2. `_INDEX.md` contains a Markdown table with columns: Name, Status, Last Verified
 3. Name column links to the specre file using a path relative to the domain directory (e.g., `[user_can_sign_up](signup/user_can_sign_up.md)` for a specre nested in a subdirectory)
-4. `INDEX.md` includes all specres within the domain, including those in subdirectories
-5. CLI prints each generated `INDEX.md` path to stdout
+4. `_INDEX.md` includes all specres within the domain, including those in subdirectories
+5. CLI prints each generated `_INDEX.md` path to stdout
 
 ### Subdirectories within a domain are handled correctly
 
@@ -71,7 +71,7 @@ Per-domain `INDEX.md` files provide a browsable overview of all specres in a dom
      password/user_can_reset_password.md
      system_rejects_expired_token.md
    ```
-2. `specre index` produces one `INDEX.md` at `docs/specres/auth/INDEX.md`
+2. `specre index` produces one `_INDEX.md` at `docs/specres/auth/_INDEX.md`
 3. All three specres appear in the table, with paths relative to the domain directory:
    - `signup/user_can_sign_up.md`
    - `password/user_can_reset_password.md`
@@ -87,11 +87,11 @@ Per-domain `INDEX.md` files provide a browsable overview of all specres in a dom
 
 1. User runs `specre index` with a valid `specre.toml` but no specre files exist
 2. CLI generates `index.json` with empty `specres` and `source_refs` arrays
-3. No `INDEX.md` files are generated
+3. No `_INDEX.md` files are generated
 
 ### Overwrites existing index files
 
-1. User runs `specre index` when `index.json` and `INDEX.md` already exist
+1. User runs `specre index` when `index.json` and `_INDEX.md` already exist
 2. CLI overwrites both files with fresh content
 3. No error is raised
 

@@ -24,7 +24,7 @@ pub enum Commands {
     /// Create a new specre card from a template
     New(NewArgs),
 
-    /// Generate index.json and per-domain INDEX.md
+    /// Generate index.json and per-domain _INDEX.md
     Index,
 
     /// Report specre counts by status and flag stale last_verified dates
