@@ -21,6 +21,7 @@ fn main() {
         Commands::Orphans => commands::orphans::execute(),
         Commands::Tag(args) => commands::tag::execute(args),
         Commands::Coverage(args) => commands::coverage::execute(args),
+        Commands::HealthCheck => commands::health_check::execute(),
     };
 
     if let Err(e) = result {

@@ -19,6 +19,74 @@ struct DanglingMarker {
     ulid: String,
 }
 
+pub struct OrphanResult {
+    pub orphan_specres: usize,
+    pub dangling_markers: usize,
+}
+
+pub fn compute_orphans(
+    specre_dir: &str,
+    source_dirs: &[String],
+    target_extensions: Option<&[String]>,
+) -> OrphanResult {
+    let specre_path = Path::new(specre_dir);
+
+    // Collect all specre ids and paths
+    let mut specres: Vec<SpecreInfo> = Vec::new();
+    if specre_path.exists() {
+        collect_md_files(specre_path, &mut |path| {
+            let content = match fs::read_to_string(path) {
+                Ok(c) => c,
+                Err(_) => return,
+            };
+            if let Some(fm) = parse_frontmatter(&content) {
+                specres.push(SpecreInfo {
+                    id: fm.id,
+                    path: to_forward_slash(path),
+                    status: fm.status,
+                });
+            }
+        });
+    }
+
+    let specre_ids: HashSet<&str> = specres.iter().map(|s| s.id.as_str()).collect();
+
+    // Collect all source markers
+    let mut marker_ulids: HashSet<String> = HashSet::new();
+    let mut dangling_count = 0usize;
+
+    for dir_str in source_dirs {
+        let dir = Path::new(dir_str);
+        if !dir.exists() {
+            continue;
+        }
+        collect_all_files(dir, target_extensions, &mut |path| {
+            let content = match fs::read_to_string(path) {
+                Ok(c) => c,
+                Err(_) => return,
+            };
+            for line in content.lines() {
+                if let Some(candidate) = extract_marker_ulid(line) {
+                    marker_ulids.insert(candidate.to_string());
+                    if !specre_ids.contains(candidate) {
+                        dangling_count += 1;
+                    }
+                }
+            }
+        });
+    }
+
+    let orphan_specres = specres
+        .iter()
+        .filter(|s| s.status != "deprecated" && !marker_ulids.contains(&s.id))
+        .count();
+
+    OrphanResult {
+        orphan_specres,
+        dangling_markers: dangling_count,
+    }
+}
+
 pub fn execute() -> Result<(), String> {
     let config = config::load()?;
     let specre_dir = Path::new(&config.specre_dir);

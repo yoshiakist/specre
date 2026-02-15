@@ -37,6 +37,9 @@ pub enum Commands {
 
     /// Report the percentage of source files covered by @specre tags
     Coverage(CoverageArgs),
+
+    /// Comprehensive health check for AI agent preflight
+    HealthCheck,
 }
 
 #[derive(Args)]

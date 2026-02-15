@@ -1,0 +1,91 @@
+// @specre 01KHFGVXWP100JXYBZTRJGMB9H
+use crate::commands::coverage::compute_coverage;
+use crate::commands::orphans::compute_orphans;
+use crate::config;
+use chrono::Utc;
+use serde::Serialize;
+use std::fs;
+
+#[derive(Serialize)]
+struct HealthCheckResult {
+    healthy: bool,
+    coverage: f64,
+    orphans: usize,
+    index_age_hours: Option<f64>,
+    thresholds: Thresholds,
+}
+
+#[derive(Serialize)]
+struct Thresholds {
+    coverage: f64,
+    orphans: usize,
+    index_age_hours: f64,
+}
+
+fn get_index_age_hours() -> Option<f64> {
+    let content = fs::read_to_string("index.json").ok()?;
+    let parsed: serde_json::Value = serde_json::from_str(&content).ok()?;
+    let generated_at = parsed["generated_at"].as_str()?;
+    let generated =
+        chrono::DateTime::parse_from_rfc3339(generated_at).ok()?;
+    let age = Utc::now().signed_duration_since(generated);
+    let hours = age.num_minutes() as f64 / 60.0;
+    // Round to one decimal place
+    Some((hours * 10.0).round() / 10.0)
+}
+
+pub fn execute() -> Result<(), String> {
+    let cfg = config::load()?;
+
+    let hc = cfg.health_check.as_ref();
+    let threshold_coverage = hc.and_then(|h| h.coverage).unwrap_or(0.90);
+    let threshold_orphans = hc.and_then(|h| h.orphans).unwrap_or(5);
+    let threshold_index_age = hc.and_then(|h| h.index_age_hours).unwrap_or(24.0);
+
+    // Coverage
+    let cov = compute_coverage(&cfg.source_dirs, cfg.target_extensions.as_deref());
+    let coverage_ratio = if cov.total == 0 {
+        0.0
+    } else {
+        // Round to two decimal places
+        ((cov.tagged as f64 / cov.total as f64) * 100.0).round() / 100.0
+    };
+
+    // Orphans
+    let orphan_result =
+        compute_orphans(&cfg.specre_dir, &cfg.source_dirs, cfg.target_extensions.as_deref());
+    let orphan_count = orphan_result.orphan_specres + orphan_result.dangling_markers;
+
+    // Index freshness
+    let index_age_hours = get_index_age_hours();
+
+    // Healthy check
+    let coverage_ok = coverage_ratio >= threshold_coverage;
+    let orphans_ok = orphan_count <= threshold_orphans;
+    let index_ok = index_age_hours
+        .map(|age| age <= threshold_index_age)
+        .unwrap_or(false);
+    let healthy = coverage_ok && orphans_ok && index_ok;
+
+    let result = HealthCheckResult {
+        healthy,
+        coverage: coverage_ratio,
+        orphans: orphan_count,
+        index_age_hours,
+        thresholds: Thresholds {
+            coverage: threshold_coverage,
+            orphans: threshold_orphans,
+            index_age_hours: threshold_index_age,
+        },
+    };
+
+    let json = serde_json::to_string_pretty(&result)
+        .map_err(|e| format!("Failed to serialize: {e}"))?;
+    println!("{json}");
+
+    if healthy {
+        Ok(())
+    } else {
+        Err(String::new())
+    }
+}

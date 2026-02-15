@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-02-15T01:48:35Z",
+  "generated_at": "2026-02-15T02:20:02Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -89,6 +89,14 @@
       "domain": "cli",
       "path": "docs/specres/cli/specre_cli_dispatches_commands_and_handles_errors.md",
       "last_verified": "2026-02-15"
+    },
+    {
+      "id": "01KHFGVXWP100JXYBZTRJGMB9H",
+      "name": "specre_health_check_verifies_ecosystem_trustworthiness",
+      "status": "stable",
+      "domain": "cli",
+      "path": "docs/specres/cli/specre_health_check_verifies_ecosystem_trustworthiness.md",
+      "last_verified": "2026-02-15"
     }
   ],
   "source_refs": [
@@ -100,6 +108,11 @@
     {
       "specre_id": "01KHFEA9QVV4A127VCRJY97A68",
       "file": "src/commands/coverage.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHFGVXWP100JXYBZTRJGMB9H",
+      "file": "src/commands/health_check.rs",
       "line": 1
     },
     {
@@ -240,6 +253,11 @@
     {
       "specre_id": "01KHFFCX8BCDAYP8YHG0J65H0E",
       "file": "tests/cli_dispatch.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHFGVXWP100JXYBZTRJGMB9H",
+      "file": "tests/cli_health_check.rs",
       "line": 1
     },
     {
