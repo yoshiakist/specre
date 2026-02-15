@@ -3,12 +3,21 @@
 // @specre 01KHB48DYZDN8GHXPX7MSYJ1NZ
 // @specre 01KHAKAYN5WPTDVR99D5Q5TMJE
 // @specre 01KHFD5R1G3C5R34XMQXQTTMM9
+// @specre 01KHG0A2V4YXE918WMJCY7WFE8
 use crate::config;
 use chrono::Utc;
 use serde::Serialize;
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
+
+#[derive(Serialize)]
+struct IndexOutput {
+    index_file: String,
+    specre_count: usize,
+    source_ref_count: usize,
+    index_md_files: Vec<String>,
+}
 
 #[derive(Serialize)]
 struct Index {
@@ -35,7 +44,7 @@ struct SourceRef {
     line: usize,
 }
 
-pub fn execute() -> Result<(), String> {
+pub fn execute(json_flag: bool) -> Result<(), String> {
     let config = config::load()?;
 
     let specre_dir = Path::new(&config.specre_dir);
@@ -53,13 +62,28 @@ pub fn execute() -> Result<(), String> {
         serde_json::to_string_pretty(&index).map_err(|e| format!("Failed to serialize: {e}"))?;
     fs::write("index.json", &json).map_err(|e| format!("Failed to write index.json: {e}"))?;
 
-    println!(
-        "Generated index.json ({} specres, {} source refs)",
-        index.specres.len(),
-        index.source_refs.len()
-    );
+    let index_md_files = generate_index_md(specre_dir, &config.specre_dir, &index.specres)?;
 
-    generate_index_md(specre_dir, &config.specre_dir, &index.specres)?;
+    if json_flag {
+        let output = IndexOutput {
+            index_file: "index.json".to_string(),
+            specre_count: index.specres.len(),
+            source_ref_count: index.source_refs.len(),
+            index_md_files,
+        };
+        let json_str = serde_json::to_string_pretty(&output)
+            .map_err(|e| format!("Failed to serialize: {e}"))?;
+        println!("{json_str}");
+    } else {
+        println!(
+            "Generated index.json ({} specres, {} source refs)",
+            index.specres.len(),
+            index.source_refs.len()
+        );
+        for md_file in &index_md_files {
+            println!("Generated {md_file}");
+        }
+    }
 
     Ok(())
 }
@@ -286,7 +310,7 @@ fn generate_index_md(
     specre_dir: &Path,
     specre_dir_str: &str,
     specres: &[SpecreEntry],
-) -> Result<(), String> {
+) -> Result<Vec<String>, String> {
     // Group specres by domain
     let mut by_domain: BTreeMap<String, Vec<&SpecreEntry>> = BTreeMap::new();
     for entry in specres {
@@ -301,6 +325,8 @@ fn generate_index_md(
     } else {
         format!("{specre_dir_str}/")
     };
+
+    let mut generated_files = Vec::new();
 
     for (domain, entries) in &by_domain {
         let domain_dir = specre_dir.join(domain);
@@ -329,8 +355,8 @@ fn generate_index_md(
 
         let index_rel =
             to_forward_slash(&PathBuf::from(specre_dir_str).join(domain).join("INDEX.md"));
-        println!("Generated {index_rel}");
+        generated_files.push(index_rel);
     }
 
-    Ok(())
+    Ok(generated_files)
 }

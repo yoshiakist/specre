@@ -8,6 +8,10 @@ use clap::{Args, Parser, Subcommand};
     about = "Atomic specification cards for AI-agent-friendly development"
 )]
 pub struct Cli {
+    /// Output in JSON format (machine-readable)
+    #[arg(long, global = true)]
+    pub json: bool,
+
     #[command(subcommand)]
     pub command: Commands,
 }

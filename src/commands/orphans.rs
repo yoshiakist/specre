@@ -1,8 +1,10 @@
 // @specre 01KHB48EES4FR5TFV6ZP2W3MGT
+// @specre 01KHG0A2V4YXE918WMJCY7WFE8
 use crate::commands::index::{
     collect_all_files, collect_md_files, extract_marker_ulid, parse_frontmatter, to_forward_slash,
 };
 use crate::config;
+use serde::Serialize;
 use std::collections::HashSet;
 use std::fs;
 use std::path::Path;
@@ -17,6 +19,19 @@ struct DanglingMarker {
     file: String,
     line: usize,
     ulid: String,
+}
+
+#[derive(Serialize)]
+struct OrphansOutput {
+    orphan_specres: Vec<String>,
+    dangling_markers: Vec<DanglingMarkerOutput>,
+}
+
+#[derive(Serialize)]
+struct DanglingMarkerOutput {
+    file: String,
+    line: usize,
+    id: String,
 }
 
 pub struct OrphanResult {
@@ -87,7 +102,7 @@ pub fn compute_orphans(
     }
 }
 
-pub fn execute() -> Result<(), String> {
+pub fn execute(json: bool) -> Result<(), String> {
     let config = config::load()?;
     let specre_dir = Path::new(&config.specre_dir);
 
@@ -160,6 +175,28 @@ pub fn execute() -> Result<(), String> {
     orphans.sort_by(|a, b| a.path.cmp(&b.path));
 
     dangling.sort_by(|a, b| a.file.cmp(&b.file).then(a.line.cmp(&b.line)));
+
+    if json {
+        let output = OrphansOutput {
+            orphan_specres: orphans.iter().map(|s| s.path.clone()).collect(),
+            dangling_markers: dangling
+                .iter()
+                .map(|d| DanglingMarkerOutput {
+                    file: d.file.clone(),
+                    line: d.line,
+                    id: d.ulid.clone(),
+                })
+                .collect(),
+        };
+        let json_str = serde_json::to_string_pretty(&output)
+            .map_err(|e| format!("Failed to serialize: {e}"))?;
+        println!("{json_str}");
+
+        if orphans.is_empty() && dangling.is_empty() {
+            return Ok(());
+        }
+        return Err(String::new());
+    }
 
     if orphans.is_empty() && dangling.is_empty() {
         println!("No orphans or dangling markers found.");

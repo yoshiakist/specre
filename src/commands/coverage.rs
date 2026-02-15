@@ -1,9 +1,19 @@
 // @specre 01KHFEA9QVV4A127VCRJY97A68
+// @specre 01KHG0A2V4YXE918WMJCY7WFE8
 use crate::cli::CoverageArgs;
 use crate::commands::index::{collect_all_files, extract_marker_ulid, to_forward_slash};
 use crate::config;
+use serde::Serialize;
 use std::fs;
 use std::path::Path;
+
+#[derive(Serialize)]
+struct CoverageOutput {
+    total: usize,
+    tagged: usize,
+    coverage: f64,
+    uncovered: Vec<String>,
+}
 
 pub struct CoverageResult {
     pub total: usize,
@@ -53,7 +63,7 @@ pub fn compute_coverage(
     }
 }
 
-pub fn execute(args: CoverageArgs) -> Result<(), String> {
+pub fn execute(args: CoverageArgs, json: bool) -> Result<(), String> {
     let config = config::load()?;
 
     let extensions = args
@@ -62,18 +72,35 @@ pub fn execute(args: CoverageArgs) -> Result<(), String> {
 
     let result = compute_coverage(&config.source_dirs, extensions.as_deref());
 
-    if result.total == 0 {
-        println!("Coverage: 0/0 files (N/A)");
+    if json {
+        let coverage_ratio = if result.total == 0 {
+            0.0
+        } else {
+            result.tagged as f64 / result.total as f64
+        };
+        let output = CoverageOutput {
+            total: result.total,
+            tagged: result.tagged,
+            coverage: coverage_ratio,
+            uncovered: result.uncovered,
+        };
+        let json_str = serde_json::to_string_pretty(&output)
+            .map_err(|e| format!("Failed to serialize: {e}"))?;
+        println!("{json_str}");
     } else {
-        let pct = result.tagged as f64 / result.total as f64 * 100.0;
-        println!("Coverage: {}/{} files ({:.1}%)", result.tagged, result.total, pct);
-    }
+        if result.total == 0 {
+            println!("Coverage: 0/0 files (N/A)");
+        } else {
+            let pct = result.tagged as f64 / result.total as f64 * 100.0;
+            println!("Coverage: {}/{} files ({:.1}%)", result.tagged, result.total, pct);
+        }
 
-    if !result.uncovered.is_empty() {
-        println!();
-        println!("Uncovered files:");
-        for path in &result.uncovered {
-            println!("  {path}");
+        if !result.uncovered.is_empty() {
+            println!();
+            println!("Uncovered files:");
+            for path in &result.uncovered {
+                println!("  {path}");
+            }
         }
     }
 

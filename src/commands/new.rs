@@ -1,13 +1,22 @@
 // @specre 01JMBJK7QRVX3N4P5G6H8W9Y0Z
 // @specre 01KHDF9WHR5HFM4RQCF6HS3KCC
+// @specre 01KHG0A2V4YXE918WMJCY7WFE8
 use crate::cli::NewArgs;
+use crate::commands::index::to_forward_slash;
 use crate::config;
 use crate::template;
 use crate::ulid;
+use serde::Serialize;
 use std::fs;
 use std::path::Path;
 
-pub fn execute(args: NewArgs) -> Result<(), String> {
+#[derive(Serialize)]
+struct NewOutput {
+    id: String,
+    path: String,
+}
+
+pub fn execute(args: NewArgs, json: bool) -> Result<(), String> {
     let target = Path::new(&args.target_dir);
 
     if target.is_file() {
@@ -33,7 +42,17 @@ pub fn execute(args: NewArgs) -> Result<(), String> {
     fs::write(&file_path, &content)
         .map_err(|e| format!("Failed to write '{}': {e}", file_path.display()))?;
 
-    println!("{}", file_path.display());
+    if json {
+        let output = NewOutput {
+            id,
+            path: to_forward_slash(&file_path),
+        };
+        let json_str = serde_json::to_string_pretty(&output)
+            .map_err(|e| format!("Failed to serialize: {e}"))?;
+        println!("{json_str}");
+    } else {
+        println!("{}", file_path.display());
+    }
 
     Ok(())
 }

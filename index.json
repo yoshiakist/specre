@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-02-15T05:27:25Z",
+  "generated_at": "2026-02-15T06:49:27Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -105,6 +105,14 @@
       "domain": "cli",
       "path": "docs/specres/cli/specre_search_finds_specre_cards_by_query.md",
       "last_verified": "2026-02-15"
+    },
+    {
+      "id": "01KHG0A2V4YXE918WMJCY7WFE8",
+      "name": "specre_commands_support_json_output",
+      "status": "stable",
+      "domain": "cli",
+      "path": "docs/specres/cli/specre_commands_support_json_output.md",
+      "last_verified": "2026-02-15"
     }
   ],
   "source_refs": [
@@ -117,6 +125,11 @@
       "specre_id": "01KHFEA9QVV4A127VCRJY97A68",
       "file": "src/commands/coverage.rs",
       "line": 1
+    },
+    {
+      "specre_id": "01KHG0A2V4YXE918WMJCY7WFE8",
+      "file": "src/commands/coverage.rs",
+      "line": 2
     },
     {
       "specre_id": "01KHFGVXWP100JXYBZTRJGMB9H",
@@ -149,6 +162,11 @@
       "line": 5
     },
     {
+      "specre_id": "01KHG0A2V4YXE918WMJCY7WFE8",
+      "file": "src/commands/index.rs",
+      "line": 6
+    },
+    {
       "specre_id": "01KHAGG8NQQ7RSNYZ6SWBCYH3N",
       "file": "src/commands/init.rs",
       "line": 1
@@ -157,6 +175,11 @@
       "specre_id": "01KHFD5R1G3C5R34XMQXQTTMM9",
       "file": "src/commands/init.rs",
       "line": 2
+    },
+    {
+      "specre_id": "01KHG0A2V4YXE918WMJCY7WFE8",
+      "file": "src/commands/init.rs",
+      "line": 3
     },
     {
       "specre_id": "01KHFFCX8BCDAYP8YHG0J65H0E",
@@ -174,9 +197,19 @@
       "line": 2
     },
     {
+      "specre_id": "01KHG0A2V4YXE918WMJCY7WFE8",
+      "file": "src/commands/new.rs",
+      "line": 3
+    },
+    {
       "specre_id": "01KHB48EES4FR5TFV6ZP2W3MGT",
       "file": "src/commands/orphans.rs",
       "line": 1
+    },
+    {
+      "specre_id": "01KHG0A2V4YXE918WMJCY7WFE8",
+      "file": "src/commands/orphans.rs",
+      "line": 2
     },
     {
       "specre_id": "01KHFTCYJN8YJMW2RNHJTAQV49",
@@ -189,14 +222,29 @@
       "line": 1
     },
     {
+      "specre_id": "01KHG0A2V4YXE918WMJCY7WFE8",
+      "file": "src/commands/status.rs",
+      "line": 2
+    },
+    {
       "specre_id": "01KHB48EYB9686YYQMYFYQ5R1Z",
       "file": "src/commands/tag.rs",
       "line": 1
     },
     {
+      "specre_id": "01KHG0A2V4YXE918WMJCY7WFE8",
+      "file": "src/commands/tag.rs",
+      "line": 2
+    },
+    {
       "specre_id": "01KHB48DYZDN8GHXPX7MSYJ1NZ",
       "file": "src/commands/trace.rs",
       "line": 1
+    },
+    {
+      "specre_id": "01KHG0A2V4YXE918WMJCY7WFE8",
+      "file": "src/commands/trace.rs",
+      "line": 2
     },
     {
       "specre_id": "01KHB48EYB9686YYQMYFYQ5R1Z",
@@ -281,6 +329,11 @@
     {
       "specre_id": "01KHAGG8NQQ7RSNYZ6SWBCYH3N",
       "file": "tests/cli_init.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHG0A2V4YXE918WMJCY7WFE8",
+      "file": "tests/cli_json_output.rs",
       "line": 1
     },
     {
