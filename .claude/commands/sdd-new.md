@@ -6,7 +6,7 @@ Follow these phases strictly. There is exactly ONE human checkpoint — after th
 
 ## Phase 1: Analysis
 
-1. Read the roadmap in `README.md` to understand where the feature fits
+1. Read `README.md` and `docs/project/ROADMAP.md` to understand the project philosophy and where the feature fits in the roadmap
 2. Read existing specre cards in `docs/specres/` for reference on format and style
 3. Read relevant existing code (commands, tests, config) to understand patterns
 4. Identify the specre name (subject + predicate, e.g. `specre_status_reports_project_health`)
@@ -26,6 +26,8 @@ Follow these phases strictly. There is exactly ONE human checkpoint — after th
 
 Stop here and present the completed specre card to the user for review. Do NOT proceed until the user approves. If the user requests changes, update the specre card and present it again.
 
+Notify the user that the checkpoint has been reached (if a notification script is configured in the user's environment).
+
 ## Phase 3: Test-First Implementation (after user approval)
 
 1. **Write integration tests** in `tests/` based on every scenario in the specre card. Use `assert_cmd` + `assert_fs` + `predicates`, following the patterns in existing test files.
@@ -35,8 +37,10 @@ Stop here and present the completed specre card to the user for review. Do NOT p
    - Register in `src/commands/mod.rs` and `src/main.rs`
 3. **Run `cargo test`** and fix until all tests pass (both new and existing).
 
-## Phase 4: Finalize
+## Phase 4: Finalize & PR
 
 1. Update the specre card: set `status: "stable"` and `last_verified` to today's date
 2. Run `specre index`
-3. Commit all changes with a descriptive message
+3. Create a feature branch from `main` with a descriptive name (e.g., `feature/<specre-name>`)
+4. Commit all changes with a descriptive message
+5. Push the branch and create a Pull Request using `gh pr create`
