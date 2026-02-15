@@ -161,3 +161,33 @@ fn init_without_language_omits_field() {
     let content = fs::read_to_string(tmp.path().join("specre.toml")).unwrap();
     assert!(!content.contains("language"));
 }
+
+// -- Scenario: Custom target extensions --
+
+#[test]
+fn init_with_ext_creates_target_extensions() {
+    let tmp = TempDir::new().unwrap();
+
+    specre()
+        .args(["init", "--ext", "rs,ts"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("specre.toml")).unwrap();
+    assert!(content.contains(r#"target_extensions = ["rs", "ts"]"#));
+}
+
+#[test]
+fn init_without_ext_omits_target_extensions() {
+    let tmp = TempDir::new().unwrap();
+
+    specre()
+        .args(["init"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("specre.toml")).unwrap();
+    assert!(!content.contains("target_extensions"));
+}

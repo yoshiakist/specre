@@ -1,4 +1,5 @@
 // @specre 01KHAGG8NQQ7RSNYZ6SWBCYH3N
+// @specre 01KHFD5R1G3C5R34XMQXQTTMM9
 use crate::cli::InitArgs;
 use std::fs;
 use std::path::Path;
@@ -34,8 +35,15 @@ pub fn execute(args: InitArgs) -> Result<(), String> {
         Some(lang) => format!("language = \"{lang}\"\n"),
         None => String::new(),
     };
+    let ext_line = match &args.ext {
+        Some(exts) => {
+            let ext_toml: Vec<String> = exts.iter().map(|s| format!("\"{s}\"")).collect();
+            format!("target_extensions = [{}]\n", ext_toml.join(", "))
+        }
+        None => String::new(),
+    };
     let config_content = format!(
-        "specre_dir = \"{}\"\nsource_dirs = [{}]\n{language_line}",
+        "specre_dir = \"{}\"\nsource_dirs = [{}]\n{language_line}{ext_line}",
         args.specre_dir,
         source_dirs_toml.join(", ")
     );

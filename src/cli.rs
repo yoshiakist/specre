@@ -48,6 +48,10 @@ pub struct InitArgs {
     /// Language for specre card templates (e.g., "en", "ja")
     #[arg(long)]
     pub language: Option<String>,
+
+    /// Target file extensions for source scanning (comma-separated, e.g., "rs,ts,js")
+    #[arg(long, value_delimiter = ',')]
+    pub ext: Option<Vec<String>>,
 }
 
 #[derive(Args)]

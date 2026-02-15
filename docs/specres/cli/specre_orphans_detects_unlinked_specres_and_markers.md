@@ -14,7 +14,7 @@ last_verified: "2026-02-13"
 
 ## Functional Overview
 
-`specre orphans` detects specres that have no `@specre` markers in any source file (orphan specres) and `@specre` markers in source files that do not match any specre's `id` (dangling markers). It reports both categories so developers can restore traceability or clean up stale references.
+`specre orphans` detects specres that have no `@specre` markers in any source file (orphan specres) and `@specre` markers in source files that do not match any specre's `id` (dangling markers). It reports both categories so developers can restore traceability or clean up stale references. Source file scanning respects the `target_extensions` setting in `specre.toml` when configured.
 
 ## Design Intent
 
@@ -24,8 +24,8 @@ The primary consumers are CI pipelines (where a non-zero exit code can block mer
 
 ## Key Members
 
-- Orphan specre: a specre file whose `id` does not appear as an `@specre` marker in any scanned source file
-- Dangling marker: a `@specre <ULID>` marker in a source file where no specre file has that ULID as its `id`
+- Orphan specre: a specre file whose `id` does not appear as an `@specre` marker in any scanned source file (filtered by `target_extensions` if set)
+- Dangling marker: a `@specre <ULID>` marker in a scanned source file where no specre file has that ULID as its `id`
 
 ## Scenarios
 

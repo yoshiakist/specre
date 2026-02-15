@@ -18,6 +18,23 @@ fn write_config(dir: &std::path::Path, specre_dir: &str, source_dirs: &[&str]) {
     fs::write(dir.join("specre.toml"), content).unwrap();
 }
 
+/// Helper: create specre.toml with target_extensions
+fn write_config_with_ext(
+    dir: &std::path::Path,
+    specre_dir: &str,
+    source_dirs: &[&str],
+    target_extensions: &[&str],
+) {
+    let dirs_toml: Vec<String> = source_dirs.iter().map(|s| format!("\"{s}\"")).collect();
+    let ext_toml: Vec<String> = target_extensions.iter().map(|s| format!("\"{s}\"")).collect();
+    let content = format!(
+        "specre_dir = \"{specre_dir}\"\nsource_dirs = [{}]\ntarget_extensions = [{}]\n",
+        dirs_toml.join(", "),
+        ext_toml.join(", ")
+    );
+    fs::write(dir.join("specre.toml"), content).unwrap();
+}
+
 /// Helper: create a specre .md file with front-matter
 fn write_specre(
     dir: &std::path::Path,
@@ -431,4 +448,116 @@ fn index_ignores_markers_inside_string_literals() {
     assert_eq!(refs.len(), 1);
     assert_eq!(refs[0]["specre_id"], "01AAAAAAAAAAAAAAAAAAAAAAAA");
     assert_eq!(refs[0]["line"], 1);
+}
+
+// -- Scenario: target_extensions filters source files --
+
+#[test]
+fn index_target_extensions_filters_source_files() {
+    let tmp = TempDir::new().unwrap();
+    write_config_with_ext(tmp.path(), "docs/specres", &["src"], &["rs"]);
+    write_specre(
+        tmp.path(),
+        "docs/specres/cli/my_spec.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "my_spec",
+        "draft",
+        None,
+    );
+    // .rs file — should be scanned
+    write_source(
+        tmp.path(),
+        "src/main.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nfn main() {}\n",
+    );
+    // .py file — should be skipped
+    write_source(
+        tmp.path(),
+        "src/helper.py",
+        "# @specre 01BBBBBBBBBBBBBBBBBBBBBBBB\ndef helper(): pass\n",
+    );
+
+    specre()
+        .args(["index"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let json_str = fs::read_to_string(tmp.path().join("index.json")).unwrap();
+    let json: serde_json::Value = serde_json::from_str(&json_str).unwrap();
+
+    let refs = json["source_refs"].as_array().unwrap();
+    assert_eq!(refs.len(), 1);
+    assert_eq!(refs[0]["specre_id"], "01AAAAAAAAAAAAAAAAAAAAAAAA");
+    assert_eq!(refs[0]["file"], "src/main.rs");
+}
+
+#[test]
+fn index_empty_target_extensions_scans_nothing() {
+    let tmp = TempDir::new().unwrap();
+    write_config_with_ext(tmp.path(), "docs/specres", &["src"], &[]);
+    write_specre(
+        tmp.path(),
+        "docs/specres/cli/my_spec.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "my_spec",
+        "draft",
+        None,
+    );
+    write_source(
+        tmp.path(),
+        "src/main.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nfn main() {}\n",
+    );
+
+    specre()
+        .args(["index"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let json_str = fs::read_to_string(tmp.path().join("index.json")).unwrap();
+    let json: serde_json::Value = serde_json::from_str(&json_str).unwrap();
+
+    let refs = json["source_refs"].as_array().unwrap();
+    assert_eq!(refs.len(), 0);
+}
+
+#[test]
+fn index_without_target_extensions_scans_all_files() {
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src"]);
+    write_specre(
+        tmp.path(),
+        "docs/specres/cli/my_spec.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "my_spec",
+        "draft",
+        None,
+    );
+    // .rs file
+    write_source(
+        tmp.path(),
+        "src/main.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nfn main() {}\n",
+    );
+    // .py file
+    write_source(
+        tmp.path(),
+        "src/helper.py",
+        "# @specre 01BBBBBBBBBBBBBBBBBBBBBBBB\ndef helper(): pass\n",
+    );
+
+    specre()
+        .args(["index"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let json_str = fs::read_to_string(tmp.path().join("index.json")).unwrap();
+    let json: serde_json::Value = serde_json::from_str(&json_str).unwrap();
+
+    let refs = json["source_refs"].as_array().unwrap();
+    // Both files should be scanned when no target_extensions
+    assert_eq!(refs.len(), 2);
 }

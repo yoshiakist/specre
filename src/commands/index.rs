@@ -2,6 +2,7 @@
 // @specre 01KHB48EES4FR5TFV6ZP2W3MGT
 // @specre 01KHB48DYZDN8GHXPX7MSYJ1NZ
 // @specre 01KHAKAYN5WPTDVR99D5Q5TMJE
+// @specre 01KHFD5R1G3C5R34XMQXQTTMM9
 use crate::config;
 use chrono::Utc;
 use serde::Serialize;
@@ -39,7 +40,7 @@ pub fn execute() -> Result<(), String> {
 
     let specre_dir = Path::new(&config.specre_dir);
     let specres = scan_specre_files(specre_dir, &config.specre_dir);
-    let source_refs = scan_source_refs(&config.source_dirs);
+    let source_refs = scan_source_refs(&config.source_dirs, config.target_extensions.as_deref());
 
     let index = Index {
         version: 1,
@@ -210,14 +211,17 @@ pub fn extract_marker_ulid(line: &str) -> Option<&str> {
     }
 }
 
-fn scan_source_refs(source_dirs: &[String]) -> Vec<SourceRef> {
+fn scan_source_refs(
+    source_dirs: &[String],
+    target_extensions: Option<&[String]>,
+) -> Vec<SourceRef> {
     let mut refs = Vec::new();
     for dir_str in source_dirs {
         let dir = Path::new(dir_str);
         if !dir.exists() {
             continue;
         }
-        collect_all_files(dir, &mut |path| {
+        collect_all_files(dir, target_extensions, &mut |path| {
             let content = match fs::read_to_string(path) {
                 Ok(c) => c,
                 Err(_) => return,
@@ -238,7 +242,11 @@ fn scan_source_refs(source_dirs: &[String]) -> Vec<SourceRef> {
     refs
 }
 
-pub fn collect_all_files(dir: &Path, cb: &mut dyn FnMut(&Path)) {
+pub fn collect_all_files(
+    dir: &Path,
+    target_extensions: Option<&[String]>,
+    cb: &mut dyn FnMut(&Path),
+) {
     let read_dir = match fs::read_dir(dir) {
         Ok(rd) => rd,
         Err(_) => return,
@@ -255,8 +263,16 @@ pub fn collect_all_files(dir: &Path, cb: &mut dyn FnMut(&Path)) {
             {
                 continue;
             }
-            collect_all_files(&path, cb);
+            collect_all_files(&path, target_extensions, cb);
         } else {
+            if let Some(exts) = target_extensions {
+                let matches = path
+                    .extension()
+                    .is_some_and(|ext| exts.iter().any(|e| e == ext.to_string_lossy().as_ref()));
+                if !matches {
+                    continue;
+                }
+            }
             cb(&path);
         }
     }

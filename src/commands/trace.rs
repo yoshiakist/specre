@@ -47,7 +47,7 @@ fn trace_by_ulid(ulid: &str) -> Result<(), String> {
         if !dir.exists() {
             continue;
         }
-        collect_all_files(dir, &mut |path| {
+        collect_all_files(dir, config.target_extensions.as_deref(), &mut |path| {
             let content = match fs::read_to_string(path) {
                 Ok(c) => c,
                 Err(_) => return,
