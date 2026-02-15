@@ -24,6 +24,8 @@ Most SDD tools (GitHub Spec Kit, Amazon Kiro, BMAD) treat specifications as larg
 - **Process-agnostic data layer.** specre defines the *format* of specifications, not the *workflow*. Use it with TDD, BDD, or any development process. Pair it with your own workflow commands or CI pipelines.
 - **Engine and tool independent.** Plain Markdown with YAML front-matter. No IDE lock-in, no proprietary CLI required.
 
+*Specificatio credibilis crescere potest.*
+
 ## Quick Start
 
 ### Install Pre-built Binary
