@@ -25,6 +25,7 @@ The primary consumer of this command is expected to be a human developer setting
 
 - `specre_dir: String` — directory where specre cards are stored (default: `docs/specres`)
 - `source_dirs: Vec<String>` — directories to scan for `@specre` markers (default: `["src"]`)
+- `ext: Option<Vec<String>>` — target file extensions for source scanning (e.g., `["rs", "ts"]`). When omitted, all files are scanned.
 
 ## Scenarios
 
@@ -55,6 +56,13 @@ The primary consumer of this command is expected to be a human developer setting
 1. User runs `specre init --source-dirs src,lib`
 2. CLI creates `docs/specres/` directory
 3. CLI writes `specre.toml` with `source_dirs = ["src", "lib"]`
+4. CLI prints the summary to stdout
+
+### Custom target extensions
+
+1. User runs `specre init --ext rs,ts`
+2. CLI creates `docs/specres/` directory
+3. CLI writes `specre.toml` with `target_extensions = ["rs", "ts"]` in addition to `specre_dir` and `source_dirs`
 4. CLI prints the summary to stdout
 
 ### specre.toml already exists

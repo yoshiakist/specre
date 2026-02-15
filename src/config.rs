@@ -5,6 +5,7 @@
 // @specre 01KHAKAYN5WPTDVR99D5Q5TMJE
 // @specre 01KHAGG8NQQ7RSNYZ6SWBCYH3N
 // @specre 01KHDF9WHR5HFM4RQCF6HS3KCC
+// @specre 01KHFD5R1G3C5R34XMQXQTTMM9
 use serde::Deserialize;
 use std::fs;
 use std::path::Path;
@@ -16,6 +17,7 @@ pub struct Config {
     pub specre_dir: String,
     pub source_dirs: Vec<String>,
     pub language: Option<String>,
+    pub target_extensions: Option<Vec<String>>,
 }
 
 pub fn load() -> Result<Config, String> {

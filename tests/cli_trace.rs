@@ -17,6 +17,22 @@ fn write_config(dir: &std::path::Path, specre_dir: &str, source_dirs: &[&str]) {
     fs::write(dir.join("specre.toml"), content).unwrap();
 }
 
+fn write_config_with_ext(
+    dir: &std::path::Path,
+    specre_dir: &str,
+    source_dirs: &[&str],
+    target_extensions: &[&str],
+) {
+    let dirs_toml: Vec<String> = source_dirs.iter().map(|s| format!("\"{s}\"")).collect();
+    let ext_toml: Vec<String> = target_extensions.iter().map(|s| format!("\"{s}\"")).collect();
+    let content = format!(
+        "specre_dir = \"{specre_dir}\"\nsource_dirs = [{}]\ntarget_extensions = [{}]\n",
+        dirs_toml.join(", "),
+        ext_toml.join(", ")
+    );
+    fs::write(dir.join("specre.toml"), content).unwrap();
+}
+
 fn write_specre(dir: &std::path::Path, rel_path: &str, id: &str, name: &str, status: &str) {
     let path = dir.join(rel_path);
     fs::create_dir_all(path.parent().unwrap()).unwrap();
@@ -487,5 +503,74 @@ fn trace_file_path_ignores_string_literal_markers() {
         .stdout(
             predicate::str::contains("01AAAAAAAAAAAAAAAAAAAAAAAA")
                 .and(predicate::str::contains("01BBBBBBBBBBBBBBBBBBBBBBBB").not()),
+        );
+}
+
+// -- Scenario: target_extensions filters source files in ULID mode --
+
+#[test]
+fn trace_ulid_target_extensions_filters_source_files() {
+    let tmp = TempDir::new().unwrap();
+    write_config_with_ext(tmp.path(), "docs/specres", &["src"], &["rs"]);
+    write_specre(
+        tmp.path(),
+        "docs/specres/cli/spec_a.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "spec_a",
+        "stable",
+    );
+    // .rs file — should be found
+    write_source(
+        tmp.path(),
+        "src/main.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nfn main() {}\n",
+    );
+    // .py file — should be skipped due to target_extensions
+    write_source(
+        tmp.path(),
+        "src/helper.py",
+        "# @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\ndef helper(): pass\n",
+    );
+
+    specre()
+        .args(["trace", "01AAAAAAAAAAAAAAAAAAAAAAAA"])
+        .current_dir(tmp.path())
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("src/main.rs:1")
+                .and(predicate::str::contains("helper.py").not()),
+        );
+}
+
+// -- Scenario: trace file-path mode is unaffected by target_extensions --
+
+#[test]
+fn trace_file_path_ignores_target_extensions() {
+    let tmp = TempDir::new().unwrap();
+    write_config_with_ext(tmp.path(), "docs/specres", &["src"], &["rs"]);
+    write_specre(
+        tmp.path(),
+        "docs/specres/cli/spec_a.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "spec_a",
+        "stable",
+    );
+    // .py file — not in target_extensions, but trace by file path should still work
+    write_source(
+        tmp.path(),
+        "src/helper.py",
+        "# @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\ndef helper(): pass\n",
+    );
+
+    specre()
+        .args(["trace", "src/helper.py"])
+        .current_dir(tmp.path())
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("File: src/helper.py")
+                .and(predicate::str::contains("01AAAAAAAAAAAAAAAAAAAAAAAA"))
+                .and(predicate::str::contains("docs/specres/cli/spec_a.md")),
         );
 }

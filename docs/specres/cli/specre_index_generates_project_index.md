@@ -35,7 +35,7 @@ Per-domain `INDEX.md` files provide a browsable overview of all specres in a dom
 1. User runs `specre index` in a project with `specre.toml` and specre files
 2. CLI reads `specre.toml` to determine `specre_dir` and `source_dirs`
 3. CLI scans all `.md` files under `specre_dir` recursively, parsing YAML front-matter
-4. CLI scans all files under `source_dirs` recursively for `@specre <ULID>` markers
+4. CLI scans files under `source_dirs` recursively for `@specre <ULID>` markers (filtered by `target_extensions` if set)
 5. CLI writes `index.json` at the project root with `version`, `generated_at`, `specres`, and `source_refs`
 6. CLI prints a summary to stdout: `Generated index.json (N specres, M source refs)`
 
@@ -52,6 +52,7 @@ Per-domain `INDEX.md` files provide a browsable overview of all specres in a dom
 2. A file with multiple `@specre` markers produces one entry per marker
 3. The marker pattern is `@specre [0-9A-Z]{26}`, ignoring surrounding comment syntax
 4. Markers inside string literals are ignored: if a quote character (`"` or `'`) appears before `@specre` on the same line, the marker is not detected
+5. When `target_extensions` is set in `specre.toml`, only files whose extension matches the list are scanned. When unset, all files are scanned.
 
 ### Per-domain INDEX.md is generated
 

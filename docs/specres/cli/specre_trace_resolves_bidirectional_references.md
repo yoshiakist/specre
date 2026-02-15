@@ -33,7 +33,7 @@ The output is designed for both human developers navigating a codebase and AI ag
 1. User runs `specre trace 01HZYPMZRK8F9R2DGBGGMM2N8T` in a project with `specre.toml`
 2. CLI reads `specre.toml` to determine `specre_dir` and `source_dirs`
 3. CLI scans specre files for a matching `id` in front-matter
-4. CLI scans source files for `@specre 01HZYPMZRK8F9R2DGBGGMM2N8T` markers
+4. CLI scans source files for `@specre 01HZYPMZRK8F9R2DGBGGMM2N8T` markers (filtered by `target_extensions` if set)
 5. CLI prints:
    ```
    Specre:
@@ -84,7 +84,7 @@ The output is designed for both human developers navigating a codebase and AI ag
 ### File path invocation shows linked specres
 
 1. User runs `specre trace src/config.rs` where the file contains multiple `@specre` markers
-2. CLI reads the file and extracts all `@specre <ULID>` markers (using the same detection logic as index, ignoring string literals)
+2. CLI reads the file directly and extracts all `@specre <ULID>` markers (using the same detection logic as index, ignoring string literals). The `target_extensions` filter does not apply to the explicitly specified file.
 3. CLI reads `specre.toml` to determine `specre_dir`, then scans specre files to resolve each ULID to its specre card path
 4. CLI prints:
    ```

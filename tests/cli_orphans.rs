@@ -17,6 +17,22 @@ fn write_config(dir: &std::path::Path, specre_dir: &str, source_dirs: &[&str]) {
     fs::write(dir.join("specre.toml"), content).unwrap();
 }
 
+fn write_config_with_ext(
+    dir: &std::path::Path,
+    specre_dir: &str,
+    source_dirs: &[&str],
+    target_extensions: &[&str],
+) {
+    let dirs_toml: Vec<String> = source_dirs.iter().map(|s| format!("\"{s}\"")).collect();
+    let ext_toml: Vec<String> = target_extensions.iter().map(|s| format!("\"{s}\"")).collect();
+    let content = format!(
+        "specre_dir = \"{specre_dir}\"\nsource_dirs = [{}]\ntarget_extensions = [{}]\n",
+        dirs_toml.join(", "),
+        ext_toml.join(", ")
+    );
+    fs::write(dir.join("specre.toml"), content).unwrap();
+}
+
 fn write_specre(dir: &std::path::Path, rel_path: &str, id: &str, name: &str, status: &str) {
     let path = dir.join(rel_path);
     fs::create_dir_all(path.parent().unwrap()).unwrap();
@@ -331,6 +347,63 @@ fn orphans_string_literal_marker_not_dangling() {
     fs::create_dir_all(tmp.path().join("src")).unwrap();
 
     // Should NOT report the fake marker as dangling
+    specre()
+        .args(["orphans"])
+        .current_dir(tmp.path())
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(
+            "No orphans or dangling markers found.",
+        ));
+}
+
+// -- Scenario: target_extensions filters source scanning --
+
+#[test]
+fn orphans_target_extensions_filters_source_scanning() {
+    let tmp = TempDir::new().unwrap();
+    write_config_with_ext(tmp.path(), "docs/specres", &["src"], &["rs"]);
+    write_specre(
+        tmp.path(),
+        "docs/specres/cli/spec_a.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "spec_a",
+        "stable",
+    );
+    // Marker in .py file — should be ignored due to target_extensions
+    write_source(
+        tmp.path(),
+        "src/helper.py",
+        "# @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\ndef helper(): pass\n",
+    );
+    // No .rs files with the marker
+    write_source(tmp.path(), "src/main.rs", "fn main() {}\n");
+
+    // spec_a should be orphan because .py is not in target_extensions
+    specre()
+        .args(["orphans"])
+        .current_dir(tmp.path())
+        .assert()
+        .failure()
+        .stdout(
+            predicate::str::contains("Orphan specres (no source markers):")
+                .and(predicate::str::contains("docs/specres/cli/spec_a.md")),
+        );
+}
+
+#[test]
+fn orphans_target_extensions_hides_dangling_in_non_target_files() {
+    let tmp = TempDir::new().unwrap();
+    write_config_with_ext(tmp.path(), "docs/specres", &["src"], &["rs"]);
+    fs::create_dir_all(tmp.path().join("docs/specres")).unwrap();
+    // Dangling marker in .py — should NOT be reported since .py is not a target
+    write_source(
+        tmp.path(),
+        "src/helper.py",
+        "# @specre 01ZZZZZZZZZZZZZZZZZZZZZZZZ\n",
+    );
+    fs::create_dir_all(tmp.path().join("src")).unwrap();
+
     specre()
         .args(["orphans"])
         .current_dir(tmp.path())

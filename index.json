@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-02-14T11:38:52Z",
+  "generated_at": "2026-02-15T01:12:09Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -65,6 +65,14 @@
       "domain": "cli",
       "path": "docs/specres/cli/user_can_set_language_config.md",
       "last_verified": "2026-02-14"
+    },
+    {
+      "id": "01KHFD5R1G3C5R34XMQXQTTMM9",
+      "name": "user_can_set_target_extensions",
+      "status": "stable",
+      "domain": "cli",
+      "path": "docs/specres/cli/user_can_set_target_extensions.md",
+      "last_verified": "2026-02-15"
     }
   ],
   "source_refs": [
@@ -89,9 +97,19 @@
       "line": 4
     },
     {
+      "specre_id": "01KHFD5R1G3C5R34XMQXQTTMM9",
+      "file": "src/commands/index.rs",
+      "line": 5
+    },
+    {
       "specre_id": "01KHAGG8NQQ7RSNYZ6SWBCYH3N",
       "file": "src/commands/init.rs",
       "line": 1
+    },
+    {
+      "specre_id": "01KHFD5R1G3C5R34XMQXQTTMM9",
+      "file": "src/commands/init.rs",
+      "line": 2
     },
     {
       "specre_id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -157,6 +175,11 @@
       "specre_id": "01KHDF9WHR5HFM4RQCF6HS3KCC",
       "file": "src/config.rs",
       "line": 7
+    },
+    {
+      "specre_id": "01KHFD5R1G3C5R34XMQXQTTMM9",
+      "file": "src/config.rs",
+      "line": 8
     },
     {
       "specre_id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
