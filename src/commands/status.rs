@@ -1,10 +1,34 @@
 // @specre 01KHAN6JE712ZAKXPP97854PKJ
+// @specre 01KHG0A2V4YXE918WMJCY7WFE8
 use crate::cli::StatusArgs;
 use crate::commands::index::{collect_md_files, parse_frontmatter, to_forward_slash};
 use crate::config;
 use chrono::{NaiveDate, Utc};
+use serde::Serialize;
 use std::fs;
 use std::path::Path;
+
+#[derive(Serialize)]
+struct StatusOutput {
+    summary: StatusSummary,
+    stale: Vec<StaleOutput>,
+}
+
+#[derive(Serialize)]
+struct StatusSummary {
+    draft: u32,
+    in_development: u32,
+    stable: u32,
+    deprecated: u32,
+    total: u32,
+}
+
+#[derive(Serialize)]
+struct StaleOutput {
+    name: String,
+    path: String,
+    reason: String,
+}
 
 struct StaleEntry {
     name: String,
@@ -12,7 +36,7 @@ struct StaleEntry {
     reason: String,
 }
 
-pub fn execute(args: StatusArgs) -> Result<(), String> {
+pub fn execute(args: StatusArgs, json: bool) -> Result<(), String> {
     let config = config::load()?;
     let specre_dir = Path::new(&config.specre_dir);
 
@@ -84,18 +108,41 @@ pub fn execute(args: StatusArgs) -> Result<(), String> {
 
     let total = draft + in_development + stable + deprecated;
 
-    println!("Status Summary:");
-    println!("  draft:          {draft}");
-    println!("  in-development: {in_development}");
-    println!("  stable:         {stable}");
-    println!("  deprecated:     {deprecated}");
-    println!("  total:          {total}");
+    if json {
+        let output = StatusOutput {
+            summary: StatusSummary {
+                draft,
+                in_development,
+                stable,
+                deprecated,
+                total,
+            },
+            stale: stale_entries
+                .iter()
+                .map(|e| StaleOutput {
+                    name: e.name.clone(),
+                    path: e.path.clone(),
+                    reason: e.reason.clone(),
+                })
+                .collect(),
+        };
+        let json_str = serde_json::to_string_pretty(&output)
+            .map_err(|e| format!("Failed to serialize: {e}"))?;
+        println!("{json_str}");
+    } else {
+        println!("Status Summary:");
+        println!("  draft:          {draft}");
+        println!("  in-development: {in_development}");
+        println!("  stable:         {stable}");
+        println!("  deprecated:     {deprecated}");
+        println!("  total:          {total}");
 
-    if !stale_entries.is_empty() {
-        println!();
-        println!("Stale specres (last_verified > {threshold} days):");
-        for entry in &stale_entries {
-            println!("  {}  {}  ({})", entry.name, entry.path, entry.reason);
+        if !stale_entries.is_empty() {
+            println!();
+            println!("Stale specres (last_verified > {threshold} days):");
+            for entry in &stale_entries {
+                println!("  {}  {}  ({})", entry.name, entry.path, entry.reason);
+            }
         }
     }
 

@@ -1,23 +1,49 @@
 // @specre 01KHB48DYZDN8GHXPX7MSYJ1NZ
+// @specre 01KHG0A2V4YXE918WMJCY7WFE8
 use crate::cli::TraceArgs;
 use crate::commands::index::{
     collect_all_files, collect_md_files, extract_marker_ulid, parse_frontmatter, to_forward_slash,
 };
 use crate::config;
 use crate::ulid;
+use serde::Serialize;
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
-pub fn execute(args: TraceArgs) -> Result<(), String> {
+#[derive(Serialize)]
+struct TraceByUlidOutput {
+    specre: Option<String>,
+    source_refs: Vec<SourceRefOutput>,
+}
+
+#[derive(Serialize)]
+struct SourceRefOutput {
+    file: String,
+    line: usize,
+}
+
+#[derive(Serialize)]
+struct TraceByFileOutput {
+    file: String,
+    specres: Vec<SpecreRefOutput>,
+}
+
+#[derive(Serialize)]
+struct SpecreRefOutput {
+    id: String,
+    path: Option<String>,
+}
+
+pub fn execute(args: TraceArgs, json: bool) -> Result<(), String> {
     if ulid::is_valid(&args.query) {
-        trace_by_ulid(&args.query)
+        trace_by_ulid(&args.query, json)
     } else {
-        trace_by_file(&args.query)
+        trace_by_file(&args.query, json)
     }
 }
 
-fn trace_by_ulid(ulid: &str) -> Result<(), String> {
+fn trace_by_ulid(ulid: &str, json: bool) -> Result<(), String> {
     let config = config::load()?;
     let specre_dir = Path::new(&config.specre_dir);
 
@@ -64,20 +90,36 @@ fn trace_by_ulid(ulid: &str) -> Result<(), String> {
     }
     source_refs.sort_by(|a, b| a.0.cmp(&b.0).then(a.1.cmp(&b.1)));
 
-    // Print output
-    println!("Specre:");
-    match &specre_path {
-        Some(p) => println!("  {p}"),
-        None => println!("  (not found)"),
-    }
-
-    println!();
-    println!("Source references:");
-    if source_refs.is_empty() {
-        println!("  (none)");
+    if json {
+        let output = TraceByUlidOutput {
+            specre: specre_path.clone(),
+            source_refs: source_refs
+                .iter()
+                .map(|(file, line)| SourceRefOutput {
+                    file: file.clone(),
+                    line: *line,
+                })
+                .collect(),
+        };
+        let json_str = serde_json::to_string_pretty(&output)
+            .map_err(|e| format!("Failed to serialize: {e}"))?;
+        println!("{json_str}");
     } else {
-        for (file, line) in &source_refs {
-            println!("  {file}:{line}");
+        // Print output
+        println!("Specre:");
+        match &specre_path {
+            Some(p) => println!("  {p}"),
+            None => println!("  (not found)"),
+        }
+
+        println!();
+        println!("Source references:");
+        if source_refs.is_empty() {
+            println!("  (none)");
+        } else {
+            for (file, line) in &source_refs {
+                println!("  {file}:{line}");
+            }
         }
     }
 
@@ -89,7 +131,7 @@ fn trace_by_ulid(ulid: &str) -> Result<(), String> {
     Ok(())
 }
 
-fn trace_by_file(file_path: &str) -> Result<(), String> {
+fn trace_by_file(file_path: &str, json: bool) -> Result<(), String> {
     let file_path = file_path.replace('\\', "/");
     let path = Path::new(&file_path);
     if !path.exists() {
@@ -126,17 +168,33 @@ fn trace_by_file(file_path: &str) -> Result<(), String> {
         });
     }
 
-    // Print output
-    println!("File: {file_path}");
-    println!();
-    println!("Specres:");
-    if ulids.is_empty() {
-        println!("  (none)");
+    if json {
+        let output = TraceByFileOutput {
+            file: file_path.clone(),
+            specres: ulids
+                .iter()
+                .map(|u| SpecreRefOutput {
+                    id: u.clone(),
+                    path: ulid_to_path.get(u).cloned(),
+                })
+                .collect(),
+        };
+        let json_str = serde_json::to_string_pretty(&output)
+            .map_err(|e| format!("Failed to serialize: {e}"))?;
+        println!("{json_str}");
     } else {
-        for ulid in &ulids {
-            match ulid_to_path.get(ulid) {
-                Some(specre_path) => println!("  {ulid}  {specre_path}"),
-                None => println!("  {ulid}  (not found)"),
+        // Print output
+        println!("File: {file_path}");
+        println!();
+        println!("Specres:");
+        if ulids.is_empty() {
+            println!("  (none)");
+        } else {
+            for ulid in &ulids {
+                match ulid_to_path.get(ulid) {
+                    Some(specre_path) => println!("  {ulid}  {specre_path}"),
+                    None => println!("  {ulid}  (not found)"),
+                }
             }
         }
     }

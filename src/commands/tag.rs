@@ -1,8 +1,17 @@
 // @specre 01KHB48EYB9686YYQMYFYQ5R1Z
+// @specre 01KHG0A2V4YXE918WMJCY7WFE8
 use crate::cli::TagArgs;
 use crate::ulid;
+use serde::Serialize;
 use std::fs;
 use std::path::Path;
+
+#[derive(Serialize)]
+struct TagOutput {
+    id: String,
+    file: String,
+    line: usize,
+}
 
 fn comment_syntax(ext: &str) -> Option<(&'static str, &'static str)> {
     match ext {
@@ -47,7 +56,7 @@ fn to_forward_slash(s: &str) -> String {
     s.replace('\\', "/")
 }
 
-pub fn execute(args: TagArgs) -> Result<(), String> {
+pub fn execute(args: TagArgs, json: bool) -> Result<(), String> {
     if !ulid::is_valid(&args.ulid) {
         return Err(
             "invalid ULID format. Expected 26 uppercase alphanumeric characters.".to_string(),
@@ -73,7 +82,24 @@ pub fn execute(args: TagArgs) -> Result<(), String> {
     // Check if marker already exists
     let marker_pattern = format!("@specre {}", args.ulid);
     if content.contains(&marker_pattern) {
-        println!("Marker already exists in {}", to_forward_slash(&args.file));
+        if json {
+            // Find the line number of the existing marker
+            let line = content
+                .lines()
+                .position(|l| l.contains(&marker_pattern))
+                .map(|n| n + 1)
+                .unwrap_or(1);
+            let output = TagOutput {
+                id: args.ulid,
+                file: to_forward_slash(&args.file),
+                line,
+            };
+            let json_str = serde_json::to_string_pretty(&output)
+                .map_err(|e| format!("Failed to serialize: {e}"))?;
+            println!("{json_str}");
+        } else {
+            println!("Marker already exists in {}", to_forward_slash(&args.file));
+        }
         return Ok(());
     }
 
@@ -92,7 +118,18 @@ pub fn execute(args: TagArgs) -> Result<(), String> {
     fs::write(file_path, &new_content)
         .map_err(|e| format!("Failed to write '{}': {e}", args.file))?;
 
-    println!("Tagged {} with {}", to_forward_slash(&args.file), args.ulid);
+    if json {
+        let output = TagOutput {
+            id: args.ulid,
+            file: to_forward_slash(&args.file),
+            line: 1,
+        };
+        let json_str = serde_json::to_string_pretty(&output)
+            .map_err(|e| format!("Failed to serialize: {e}"))?;
+        println!("{json_str}");
+    } else {
+        println!("Tagged {} with {}", to_forward_slash(&args.file), args.ulid);
+    }
 
     Ok(())
 }
