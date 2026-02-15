@@ -13,3 +13,4 @@
 | [user_can_set_target_extensions](user_can_set_target_extensions.md) | stable | 2026-02-15 |
 | [specre_coverage_reports_source_file_tagging](specre_coverage_reports_source_file_tagging.md) | stable | 2026-02-15 |
 | [specre_cli_dispatches_commands_and_handles_errors](specre_cli_dispatches_commands_and_handles_errors.md) | stable | 2026-02-15 |
+| [specre_health_check_verifies_ecosystem_trustworthiness](specre_health_check_verifies_ecosystem_trustworthiness.md) | stable | 2026-02-15 |

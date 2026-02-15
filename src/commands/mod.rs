@@ -1,5 +1,6 @@
 // @specre 01KHFFCX8BCDAYP8YHG0J65H0E
 pub mod coverage;
+pub mod health_check;
 pub mod index;
 pub mod init;
 pub mod new;

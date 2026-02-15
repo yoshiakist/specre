@@ -1,2 +1,7 @@
 specre_dir = "docs/specres"
 source_dirs = ["src", "tests"]
+
+[health_check]
+coverage = 1.0
+orphans = 3
+index_age_hours = 48.0
