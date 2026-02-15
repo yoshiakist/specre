@@ -17,9 +17,40 @@
 
 Enable AI agents to utilize specre as a first-class tool.
 
+- [ ] `specre coverage` — Report the percentage of source files covered by specre tags
+- [ ] `specre health-check` — Comprehensive health check to determine whether specre cards adequately describe the project's overall behavior
 - [ ] `specre search <query>` — Full-text + status/domain filtering across all specres, with JSON output for agent consumption
 - [ ] Agent-friendly output formats across all commands (`--json`, `--md`)
 - [ ] MCP server — Expose specre capabilities as Resources, Tools, and Prompts via the [Model Context Protocol](https://modelcontextprotocol.io/), enabling integration with Claude Code, Cursor, VS Code Copilot, and other MCP-compatible AI tools
+
+### Coverage command design
+
+Coverage measures how much of the source tree is linked to specre cards via `@specre` tags.
+
+- **Denominator:** Total number of files in the configured `source_dir`
+- **Numerator:** Number of files in `source_dir` that contain at least one `@specre` tag
+- Supports filtering by target file extensions (e.g., `--ext rs,ts` to only count `.rs` and `.ts` files)
+
+### Health-check command design
+
+Health-check is a single entry point for coding agents to verify that the specre ecosystem is trustworthy before starting a task. It is designed as the first command an agent runs at the start of a session, or as an MCP server query.
+
+By aggregating coverage, orphan count, and index freshness into one response, it enables coding agents to unambiguously determine whether specre cards and specre commands can be relied upon — without the agent needing to interpret multiple commands individually.
+
+Returns structured JSON:
+
+```json
+{
+  "healthy": true,
+  "coverage": 0.93,
+  "orphans": 2,
+  "index_age_hours": 3.2,
+  "thresholds": { "coverage": 0.90, "orphans": 5, "index_age_hours": 24 }
+}
+```
+
+- `healthy` is `true` when all metrics are within their thresholds.
+- `thresholds` are configurable via `specre.toml`. The values above are defaults.
 
 ### MCP server design
 
