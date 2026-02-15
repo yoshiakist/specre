@@ -1,3 +1,4 @@
+// @specre 01KHFFCX8BCDAYP8YHG0J65H0E
 use clap::{Args, Parser, Subcommand};
 
 #[derive(Parser)]
