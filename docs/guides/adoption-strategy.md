@@ -103,10 +103,14 @@ Produce a mapping document: test file + block → proposed specre card name.
 ### A-3. Card Creation
 
 ```bash
-specre init --specre-dir docs/specres --source-dirs src,lib,app
+# Scope source-dirs to the pilot domain — not the entire codebase.
+# Coverage is calculated as: tagged files / all files in source-dirs.
+# If source-dirs covers the whole tree, a single-domain pilot will
+# show near-zero coverage and health-check will fail immediately.
+specre init --specre-dir docs/specres --source-dirs src/billing,tests/billing
 
 # For each identified behavior:
-specre new docs/specres/<domain> --name <behavior_name>
+specre new docs/specres/billing --name <behavior_name>
 ```
 
 For each card:
@@ -151,6 +155,15 @@ specre orphans
 specre health-check
 ```
 
+When adding a new domain, **widen `source_dirs` in `specre.toml`** to include it:
+
+```toml
+# specre.toml — after adding the second domain
+source_dirs = ["src/billing", "tests/billing", "src/auth", "tests/auth"]
+```
+
+Coverage is always calculated against the full `source_dirs`. Expanding the scope before the new domain has cards will temporarily lower your coverage ratio — add the directory *as you begin* card creation for that domain, not before.
+
 Repeat A-1 through A-4 for the next domain. Resist the urge to parallelize across many domains simultaneously — quality degrades when review bandwidth is spread thin.
 
 ### A-Risks
@@ -179,6 +192,11 @@ Choose a bounded context with clear boundaries. Prioritize domains that are:
 - **Frequently causing bugs**: Specification gaps are likely the root cause of recurring defects
 
 Explicit constraint: Do NOT attempt more than one domain at a time in the initial adoption phase.
+
+```bash
+# Scope source-dirs to the chosen domain.
+specre init --specre-dir docs/specres --source-dirs src/orders,tests/orders
+```
 
 ### B-2. Behavior Discovery
 
@@ -253,7 +271,10 @@ For each validated specre card:
 ### C-1. Domain Mapping
 
 ```bash
-specre init --specre-dir docs/specres --source-dirs src --ext rs,ts
+# For greenfield: source-dirs can be the full src tree since all code is new.
+# For re-architecture of a subsystem: scope to the target directories.
+specre init --specre-dir docs/specres --source-dirs src --ext rs,ts        # greenfield
+specre init --specre-dir docs/specres --source-dirs src/billing --ext rs   # re-arch of one domain
 ```
 
 Define top-level domains as directories under `docs/specres/`. Domains should reflect **business/functional boundaries**, not code structure:
