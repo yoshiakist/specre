@@ -40,6 +40,35 @@ pub enum Commands {
 
     /// Comprehensive health check for AI agent preflight
     HealthCheck,
+
+    /// Search specre cards by text query and structured filters
+    Search(SearchArgs),
+}
+
+#[derive(Args)]
+pub struct SearchArgs {
+    /// Free-text substring to match against card content (case-insensitive)
+    pub query: Option<String>,
+
+    /// Filter by status (draft, in-development, stable, deprecated)
+    #[arg(long)]
+    pub status: Option<String>,
+
+    /// Filter by domain (top-level directory under specre_dir)
+    #[arg(long)]
+    pub domain: Option<String>,
+
+    /// Include only specres whose last_verified is before this date (YYYY-MM-DD)
+    #[arg(long)]
+    pub verified_before: Option<String>,
+
+    /// Include only specres whose last_verified is on or after this date (YYYY-MM-DD)
+    #[arg(long)]
+    pub verified_after: Option<String>,
+
+    /// Return at most N results, bypassing the truncation threshold
+    #[arg(long)]
+    pub limit: Option<usize>,
 }
 
 #[derive(Args)]

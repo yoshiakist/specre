@@ -19,6 +19,7 @@ pub struct Config {
     pub language: Option<String>,
     pub target_extensions: Option<Vec<String>>,
     pub health_check: Option<HealthCheckConfig>,
+    pub search: Option<SearchConfig>,
 }
 
 #[derive(Deserialize)]
@@ -26,6 +27,11 @@ pub struct HealthCheckConfig {
     pub coverage: Option<f64>,
     pub orphans: Option<usize>,
     pub index_age_hours: Option<f64>,
+}
+
+#[derive(Deserialize)]
+pub struct SearchConfig {
+    pub max_results: Option<usize>,
 }
 
 pub fn load() -> Result<Config, String> {
