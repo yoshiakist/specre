@@ -2,6 +2,37 @@
 
 Guidance for engineers retrofitting specre into an existing codebase. If you are starting a greenfield project, the path is simpler: create specre cards as you develop using the [sdd-new workflow](../../.claude/commands/sdd-new.md). This guide addresses the harder problem — introducing specre into a living codebase with accumulated code, tests, and implicit design decisions.
 
+## Quick Decision Chart
+
+```mermaid
+flowchart TD
+    Start["Existing codebase?"] -->|Yes| Q1["Run coverage tool\nRead 10 test files"]
+    Start -->|"No (greenfield / rewrite)"| C["Strategy C\nTop-Down Domain\nDecomposition"]
+
+    Q1 --> Q2{"Tests read like\nbehavior descriptions?"}
+    Q2 -->|"Yes, and coverage ≥ 70%"| A["Strategy A\nTest-Derived\nExtraction"]
+    Q2 -->|"No — implementation-oriented\nor mixed / low coverage"| B["Strategy B\nCode-Behavior\nAnalysis"]
+
+    A --> Go["specre init → pick one domain → create first card"]
+    B --> Go
+    C --> Go
+
+    style A fill:#d4edda,stroke:#28a745
+    style B fill:#fff3cd,stroke:#ffc107
+    style C fill:#d1ecf1,stroke:#17a2b8
+    style Go fill:#f8f9fa,stroke:#6c757d
+```
+
+| Strategy | When to use | Starting point |
+|----------|-------------|----------------|
+| [**Strategy A**: Test-Derived Extraction](#strategy-a-test-derived-extraction) | High coverage + behavior-oriented tests | Your test suite |
+| [**Strategy B**: Code-Behavior Analysis](#strategy-b-code-behavior-analysis) | Low coverage, implementation-oriented, or mixed tests | The source code |
+| [**Strategy C**: Top-Down Domain Decomposition](#strategy-c-top-down-domain-decomposition) | Greenfield, major rewrite, or untangleable codebase | Domain knowledge |
+
+> **Not sure?** Jump to [Choosing Your Entry Point](#choosing-your-entry-point) at the bottom.
+
+---
+
 ## Phase 0: Assess Your Test Landscape
 
 Before choosing a strategy, evaluate two orthogonal dimensions of your test suite. These determine which artifacts you can trust as the starting point for specification extraction.
