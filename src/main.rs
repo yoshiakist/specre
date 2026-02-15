@@ -19,6 +19,7 @@ fn main() {
         Commands::Trace(args) => commands::trace::execute(args),
         Commands::Orphans => commands::orphans::execute(),
         Commands::Tag(args) => commands::tag::execute(args),
+        Commands::Coverage(args) => commands::coverage::execute(args),
     };
 
     if let Err(e) = result {

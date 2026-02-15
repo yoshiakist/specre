@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-02-15T01:12:09Z",
+  "generated_at": "2026-02-15T01:31:24Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -73,9 +73,22 @@
       "domain": "cli",
       "path": "docs/specres/cli/user_can_set_target_extensions.md",
       "last_verified": "2026-02-15"
+    },
+    {
+      "id": "01KHFEA9QVV4A127VCRJY97A68",
+      "name": "specre_coverage_reports_source_file_tagging",
+      "status": "stable",
+      "domain": "cli",
+      "path": "docs/specres/cli/specre_coverage_reports_source_file_tagging.md",
+      "last_verified": "2026-02-15"
     }
   ],
   "source_refs": [
+    {
+      "specre_id": "01KHFEA9QVV4A127VCRJY97A68",
+      "file": "src/commands/coverage.rs",
+      "line": 1
+    },
     {
       "specre_id": "01KHB48EYB9686YYQMYFYQ5R1Z",
       "file": "src/commands/index.rs",
@@ -194,6 +207,11 @@
     {
       "specre_id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
       "file": "src/ulid.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHFEA9QVV4A127VCRJY97A68",
+      "file": "tests/cli_coverage.rs",
       "line": 1
     },
     {

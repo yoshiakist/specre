@@ -33,6 +33,9 @@ pub enum Commands {
 
     /// Insert a @specre marker into a source file
     Tag(TagArgs),
+
+    /// Report the percentage of source files covered by @specre tags
+    Coverage(CoverageArgs),
 }
 
 #[derive(Args)]
@@ -74,6 +77,13 @@ pub struct TagArgs {
 
     /// Path to the source file where the marker will be inserted
     pub file: String,
+}
+
+#[derive(Args)]
+pub struct CoverageArgs {
+    /// Target file extensions to filter by (comma-separated, e.g., "rs,ts")
+    #[arg(long, value_delimiter = ',')]
+    pub ext: Option<Vec<String>>,
 }
 
 #[derive(Args)]
