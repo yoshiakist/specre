@@ -52,6 +52,10 @@ This installs the `specre` CLI from [crates.io](https://crates.io/crates/specre)
 git submodule add git@github.com:yoshiakist/specre.git specre
 ```
 
+### Adopting specre in an Existing Codebase
+
+If you are retrofitting specre into a project that already has code and tests, see the **[Adoption Strategy Guide](docs/guides/adoption-strategy.md)**. It walks you through assessing your test landscape and choosing the right strategy (test-derived extraction, code-behavior analysis, or top-down domain decomposition).
+
 ### Writing Your First specre
 
 Create a Markdown file under your project's specres directory. Organize subdirectories however you like — by domain, module, feature area, or any scheme that fits your project:
