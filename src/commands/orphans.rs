@@ -53,7 +53,10 @@ pub fn compute_orphans(
         collect_md_files(specre_path, &mut |path| {
             let content = match fs::read_to_string(path) {
                 Ok(c) => c,
-                Err(_) => return,
+                Err(e) => {
+                    eprintln!("Warning: failed to read '{}': {e}", path.display());
+                    return;
+                }
             };
             if let Some(fm) = parse_frontmatter(&content) {
                 specres.push(SpecreInfo {
@@ -79,7 +82,10 @@ pub fn compute_orphans(
         collect_all_files(dir, target_extensions, &mut |path| {
             let content = match fs::read_to_string(path) {
                 Ok(c) => c,
-                Err(_) => return,
+                Err(e) => {
+                    eprintln!("Warning: failed to read '{}': {e}", path.display());
+                    return;
+                }
             };
             for line in content.lines() {
                 if let Some(candidate) = extract_marker_ulid(line) {
@@ -150,7 +156,10 @@ pub fn execute(json: bool) -> Result<(), SpecreError> {
         collect_all_files(dir, config.target_extensions.as_deref(), &mut |path| {
             let content = match fs::read_to_string(path) {
                 Ok(c) => c,
-                Err(_) => return,
+                Err(e) => {
+                    eprintln!("Warning: failed to read '{}': {e}", path.display());
+                    return;
+                }
             };
             let rel_path = to_forward_slash(path);
             for (line_num, line) in content.lines().enumerate() {

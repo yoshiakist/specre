@@ -413,3 +413,45 @@ fn orphans_target_extensions_hides_dangling_in_non_target_files() {
             "No orphans or dangling markers found.",
         ));
 }
+
+// -- Failures / Exceptions: IO error warns and skips --
+
+#[cfg(unix)]
+#[test]
+fn orphans_warns_on_unreadable_source_file() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src"]);
+
+    write_specre(
+        tmp.path(),
+        "docs/specres/cli/spec_a.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "spec_a",
+        "stable",
+    );
+    write_source(
+        tmp.path(),
+        "src/good.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n",
+    );
+
+    let bad_file = tmp.path().join("src/bad.rs");
+    fs::write(&bad_file, "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n").unwrap();
+    fs::set_permissions(&bad_file, fs::Permissions::from_mode(0o000)).unwrap();
+
+    let output = specre()
+        .args(["orphans"])
+        .current_dir(tmp.path())
+        .output()
+        .unwrap();
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("Warning: failed to read"),
+        "Expected warning about unreadable source file in stderr, got: {stderr}"
+    );
+
+    fs::set_permissions(&bad_file, fs::Permissions::from_mode(0o644)).unwrap();
+}
