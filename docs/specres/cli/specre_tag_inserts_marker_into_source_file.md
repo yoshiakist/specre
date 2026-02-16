@@ -2,7 +2,7 @@
 id: "01KHB48EYB9686YYQMYFYQ5R1Z"
 name: "specre_tag_inserts_marker_into_source_file"
 status: "stable"
-last_verified: "2026-02-14"
+last_verified: "2026-02-16"
 ---
 
 ## Related Files
@@ -155,4 +155,4 @@ The command supports the following file extensions, organized by domain:
 - If the target path is a directory, CLI exits with error: `Error: '<path>' is a directory, not a file`
 - If ULID format is invalid, CLI exits with error before any file operations
 - If the file extension is not in the supported list, CLI exits with error: `Error: unsupported file extension '.<ext>' — comment syntax is unknown`
-- If the filesystem is read-only or permissions are insufficient, CLI exits with the OS-level error message
+- If the filesystem is read-only or permissions are insufficient, CLI exits with an error: `Error: Failed to access '<path>': <OS error message>`

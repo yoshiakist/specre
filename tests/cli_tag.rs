@@ -1,6 +1,7 @@
 // @specre 01KHB48EYB9686YYQMYFYQ5R1Z
 use assert_cmd::cargo::cargo_bin_cmd;
 use assert_fs::TempDir;
+use assert_fs::prelude::*;
 use predicates::prelude::*;
 use std::fs;
 
@@ -658,4 +659,34 @@ fn tag_unsupported_extension_does_not_modify_file() {
 
     let content = fs::read_to_string(tmp.path().join("data/file.bin")).unwrap();
     assert_eq!(content, "\x00\x01\x02\n");
+}
+
+// -- Failures / Exceptions: SpecreError::Io --
+
+#[test]
+fn tag_shows_path_in_io_error() {
+    let tmp = TempDir::new().unwrap();
+    let file = tmp.child("src/readonly.rs");
+    file.write_str("fn main() {}\n").unwrap();
+
+    // Make file read-only so fs::write fails
+    let path = file.path();
+    let mut perms = fs::metadata(path).unwrap().permissions();
+    perms.set_readonly(true);
+    fs::set_permissions(path, perms).unwrap();
+
+    specre()
+        .args(["tag", "01AAAAAAAAAAAAAAAAAAAAAAAA", "src/readonly.rs"])
+        .current_dir(tmp.path())
+        .assert()
+        .failure()
+        .stderr(
+            predicate::str::contains("Failed to access")
+                .and(predicate::str::contains("readonly.rs")),
+        );
+
+    // Restore permissions for cleanup
+    let mut perms = fs::metadata(path).unwrap().permissions();
+    perms.set_readonly(false);
+    fs::set_permissions(path, perms).unwrap();
 }
