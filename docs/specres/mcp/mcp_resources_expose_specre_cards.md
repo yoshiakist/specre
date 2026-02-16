@@ -71,4 +71,5 @@ The server scans the `specre_dir` (from `specre.toml`) on each request — no ca
 ## Failures / Exceptions
 
 - Malformed front-matter files are silently skipped in `resources/list` (consistent with `specre index` behavior)
+- If a card file cannot be read during `resources/list` (IO error), a warning is logged to stderr and the file is skipped
 - If a card file becomes unreadable between `list` and `read`, the server returns an internal error
