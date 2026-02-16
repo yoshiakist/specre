@@ -17,10 +17,10 @@ flowchart TD
     B --> Go
     C --> Go
 
-    style A fill:#d4edda,stroke:#28a745,primaryTextColor:#111
-    style B fill:#fff3cd,stroke:#ffc107,primaryTextColor:#111
-    style C fill:#d1ecf1,stroke:#17a2b8,primaryTextColor:#111
-    style Go fill:#f8f9fa,stroke:#6c757d,primaryTextColor:#111
+    style A fill:#d4edda,stroke:#28a745,color:#111
+    style B fill:#fff3cd,stroke:#ffc107,color:#111
+    style C fill:#d1ecf1,stroke:#17a2b8,color:#111
+    style Go fill:#f8f9fa,stroke:#6c757d,color:#111
 ```
 
 | Strategy | When to use | Starting point |
