@@ -59,7 +59,7 @@ The MCP server wraps existing CLI logic as a thin layer, rather than reimplement
 | MCP primitive | What it exposes |
 |---------------|-----------------|
 | **Resources** | specre cards as `specre:///<ULID>` URIs. Agents can read individual specre cards on demand. |
-| **Tools** | `search`, `trace`, `orphans`, `status`, `index` — the same operations available via CLI, returning structured JSON. |
+| **Tools** | `new`, `search`, `trace`, `orphans`, `status`, `index`, `health-check`, `coverage` — the same operations available via CLI, returning structured JSON. |
 | **Prompts** | SDD workflow templates (e.g., "implement a behavior from a specre card") and QA-oriented prompts (`review-qa`, `summarize-diff`) for consistent agent-driven development. |
 
 Transport: stdio (primary), with the option to add SSE/HTTP for remote use cases in the future.
