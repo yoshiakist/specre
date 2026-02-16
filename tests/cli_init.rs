@@ -191,3 +191,23 @@ fn init_without_ext_omits_target_extensions() {
     let content = fs::read_to_string(tmp.path().join("specre.toml")).unwrap();
     assert!(!content.contains("target_extensions"));
 }
+
+// -- Failures / Exceptions: SpecreError::Io --
+
+#[test]
+fn init_shows_path_in_io_error() {
+    let tmp = TempDir::new().unwrap();
+
+    // Create a file that blocks create_dir_all from creating the specre directory
+    tmp.child("blocker").touch().unwrap();
+
+    specre()
+        .args(["init", "--specre-dir", "blocker/specres"])
+        .current_dir(tmp.path())
+        .assert()
+        .failure()
+        .stderr(
+            predicate::str::contains("Failed to access")
+                .and(predicate::str::contains("blocker")),
+        );
+}

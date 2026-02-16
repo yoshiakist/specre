@@ -238,3 +238,24 @@ fn new_works_with_config_missing_language_field() {
     let content = fs::read_to_string(target.join("test_compat.md")).unwrap();
     assert!(content.contains("## Related Files"));
 }
+
+// -- Failures / Exceptions: SpecreError::Io --
+
+#[test]
+fn new_shows_path_in_io_error() {
+    let tmp = TempDir::new().unwrap();
+
+    // Create a file that blocks create_dir_all from creating the target directory
+    let blocker = tmp.child("blocker");
+    blocker.touch().unwrap();
+    let target = tmp.path().join("blocker").join("nested");
+
+    specre()
+        .args(["new", target.to_str().unwrap(), "--name", "test"])
+        .assert()
+        .failure()
+        .stderr(
+            predicate::str::contains("Failed to access")
+                .and(predicate::str::contains("blocker")),
+        );
+}

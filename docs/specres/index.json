@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-02-16T04:47:11Z",
+  "generated_at": "2026-02-16T08:00:05Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -8,7 +8,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_new_scaffolds_a_new_specre.md",
-      "last_verified": "2026-02-13"
+      "last_verified": "2026-02-16"
     },
     {
       "id": "01KHAGG8NQQ7RSNYZ6SWBCYH3N",
@@ -16,7 +16,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_init_initializes_project_configuration.md",
-      "last_verified": "2026-02-13"
+      "last_verified": "2026-02-16"
     },
     {
       "id": "01KHAKAYN5WPTDVR99D5Q5TMJE",
