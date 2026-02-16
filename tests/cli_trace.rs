@@ -574,3 +574,79 @@ fn trace_file_path_ignores_target_extensions() {
                 .and(predicate::str::contains("docs/specres/cli/spec_a.md")),
         );
 }
+
+// -- Failures / Exceptions: IO error warns and skips --
+
+#[cfg(unix)]
+#[test]
+fn trace_ulid_warns_on_unreadable_specre_file() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src"]);
+
+    // Create a readable specre card
+    write_specre(tmp.path(), "docs/specres/cli/good.md", "01AAAAAAAAAAAAAAAAAAAAAAAA", "good");
+
+    // Create an unreadable specre card
+    let bad_card = tmp.path().join("docs/specres/cli/bad.md");
+    fs::create_dir_all(bad_card.parent().unwrap()).unwrap();
+    fs::write(
+        &bad_card,
+        "---\nid: \"01BBBBBBBBBBBBBBBBBBBBBBBB\"\nname: \"bad\"\nstatus: \"draft\"\n---\n",
+    )
+    .unwrap();
+    fs::set_permissions(&bad_card, fs::Permissions::from_mode(0o000)).unwrap();
+
+    let output = specre()
+        .args(["trace", "01AAAAAAAAAAAAAAAAAAAAAAAA"])
+        .current_dir(tmp.path())
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("Warning: failed to read"),
+        "Expected warning about unreadable file in stderr, got: {stderr}"
+    );
+
+    fs::set_permissions(&bad_card, fs::Permissions::from_mode(0o644)).unwrap();
+}
+
+#[cfg(unix)]
+#[test]
+fn trace_ulid_warns_on_unreadable_source_file() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src"]);
+
+    write_specre(tmp.path(), "docs/specres/cli/spec_a.md", "01AAAAAAAAAAAAAAAAAAAAAAAA", "spec_a");
+    write_source(tmp.path(), "src/good.rs", "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n");
+
+    let bad_file = tmp.path().join("src/bad.rs");
+    fs::write(&bad_file, "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n").unwrap();
+    fs::set_permissions(&bad_file, fs::Permissions::from_mode(0o000)).unwrap();
+
+    let output = specre()
+        .args(["trace", "01AAAAAAAAAAAAAAAAAAAAAAAA"])
+        .current_dir(tmp.path())
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("Warning: failed to read"),
+        "Expected warning about unreadable source file in stderr, got: {stderr}"
+    );
+
+    // The good source ref should still be found
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("src/good.rs"));
+
+    fs::set_permissions(&bad_file, fs::Permissions::from_mode(0o644)).unwrap();
+}
