@@ -2,7 +2,7 @@
 id: "01KHAGG8NQQ7RSNYZ6SWBCYH3N"
 name: "specre_init_initializes_project_configuration"
 status: "stable"
-last_verified: "2026-02-13"
+last_verified: "2026-02-16"
 ---
 
 ## Related Files
@@ -80,4 +80,4 @@ The primary consumer of this command is expected to be a human developer setting
 
 ## Failures / Exceptions
 
-- If the filesystem is read-only or permissions are insufficient, CLI exits with the OS-level error message
+- If the filesystem is read-only or permissions are insufficient (e.g., a parent path component is a file, not a directory), CLI exits with an error: `Error: Failed to access '<path>': <OS error message>`

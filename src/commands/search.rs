@@ -2,6 +2,7 @@
 use crate::cli::SearchArgs;
 use crate::commands::index::{collect_md_files, parse_frontmatter, to_forward_slash};
 use crate::config;
+use crate::error::SpecreError;
 use serde::Serialize;
 use std::collections::BTreeMap;
 use std::fs;
@@ -49,13 +50,13 @@ struct CardData {
     excerpt: Option<String>,
 }
 
-pub fn execute(args: SearchArgs) -> Result<(), String> {
+pub fn execute(args: SearchArgs) -> Result<(), SpecreError> {
     // Validate inputs
     if let Some(ref s) = args.status {
         if !VALID_STATUSES.contains(&s.as_str()) {
-            return Err(format!(
+            return Err(SpecreError::InvalidArgument(format!(
                 "invalid status: {s}. Expected one of: draft, in-development, stable, deprecated."
-            ));
+            )));
         }
     }
     if let Some(ref d) = args.verified_before {
@@ -66,7 +67,9 @@ pub fn execute(args: SearchArgs) -> Result<(), String> {
     }
     if let Some(limit) = args.limit {
         if limit == 0 {
-            return Err("--limit must be a positive integer.".to_string());
+            return Err(SpecreError::InvalidArgument(
+                "--limit must be a positive integer.".to_string(),
+            ));
         }
     }
 
@@ -156,24 +159,23 @@ pub fn execute(args: SearchArgs) -> Result<(), String> {
         hint,
     };
 
-    let json =
-        serde_json::to_string_pretty(&output).map_err(|e| format!("Failed to serialize: {e}"))?;
+    let json = serde_json::to_string_pretty(&output)?;
     println!("{json}");
 
     Ok(())
 }
 
-fn validate_date(date: &str) -> Result<(), String> {
+fn validate_date(date: &str) -> Result<(), SpecreError> {
     if date.len() != 10 {
-        return Err(format!(
+        return Err(SpecreError::InvalidArgument(format!(
             "invalid date format: {date}. Expected YYYY-MM-DD."
-        ));
+        )));
     }
     let parts: Vec<&str> = date.split('-').collect();
     if parts.len() != 3 {
-        return Err(format!(
+        return Err(SpecreError::InvalidArgument(format!(
             "invalid date format: {date}. Expected YYYY-MM-DD."
-        ));
+        )));
     }
     if parts[0].len() != 4
         || parts[1].len() != 2
@@ -182,9 +184,9 @@ fn validate_date(date: &str) -> Result<(), String> {
         || parts[1].parse::<u32>().is_err()
         || parts[2].parse::<u32>().is_err()
     {
-        return Err(format!(
+        return Err(SpecreError::InvalidArgument(format!(
             "invalid date format: {date}. Expected YYYY-MM-DD."
-        ));
+        )));
     }
     Ok(())
 }

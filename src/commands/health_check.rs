@@ -2,6 +2,7 @@
 use crate::commands::coverage::compute_coverage;
 use crate::commands::orphans::compute_orphans;
 use crate::config;
+use crate::error::SpecreError;
 use chrono::Utc;
 use serde::Serialize;
 use std::fs;
@@ -35,7 +36,7 @@ fn get_index_age_hours(specre_dir: &str) -> Option<f64> {
     Some((hours * 10.0).round() / 10.0)
 }
 
-pub fn execute() -> Result<(), String> {
+pub fn execute() -> Result<(), SpecreError> {
     let cfg = config::load()?;
 
     let hc = cfg.health_check.as_ref();
@@ -80,13 +81,12 @@ pub fn execute() -> Result<(), String> {
         },
     };
 
-    let json = serde_json::to_string_pretty(&result)
-        .map_err(|e| format!("Failed to serialize: {e}"))?;
+    let json = serde_json::to_string_pretty(&result)?;
     println!("{json}");
 
     if healthy {
         Ok(())
     } else {
-        Err(String::new())
+        Err(SpecreError::NonZeroExit)
     }
 }

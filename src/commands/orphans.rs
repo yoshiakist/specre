@@ -4,6 +4,7 @@ use crate::commands::index::{
     collect_all_files, collect_md_files, extract_marker_ulid, parse_frontmatter, to_forward_slash,
 };
 use crate::config;
+use crate::error::SpecreError;
 use serde::Serialize;
 use std::collections::HashSet;
 use std::fs;
@@ -102,7 +103,7 @@ pub fn compute_orphans(
     }
 }
 
-pub fn execute(json: bool) -> Result<(), String> {
+pub fn execute(json: bool) -> Result<(), SpecreError> {
     let config = config::load()?;
     let specre_dir = Path::new(&config.specre_dir);
 
@@ -188,14 +189,13 @@ pub fn execute(json: bool) -> Result<(), String> {
                 })
                 .collect(),
         };
-        let json_str = serde_json::to_string_pretty(&output)
-            .map_err(|e| format!("Failed to serialize: {e}"))?;
+        let json_str = serde_json::to_string_pretty(&output)?;
         println!("{json_str}");
 
         if orphans.is_empty() && dangling.is_empty() {
             return Ok(());
         }
-        return Err(String::new());
+        return Err(SpecreError::NonZeroExit);
     }
 
     if orphans.is_empty() && dangling.is_empty() {
@@ -221,5 +221,5 @@ pub fn execute(json: bool) -> Result<(), String> {
         }
     }
 
-    Err(String::new())
+    Err(SpecreError::NonZeroExit)
 }

@@ -202,12 +202,15 @@ impl ServerHandler for SpecreMcpServer {
     }
 }
 
-pub fn execute() -> Result<(), String> {
-    let rt = tokio::runtime::Runtime::new().map_err(|e| e.to_string())?;
+pub fn execute() -> Result<(), crate::error::SpecreError> {
+    let rt = tokio::runtime::Runtime::new().map_err(|e| crate::error::SpecreError::Io {
+        path: PathBuf::from("tokio-runtime"),
+        source: e,
+    })?;
     rt.block_on(run_server())
 }
 
-async fn run_server() -> Result<(), String> {
+async fn run_server() -> Result<(), crate::error::SpecreError> {
     // stdout is reserved for JSON-RPC; all logs go to stderr
     tracing_subscriber::fmt()
         .with_env_filter(
@@ -220,18 +223,18 @@ async fn run_server() -> Result<(), String> {
 
     tracing::info!("Starting specre MCP server v{}", env!("CARGO_PKG_VERSION"));
 
-    let config = config::load().map_err(|e| format!("Config error: {e}"))?;
+    let config = config::load()?;
     let specre_dir = PathBuf::from(&config.specre_dir);
 
     let service = SpecreMcpServer::new(specre_dir)
         .serve(stdio())
         .await
-        .map_err(|e| format!("MCP server error: {e}"))?;
+        .map_err(|e| crate::error::SpecreError::Runtime(Box::new(e)))?;
 
     service
         .waiting()
         .await
-        .map_err(|e| format!("MCP server error: {e}"))?;
+        .map_err(|e| crate::error::SpecreError::Runtime(Box::new(e)))?;
 
     Ok(())
 }

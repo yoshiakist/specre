@@ -2,7 +2,7 @@
 id: "01JMBJK7QRVX3N4P5G6H8W9Y0Z"
 name: "specre_new_scaffolds_a_new_specre"
 status: "stable"
-last_verified: "2026-02-13"
+last_verified: "2026-02-16"
 ---
 
 ## Related Files
@@ -86,4 +86,4 @@ The template includes only the required sections with minimal placeholders. Opti
 
 - If `target_dir` points to a path where a file (not a directory) already exists, CLI exits with an error: `Error: '<path>' is a file, not a directory`
 - If a file with the exact same name already exists, CLI exits with an error: `Error: '<path>' already exists`
-- If the filesystem is read-only or permissions are insufficient, CLI exits with the OS-level error message
+- If the filesystem is read-only or permissions are insufficient (e.g., a parent path component is a file, not a directory), CLI exits with an error: `Error: Failed to access '<path>': <OS error message>`

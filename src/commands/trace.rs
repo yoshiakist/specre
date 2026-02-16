@@ -5,6 +5,7 @@ use crate::commands::index::{
     collect_all_files, collect_md_files, extract_marker_ulid, parse_frontmatter, to_forward_slash,
 };
 use crate::config;
+use crate::error::SpecreError;
 use crate::ulid;
 use serde::Serialize;
 use std::collections::HashMap;
@@ -35,7 +36,7 @@ struct SpecreRefOutput {
     path: Option<String>,
 }
 
-pub fn execute(args: TraceArgs, json: bool) -> Result<(), String> {
+pub fn execute(args: TraceArgs, json: bool) -> Result<(), SpecreError> {
     if ulid::is_valid(&args.query) {
         trace_by_ulid(&args.query, json)
     } else {
@@ -43,7 +44,7 @@ pub fn execute(args: TraceArgs, json: bool) -> Result<(), String> {
     }
 }
 
-fn trace_by_ulid(ulid: &str, json: bool) -> Result<(), String> {
+fn trace_by_ulid(ulid: &str, json: bool) -> Result<(), SpecreError> {
     let config = config::load()?;
     let specre_dir = Path::new(&config.specre_dir);
 
@@ -101,8 +102,7 @@ fn trace_by_ulid(ulid: &str, json: bool) -> Result<(), String> {
                 })
                 .collect(),
         };
-        let json_str = serde_json::to_string_pretty(&output)
-            .map_err(|e| format!("Failed to serialize: {e}"))?;
+        let json_str = serde_json::to_string_pretty(&output)?;
         println!("{json_str}");
     } else {
         // Print output
@@ -125,21 +125,25 @@ fn trace_by_ulid(ulid: &str, json: bool) -> Result<(), String> {
 
     // Exit with error if nothing found at all
     if specre_path.is_none() && source_refs.is_empty() {
-        return Err(String::new());
+        return Err(SpecreError::NonZeroExit);
     }
 
     Ok(())
 }
 
-fn trace_by_file(file_path: &str, json: bool) -> Result<(), String> {
+fn trace_by_file(file_path: &str, json: bool) -> Result<(), SpecreError> {
     let file_path = file_path.replace('\\', "/");
     let path = Path::new(&file_path);
     if !path.exists() {
-        return Err(format!("file not found: {file_path}"));
+        return Err(SpecreError::InvalidArgument(format!(
+            "file not found: {file_path}"
+        )));
     }
 
-    let content =
-        fs::read_to_string(path).map_err(|e| format!("Failed to read '{file_path}': {e}"))?;
+    let content = fs::read_to_string(path).map_err(|e| SpecreError::Io {
+        path: path.to_path_buf(),
+        source: e,
+    })?;
 
     // Extract all marker ULIDs from the file (preserving order)
     let mut ulids: Vec<String> = Vec::new();
@@ -179,8 +183,7 @@ fn trace_by_file(file_path: &str, json: bool) -> Result<(), String> {
                 })
                 .collect(),
         };
-        let json_str = serde_json::to_string_pretty(&output)
-            .map_err(|e| format!("Failed to serialize: {e}"))?;
+        let json_str = serde_json::to_string_pretty(&output)?;
         println!("{json_str}");
     } else {
         // Print output
@@ -200,7 +203,7 @@ fn trace_by_file(file_path: &str, json: bool) -> Result<(), String> {
     }
 
     if ulids.is_empty() {
-        return Err(String::new());
+        return Err(SpecreError::NonZeroExit);
     }
 
     Ok(())

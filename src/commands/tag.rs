@@ -1,6 +1,7 @@
 // @specre 01KHB48EYB9686YYQMYFYQ5R1Z
 // @specre 01KHG0A2V4YXE918WMJCY7WFE8
 use crate::cli::TagArgs;
+use crate::error::SpecreError;
 use crate::ulid;
 use serde::Serialize;
 use std::fs;
@@ -56,28 +57,33 @@ fn to_forward_slash(s: &str) -> String {
     s.replace('\\', "/")
 }
 
-pub fn execute(args: TagArgs, json: bool) -> Result<(), String> {
+pub fn execute(args: TagArgs, json: bool) -> Result<(), SpecreError> {
     if !ulid::is_valid(&args.ulid) {
-        return Err(
+        return Err(SpecreError::InvalidArgument(
             "invalid ULID format. Expected 26 uppercase alphanumeric characters.".to_string(),
-        );
+        ));
     }
 
     let file_path = Path::new(&args.file);
 
     if !file_path.exists() {
-        return Err(format!("file not found: {}", to_forward_slash(&args.file)));
+        return Err(SpecreError::InvalidArgument(format!(
+            "file not found: {}",
+            to_forward_slash(&args.file)
+        )));
     }
 
     if file_path.is_dir() {
-        return Err(format!(
+        return Err(SpecreError::InvalidArgument(format!(
             "'{}' is a directory, not a file",
             to_forward_slash(&args.file)
-        ));
+        )));
     }
 
-    let content = fs::read_to_string(file_path)
-        .map_err(|e| format!("Failed to read '{}': {e}", args.file))?;
+    let content = fs::read_to_string(file_path).map_err(|e| SpecreError::Io {
+        path: file_path.to_path_buf(),
+        source: e,
+    })?;
 
     // Check if marker already exists
     let marker_pattern = format!("@specre {}", args.ulid);
@@ -94,8 +100,7 @@ pub fn execute(args: TagArgs, json: bool) -> Result<(), String> {
                 file: to_forward_slash(&args.file),
                 line,
             };
-            let json_str = serde_json::to_string_pretty(&output)
-                .map_err(|e| format!("Failed to serialize: {e}"))?;
+            let json_str = serde_json::to_string_pretty(&output)?;
             println!("{json_str}");
         } else {
             println!("Marker already exists in {}", to_forward_slash(&args.file));
@@ -106,17 +111,19 @@ pub fn execute(args: TagArgs, json: bool) -> Result<(), String> {
     // Determine comment syntax from file extension
     let ext = file_path.extension().and_then(|e| e.to_str()).unwrap_or("");
     let (prefix, suffix) = comment_syntax(ext).ok_or_else(|| {
-        format!(
+        SpecreError::InvalidArgument(format!(
             "unsupported file extension '.{}' — comment syntax is unknown",
             ext
-        )
+        ))
     })?;
 
     let marker_line = format!("{prefix}@specre {}{suffix}\n", args.ulid);
     let new_content = format!("{marker_line}{content}");
 
-    fs::write(file_path, &new_content)
-        .map_err(|e| format!("Failed to write '{}': {e}", args.file))?;
+    fs::write(file_path, &new_content).map_err(|e| SpecreError::Io {
+        path: file_path.to_path_buf(),
+        source: e,
+    })?;
 
     if json {
         let output = TagOutput {
@@ -124,8 +131,7 @@ pub fn execute(args: TagArgs, json: bool) -> Result<(), String> {
             file: to_forward_slash(&args.file),
             line: 1,
         };
-        let json_str = serde_json::to_string_pretty(&output)
-            .map_err(|e| format!("Failed to serialize: {e}"))?;
+        let json_str = serde_json::to_string_pretty(&output)?;
         println!("{json_str}");
     } else {
         println!("Tagged {} with {}", to_forward_slash(&args.file), args.ulid);

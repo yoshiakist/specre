@@ -2,11 +2,13 @@
 mod cli;
 mod commands;
 mod config;
+pub mod error;
 mod template;
 mod ulid;
 
 use clap::Parser;
 use cli::{Cli, Commands};
+use error::SpecreError;
 use std::process;
 
 fn main() {
@@ -27,8 +29,12 @@ fn main() {
         Commands::Mcp => commands::mcp::execute(),
     };
 
-    if let Err(e) = result {
-        eprintln!("Error: {e}");
-        process::exit(1);
+    match result {
+        Ok(()) => {}
+        Err(SpecreError::NonZeroExit) => process::exit(1),
+        Err(e) => {
+            eprintln!("Error: {e}");
+            process::exit(1);
+        }
     }
 }

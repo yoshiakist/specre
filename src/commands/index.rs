@@ -5,6 +5,7 @@
 // @specre 01KHFD5R1G3C5R34XMQXQTTMM9
 // @specre 01KHG0A2V4YXE918WMJCY7WFE8
 use crate::config;
+use crate::error::SpecreError;
 use chrono::Utc;
 use serde::Serialize;
 use std::collections::BTreeMap;
@@ -44,7 +45,7 @@ struct SourceRef {
     line: usize,
 }
 
-pub fn execute(json_flag: bool) -> Result<(), String> {
+pub fn execute(json_flag: bool) -> Result<(), SpecreError> {
     let config = config::load()?;
 
     let specre_dir = Path::new(&config.specre_dir);
@@ -60,10 +61,11 @@ pub fn execute(json_flag: bool) -> Result<(), String> {
 
     let index_json_path = specre_dir.join("index.json");
     let index_json_rel = format!("{}/index.json", config.specre_dir);
-    let json =
-        serde_json::to_string_pretty(&index).map_err(|e| format!("Failed to serialize: {e}"))?;
-    fs::write(&index_json_path, &json)
-        .map_err(|e| format!("Failed to write {index_json_rel}: {e}"))?;
+    let json = serde_json::to_string_pretty(&index)?;
+    fs::write(&index_json_path, &json).map_err(|e| SpecreError::Io {
+        path: index_json_path.clone(),
+        source: e,
+    })?;
 
     let index_md_files = generate_index_md(specre_dir, &config.specre_dir, &index.specres)?;
 
@@ -74,8 +76,7 @@ pub fn execute(json_flag: bool) -> Result<(), String> {
             source_ref_count: index.source_refs.len(),
             index_md_files,
         };
-        let json_str = serde_json::to_string_pretty(&output)
-            .map_err(|e| format!("Failed to serialize: {e}"))?;
+        let json_str = serde_json::to_string_pretty(&output)?;
         println!("{json_str}");
     } else {
         println!(
@@ -313,7 +314,7 @@ fn generate_index_md(
     specre_dir: &Path,
     specre_dir_str: &str,
     specres: &[SpecreEntry],
-) -> Result<Vec<String>, String> {
+) -> Result<Vec<String>, SpecreError> {
     // Group specres by domain
     let mut by_domain: BTreeMap<String, Vec<&SpecreEntry>> = BTreeMap::new();
     for entry in specres {
@@ -353,8 +354,10 @@ fn generate_index_md(
             ));
         }
 
-        fs::write(&index_path, &md)
-            .map_err(|e| format!("Failed to write '{}': {e}", index_path.display()))?;
+        fs::write(&index_path, &md).map_err(|e| SpecreError::Io {
+            path: index_path.clone(),
+            source: e,
+        })?;
 
         let index_rel =
             to_forward_slash(&PathBuf::from(specre_dir_str).join(domain).join("_INDEX.md"));

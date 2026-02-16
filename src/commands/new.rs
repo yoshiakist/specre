@@ -4,6 +4,7 @@
 use crate::cli::NewArgs;
 use crate::commands::index::to_forward_slash;
 use crate::config;
+use crate::error::SpecreError;
 use crate::template;
 use crate::ulid;
 use serde::Serialize;
@@ -16,39 +17,48 @@ struct NewOutput {
     path: String,
 }
 
-pub fn execute(args: NewArgs, json: bool) -> Result<(), String> {
+pub fn execute(args: NewArgs, json: bool) -> Result<(), SpecreError> {
     let target = Path::new(&args.target_dir);
 
     if target.is_file() {
-        return Err(format!("'{}' is a file, not a directory", target.display()));
+        return Err(SpecreError::InvalidArgument(format!(
+            "'{}' is a file, not a directory",
+            target.display()
+        )));
     }
 
     let file_name = format!("{}.md", args.name);
     let file_path = target.join(&file_name);
 
     if file_path.exists() {
-        return Err(format!("'{}' already exists", file_path.display()));
+        return Err(SpecreError::InvalidArgument(format!(
+            "'{}' already exists",
+            file_path.display()
+        )));
     }
 
     if !target.exists() {
-        fs::create_dir_all(target)
-            .map_err(|e| format!("Failed to create directory '{}': {e}", target.display()))?;
+        fs::create_dir_all(target).map_err(|e| SpecreError::Io {
+            path: target.to_path_buf(),
+            source: e,
+        })?;
     }
 
     let language = config::load_language();
     let id = ulid::generate();
     let content = template::render(&id, &args.name, &language);
 
-    fs::write(&file_path, &content)
-        .map_err(|e| format!("Failed to write '{}': {e}", file_path.display()))?;
+    fs::write(&file_path, &content).map_err(|e| SpecreError::Io {
+        path: file_path.clone(),
+        source: e,
+    })?;
 
     if json {
         let output = NewOutput {
             id,
             path: to_forward_slash(&file_path),
         };
-        let json_str = serde_json::to_string_pretty(&output)
-            .map_err(|e| format!("Failed to serialize: {e}"))?;
+        let json_str = serde_json::to_string_pretty(&output)?;
         println!("{json_str}");
     } else {
         println!("{}", file_path.display());
