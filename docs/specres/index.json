@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-02-15T07:37:20Z",
+  "generated_at": "2026-02-16T04:26:29Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -113,6 +113,30 @@
       "domain": "cli",
       "path": "docs/specres/cli/specre_commands_support_json_output.md",
       "last_verified": "2026-02-15"
+    },
+    {
+      "id": "01KHJ98T83DPJGMEFH9HAXXAZ1",
+      "name": "mcp_server_starts_via_stdio",
+      "status": "stable",
+      "domain": "mcp",
+      "path": "docs/specres/mcp/mcp_server_starts_via_stdio.md",
+      "last_verified": "2026-02-16"
+    },
+    {
+      "id": "01KHJ98TFCDTCARMMX1GC5ZHXE",
+      "name": "mcp_resources_expose_specre_cards",
+      "status": "stable",
+      "domain": "mcp",
+      "path": "docs/specres/mcp/mcp_resources_expose_specre_cards.md",
+      "last_verified": "2026-02-16"
+    },
+    {
+      "id": "01KHK7MFZJZ12XFPQE4RHCBHQN",
+      "name": "mcp_tool_new_creates_specre_card",
+      "status": "stable",
+      "domain": "mcp",
+      "path": "docs/specres/mcp/mcp_tool_new_creates_specre_card.md",
+      "last_verified": "2026-02-16"
     }
   ],
   "source_refs": [
@@ -334,6 +358,21 @@
     {
       "specre_id": "01KHG0A2V4YXE918WMJCY7WFE8",
       "file": "tests/cli_json_output.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHJ98T83DPJGMEFH9HAXXAZ1",
+      "file": "tests/cli_mcp.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHJ98TFCDTCARMMX1GC5ZHXE",
+      "file": "tests/cli_mcp_resources.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHK7MFZJZ12XFPQE4RHCBHQN",
+      "file": "tests/cli_mcp_tool_new.rs",
       "line": 1
     },
     {

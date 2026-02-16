@@ -1,7 +1,8 @@
 ---
 id: "01KHJ98T83DPJGMEFH9HAXXAZ1"
 name: "mcp_server_starts_via_stdio"
-status: "draft"
+status: "stable"
+last_verified: "2026-02-16"
 ---
 
 ## Related Files
@@ -9,6 +10,7 @@ status: "draft"
 - `src/commands/mcp.rs`
 - `src/cli.rs`
 - `tests/cli_mcp.rs` (Test)
+- `tests/common/mcp.rs` (Test helper)
 
 ## Functional Overview
 

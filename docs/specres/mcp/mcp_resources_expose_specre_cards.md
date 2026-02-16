@@ -1,14 +1,16 @@
 ---
 id: "01KHJ98TFCDTCARMMX1GC5ZHXE"
 name: "mcp_resources_expose_specre_cards"
-status: "draft"
+status: "stable"
+last_verified: "2026-02-16"
 ---
 
 ## Related Files
 
 - `src/commands/mcp.rs`
 - `src/commands/index.rs` (reused: `collect_md_files`, `parse_frontmatter`)
-- `tests/cli_mcp.rs` (Test)
+- `tests/cli_mcp_resources.rs` (Test)
+- `tests/common/mcp.rs` (Test helper)
 
 ## Functional Overview
 
