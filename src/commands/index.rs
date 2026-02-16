@@ -133,9 +133,23 @@ fn scan_specre_files(dir: &Path, specre_dir_str: &str) -> Vec<SpecreEntry> {
 pub fn collect_md_files(dir: &Path, cb: &mut dyn FnMut(&Path)) {
     let read_dir = match fs::read_dir(dir) {
         Ok(rd) => rd,
-        Err(_) => return,
+        Err(e) => {
+            eprintln!("Warning: failed to read directory '{}': {e}", dir.display());
+            return;
+        }
     };
-    let mut sub_entries: Vec<_> = read_dir.filter_map(|e| e.ok()).collect();
+    let mut sub_entries: Vec<_> = read_dir
+        .filter_map(|e| match e {
+            Ok(entry) => Some(entry),
+            Err(err) => {
+                eprintln!(
+                    "Warning: failed to read entry in '{}': {err}",
+                    dir.display()
+                );
+                None
+            }
+        })
+        .collect();
     sub_entries.sort_by_key(|e| e.file_name());
     for entry in sub_entries {
         let path = entry.path();
@@ -252,7 +266,10 @@ fn scan_source_refs(
         collect_all_files(dir, target_extensions, &mut |path| {
             let content = match fs::read_to_string(path) {
                 Ok(c) => c,
-                Err(_) => return,
+                Err(e) => {
+                    eprintln!("Warning: failed to read '{}': {e}", path.display());
+                    return;
+                }
             };
             let rel_path = to_forward_slash(path);
             for (line_num, line) in content.lines().enumerate() {
@@ -277,9 +294,23 @@ pub fn collect_all_files(
 ) {
     let read_dir = match fs::read_dir(dir) {
         Ok(rd) => rd,
-        Err(_) => return,
+        Err(e) => {
+            eprintln!("Warning: failed to read directory '{}': {e}", dir.display());
+            return;
+        }
     };
-    let mut sub_entries: Vec<_> = read_dir.filter_map(|e| e.ok()).collect();
+    let mut sub_entries: Vec<_> = read_dir
+        .filter_map(|e| match e {
+            Ok(entry) => Some(entry),
+            Err(err) => {
+                eprintln!(
+                    "Warning: failed to read entry in '{}': {err}",
+                    dir.display()
+                );
+                None
+            }
+        })
+        .collect();
     sub_entries.sort_by_key(|e| e.file_name());
     for entry in sub_entries {
         let path = entry.path();
