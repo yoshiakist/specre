@@ -14,6 +14,10 @@ pub enum SpecreError {
     Serialize(serde_json::Error),
     /// バリデーションエラー（引数の不正など）
     InvalidArgument(String),
+    /// コマンドは成功したが、検出結果により非ゼロ終了が必要
+    NonZeroExit,
+    /// 外部ライブラリまたはランタイムのエラー
+    Runtime(Box<dyn std::error::Error + Send + Sync>),
 }
 
 impl std::fmt::Display for SpecreError {
@@ -31,6 +35,8 @@ impl std::fmt::Display for SpecreError {
             }
             Self::Serialize(e) => write!(f, "Failed to serialize: {e}"),
             Self::InvalidArgument(msg) => write!(f, "{msg}"),
+            Self::NonZeroExit => Ok(()),
+            Self::Runtime(e) => write!(f, "{e}"),
         }
     }
 }
@@ -41,6 +47,7 @@ impl std::error::Error for SpecreError {
             Self::ConfigParse(e) => Some(e),
             Self::Io { source, .. } => Some(source),
             Self::Serialize(e) => Some(e),
+            Self::Runtime(e) => Some(e.as_ref()),
             _ => None,
         }
     }

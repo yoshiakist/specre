@@ -8,6 +8,7 @@ mod ulid;
 
 use clap::Parser;
 use cli::{Cli, Commands};
+use error::SpecreError;
 use std::process;
 
 fn main() {
@@ -15,8 +16,8 @@ fn main() {
     let json = cli.json;
 
     let result = match cli.command {
-        Commands::Init(args) => commands::init::execute(args, json).map_err(|e| e.to_string()),
-        Commands::New(args) => commands::new::execute(args, json).map_err(|e| e.to_string()),
+        Commands::Init(args) => commands::init::execute(args, json),
+        Commands::New(args) => commands::new::execute(args, json),
         Commands::Index => commands::index::execute(json),
         Commands::Status(args) => commands::status::execute(args, json),
         Commands::Trace(args) => commands::trace::execute(args, json),
@@ -28,8 +29,12 @@ fn main() {
         Commands::Mcp => commands::mcp::execute(),
     };
 
-    if let Err(e) = result {
-        eprintln!("Error: {e}");
-        process::exit(1);
+    match result {
+        Ok(()) => {}
+        Err(SpecreError::NonZeroExit) => process::exit(1),
+        Err(e) => {
+            eprintln!("Error: {e}");
+            process::exit(1);
+        }
     }
 }

@@ -3,6 +3,7 @@
 use crate::cli::StatusArgs;
 use crate::commands::index::{collect_md_files, parse_frontmatter, to_forward_slash};
 use crate::config;
+use crate::error::SpecreError;
 use chrono::{NaiveDate, Utc};
 use serde::Serialize;
 use std::fs;
@@ -36,8 +37,8 @@ struct StaleEntry {
     reason: String,
 }
 
-pub fn execute(args: StatusArgs, json: bool) -> Result<(), String> {
-    let config = config::load().map_err(|e| e.to_string())?;
+pub fn execute(args: StatusArgs, json: bool) -> Result<(), SpecreError> {
+    let config = config::load()?;
     let specre_dir = Path::new(&config.specre_dir);
 
     let today = Utc::now().date_naive();
@@ -126,8 +127,7 @@ pub fn execute(args: StatusArgs, json: bool) -> Result<(), String> {
                 })
                 .collect(),
         };
-        let json_str = serde_json::to_string_pretty(&output)
-            .map_err(|e| format!("Failed to serialize: {e}"))?;
+        let json_str = serde_json::to_string_pretty(&output)?;
         println!("{json_str}");
     } else {
         println!("Status Summary:");

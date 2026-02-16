@@ -3,6 +3,7 @@
 use crate::cli::CoverageArgs;
 use crate::commands::index::{collect_all_files, extract_marker_ulid, to_forward_slash};
 use crate::config;
+use crate::error::SpecreError;
 use serde::Serialize;
 use std::fs;
 use std::path::Path;
@@ -63,8 +64,8 @@ pub fn compute_coverage(
     }
 }
 
-pub fn execute(args: CoverageArgs, json: bool) -> Result<(), String> {
-    let config = config::load().map_err(|e| e.to_string())?;
+pub fn execute(args: CoverageArgs, json: bool) -> Result<(), SpecreError> {
+    let config = config::load()?;
 
     let extensions = args
         .ext
@@ -84,8 +85,7 @@ pub fn execute(args: CoverageArgs, json: bool) -> Result<(), String> {
             coverage: coverage_ratio,
             uncovered: result.uncovered,
         };
-        let json_str = serde_json::to_string_pretty(&output)
-            .map_err(|e| format!("Failed to serialize: {e}"))?;
+        let json_str = serde_json::to_string_pretty(&output)?;
         println!("{json_str}");
     } else {
         if result.total == 0 {
