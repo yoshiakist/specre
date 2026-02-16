@@ -7,5 +7,6 @@ pub mod new;
 pub mod orphans;
 pub mod status;
 pub mod tag;
+pub mod mcp;
 pub mod search;
 pub mod trace;

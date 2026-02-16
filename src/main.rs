@@ -24,6 +24,7 @@ fn main() {
         Commands::Coverage(args) => commands::coverage::execute(args, json),
         Commands::HealthCheck => commands::health_check::execute(),
         Commands::Search(args) => commands::search::execute(args),
+        Commands::Mcp => commands::mcp::execute(),
     };
 
     if let Err(e) = result {

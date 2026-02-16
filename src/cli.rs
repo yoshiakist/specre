@@ -47,6 +47,9 @@ pub enum Commands {
 
     /// Search specre cards by text query and structured filters
     Search(SearchArgs),
+
+    /// Start the MCP server (stdio transport)
+    Mcp,
 }
 
 #[derive(Args)]
