@@ -1,3 +1,7 @@
+// @specre 01KHJ98T83DPJGMEFH9HAXXAZ1
+// @specre 01KHJ98TFCDTCARMMX1GC5ZHXE
+// @specre 01KHK7MFZJZ12XFPQE4RHCBHQN
+
 use assert_fs::prelude::*;
 use serde_json::{Value, json};
 use std::io::{BufRead, BufReader, Write};
