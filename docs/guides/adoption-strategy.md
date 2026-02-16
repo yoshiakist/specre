@@ -2,25 +2,22 @@
 
 Guidance for engineers retrofitting specre into an existing codebase. If you are starting a greenfield project, the path is simpler: create specre cards as you develop using the [sdd-new workflow](../../.claude/commands/sdd-new.md). This guide addresses the harder problem — introducing specre into a living codebase with accumulated code, tests, and implicit design decisions.
 
-## Quick Decision Chart
-
-```mermaid
 flowchart TD
-    Start["Existing codebase?"] -->|Yes| Q1["Run coverage tool\nRead 10 test files"]
-    Start -->|"No (greenfield / rewrite)"| C["Strategy C\nTop-Down Domain\nDecomposition"]
+    Start["Existing codebase?"] -->|Yes| Q1["Run coverage tool<br/>Read 10 test files"]
+    Start -->|"No (greenfield / rewrite)"| C["Strategy C<br/>Top-Down Domain<br/>Decomposition"]
 
-    Q1 --> Q2{"Tests read like\nbehavior descriptions?"}
-    Q2 -->|"Yes, and coverage ≥ 70%"| A["Strategy A\nTest-Derived\nExtraction"]
-    Q2 -->|"No — implementation-oriented\nor mixed / low coverage"| B["Strategy B\nCode-Behavior\nAnalysis"]
+    Q1 --> Q2{"Tests read like<br/>behavior descriptions?"}
+    Q2 -->|"Yes, and coverage ≥ 70%"| A["Strategy A<br/>Test-Derived<br/>Extraction"]
+    Q2 -->|"No — implementation-oriented<br/>or mixed / low coverage"| B["Strategy B<br/>Code-Behavior<br/>Analysis"]
 
     A --> Go["specre init → pick one domain → create first card"]
     B --> Go
     C --> Go
 
-    style A fill:#d4edda,stroke:#28a745
-    style B fill:#fff3cd,stroke:#ffc107
-    style C fill:#d1ecf1,stroke:#17a2b8
-    style Go fill:#f8f9fa,stroke:#6c757d
+    style A fill:#d4edda,stroke:#28a745,primaryTextColor:#111
+    style B fill:#fff3cd,stroke:#ffc107,primaryTextColor:#111
+    style C fill:#d1ecf1,stroke:#17a2b8,primaryTextColor:#111
+    style Go fill:#f8f9fa,stroke:#6c757d,primaryTextColor:#111
 ```
 
 | Strategy | When to use | Starting point |
