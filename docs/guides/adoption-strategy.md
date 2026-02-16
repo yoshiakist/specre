@@ -2,6 +2,9 @@
 
 Guidance for engineers retrofitting specre into an existing codebase. If you are starting a greenfield project, the path is simpler: create specre cards as you develop using the [sdd-new workflow](../../.claude/commands/sdd-new.md). This guide addresses the harder problem — introducing specre into a living codebase with accumulated code, tests, and implicit design decisions.
 
+## Quick Decision Chart
+
+```mermaid
 flowchart TD
     Start["Existing codebase?"] -->|Yes| Q1["Run coverage tool<br/>Read 10 test files"]
     Start -->|"No (greenfield / rewrite)"| C["Strategy C<br/>Top-Down Domain<br/>Decomposition"]
