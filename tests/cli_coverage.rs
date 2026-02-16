@@ -323,3 +323,46 @@ fn coverage_full_no_uncovered_section() {
                 .and(predicate::str::contains("Uncovered files:").not()),
         );
 }
+
+// -- Failures / Exceptions: IO error warns and counts as uncovered --
+
+#[cfg(unix)]
+#[test]
+fn coverage_warns_on_unreadable_source_file() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src"], &["rs"]);
+
+    let src_dir = tmp.path().join("src");
+    fs::create_dir_all(&src_dir).unwrap();
+    fs::write(
+        src_dir.join("good.rs"),
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n",
+    )
+    .unwrap();
+
+    let bad_file = src_dir.join("bad.rs");
+    fs::write(&bad_file, "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n").unwrap();
+    fs::set_permissions(&bad_file, fs::Permissions::from_mode(0o000)).unwrap();
+
+    let output = specre()
+        .args(["coverage"])
+        .current_dir(tmp.path())
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("Warning: failed to read"),
+        "Expected warning about unreadable file in stderr, got: {stderr}"
+    );
+
+    // The unreadable file should be counted as uncovered
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("Coverage: 1/2 files"));
+
+    fs::set_permissions(&bad_file, fs::Permissions::from_mode(0o644)).unwrap();
+}

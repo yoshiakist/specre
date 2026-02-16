@@ -2,7 +2,7 @@
 id: "01KHFEA9QVV4A127VCRJY97A68"
 name: "specre_coverage_reports_source_file_tagging"
 status: "stable"
-last_verified: "2026-02-15"
+last_verified: "2026-02-16"
 ---
 
 ## Related Files
@@ -116,5 +116,5 @@ Coverage is a key metric for assessing traceability health. If most source files
 
 - If `specre.toml` is missing, CLI exits with error: `Error: specre.toml not found. Run 'specre init' first.`
 - If a `source_dirs` entry does not exist, CLI skips it silently
-- Unreadable files are skipped silently (no warning to stderr)
+- If a source file cannot be read (IO error), CLI prints a warning to stderr (`Warning: failed to read '<path>': <reason>`) and counts it as uncovered
 - Markers inside string literals are excluded (same logic as `extract_marker_ulid`)

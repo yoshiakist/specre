@@ -39,7 +39,8 @@ pub fn compute_coverage(
             total += 1;
             let content = match fs::read_to_string(path) {
                 Ok(c) => c,
-                Err(_) => {
+                Err(e) => {
+                    eprintln!("Warning: failed to read '{}': {e}", path.display());
                     uncovered.push(to_forward_slash(path));
                     return;
                 }
