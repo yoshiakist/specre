@@ -64,7 +64,7 @@ pub fn compute_coverage(
 }
 
 pub fn execute(args: CoverageArgs, json: bool) -> Result<(), String> {
-    let config = config::load()?;
+    let config = config::load().map_err(|e| e.to_string())?;
 
     let extensions = args
         .ext

@@ -70,7 +70,7 @@ pub fn execute(args: SearchArgs) -> Result<(), String> {
         }
     }
 
-    let cfg = config::load()?;
+    let cfg = config::load().map_err(|e| e.to_string())?;
     let max_results = cfg
         .search
         .as_ref()

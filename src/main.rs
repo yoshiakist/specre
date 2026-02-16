@@ -2,6 +2,7 @@
 mod cli;
 mod commands;
 mod config;
+pub mod error;
 mod template;
 mod ulid;
 
@@ -14,8 +15,8 @@ fn main() {
     let json = cli.json;
 
     let result = match cli.command {
-        Commands::Init(args) => commands::init::execute(args, json),
-        Commands::New(args) => commands::new::execute(args, json),
+        Commands::Init(args) => commands::init::execute(args, json).map_err(|e| e.to_string()),
+        Commands::New(args) => commands::new::execute(args, json).map_err(|e| e.to_string()),
         Commands::Index => commands::index::execute(json),
         Commands::Status(args) => commands::status::execute(args, json),
         Commands::Trace(args) => commands::trace::execute(args, json),

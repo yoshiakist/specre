@@ -6,6 +6,7 @@
 // @specre 01KHAGG8NQQ7RSNYZ6SWBCYH3N
 // @specre 01KHDF9WHR5HFM4RQCF6HS3KCC
 // @specre 01KHFD5R1G3C5R34XMQXQTTMM9
+use crate::error::SpecreError;
 use serde::Deserialize;
 use std::fs;
 use std::path::Path;
@@ -34,14 +35,16 @@ pub struct SearchConfig {
     pub max_results: Option<usize>,
 }
 
-pub fn load() -> Result<Config, String> {
+pub fn load() -> Result<Config, SpecreError> {
     let path = Path::new(CONFIG_FILE);
     if !path.exists() {
-        return Err(format!("{CONFIG_FILE} not found. Run 'specre init' first."));
+        return Err(SpecreError::ConfigNotFound);
     }
-    let content =
-        fs::read_to_string(path).map_err(|e| format!("Failed to read {CONFIG_FILE}: {e}"))?;
-    toml::from_str(&content).map_err(|e| format!("Failed to parse {CONFIG_FILE}: {e}"))
+    let content = fs::read_to_string(path).map_err(|e| SpecreError::Io {
+        path: path.to_path_buf(),
+        source: e,
+    })?;
+    toml::from_str(&content).map_err(SpecreError::ConfigParse)
 }
 
 pub fn load_language() -> String {

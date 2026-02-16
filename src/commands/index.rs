@@ -45,7 +45,7 @@ struct SourceRef {
 }
 
 pub fn execute(json_flag: bool) -> Result<(), String> {
-    let config = config::load()?;
+    let config = config::load().map_err(|e| e.to_string())?;
 
     let specre_dir = Path::new(&config.specre_dir);
     let specres = scan_specre_files(specre_dir, &config.specre_dir);

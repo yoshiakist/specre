@@ -44,7 +44,7 @@ pub fn execute(args: TraceArgs, json: bool) -> Result<(), String> {
 }
 
 fn trace_by_ulid(ulid: &str, json: bool) -> Result<(), String> {
-    let config = config::load()?;
+    let config = config::load().map_err(|e| e.to_string())?;
     let specre_dir = Path::new(&config.specre_dir);
 
     // Find specre file with matching id
@@ -151,7 +151,7 @@ fn trace_by_file(file_path: &str, json: bool) -> Result<(), String> {
         }
     }
 
-    let config = config::load()?;
+    let config = config::load().map_err(|e| e.to_string())?;
     let specre_dir = Path::new(&config.specre_dir);
 
     // Build ULID → specre path map

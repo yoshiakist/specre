@@ -36,7 +36,7 @@ fn get_index_age_hours(specre_dir: &str) -> Option<f64> {
 }
 
 pub fn execute() -> Result<(), String> {
-    let cfg = config::load()?;
+    let cfg = config::load().map_err(|e| e.to_string())?;
 
     let hc = cfg.health_check.as_ref();
     let threshold_coverage = hc.and_then(|h| h.coverage).unwrap_or(0.90);
