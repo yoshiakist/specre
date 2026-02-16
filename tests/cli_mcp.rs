@@ -8,7 +8,7 @@ use std::process::{Command, Stdio};
 
 /// Helper: spawn `specre mcp` with piped stdin/stdout in a given directory.
 fn spawn_mcp(dir: &std::path::Path) -> std::process::Child {
-    Command::new(assert_cmd::cargo::cargo_bin("specre"))
+    Command::new(assert_cmd::cargo::cargo_bin!("specre"))
         .arg("mcp")
         .current_dir(dir)
         .stdin(Stdio::piped())
@@ -127,7 +127,7 @@ fn mcp_exits_cleanly_on_stdin_close() {
 #[test]
 fn mcp_errors_without_config() {
     let dir = assert_fs::TempDir::new().unwrap();
-    let output = Command::new(assert_cmd::cargo::cargo_bin("specre"))
+    let output = Command::new(assert_cmd::cargo::cargo_bin!("specre"))
         .arg("mcp")
         .current_dir(dir.path())
         .output()
