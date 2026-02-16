@@ -64,7 +64,6 @@ pub fn setup_project(specre_dir: &str) -> assert_fs::TempDir {
 }
 
 /// Create a specre card file in the given directory.
-#[allow(dead_code)]
 pub fn create_specre_card(dir: &assert_fs::TempDir, specre_dir: &str, filename: &str, id: &str, name: &str, status: &str) {
     let content = format!(
         "---\nid: \"{id}\"\nname: \"{name}\"\nstatus: \"{status}\"\n---\n\n## Functional Overview\n\nTest card.\n"

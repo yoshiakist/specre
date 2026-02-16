@@ -1,9 +1,7 @@
 // @specre 01KHK7MFZJZ12XFPQE4RHCBHQN
 
-mod common;
-
 use assert_fs::prelude::*;
-use common::mcp::*;
+use super::helpers::*;
 use serde_json::{Value, json};
 use std::io::BufReader;
 

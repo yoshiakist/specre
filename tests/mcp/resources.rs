@@ -1,8 +1,6 @@
 // @specre 01KHJ98TFCDTCARMMX1GC5ZHXE
 
-mod common;
-
-use common::mcp::*;
+use super::helpers::*;
 use serde_json::json;
 use std::io::BufReader;
 

@@ -9,8 +9,8 @@ last_verified: "2026-02-16"
 
 - `src/commands/mcp.rs`
 - `src/cli.rs`
-- `tests/cli_mcp.rs` (Test)
-- `tests/common/mcp.rs` (Test helper)
+- `tests/mcp/server.rs` (Test)
+- `tests/mcp/helpers.rs` (Test helper)
 
 ## Functional Overview
 

@@ -1,8 +1,6 @@
 // @specre 01KHJ98T83DPJGMEFH9HAXXAZ1
 
-mod common;
-
-use common::mcp::*;
+use super::helpers::*;
 use std::io::BufReader;
 use std::process::Command;
 

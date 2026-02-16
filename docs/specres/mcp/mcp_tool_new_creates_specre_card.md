@@ -12,7 +12,8 @@ last_verified: "2026-02-16"
 - `src/template.rs` (reused: template rendering)
 - `src/ulid.rs` (reused: ULID generation)
 - `src/config.rs` (reused: language config)
-- `tests/cli_mcp_tool_new.rs` (Test)
+- `tests/mcp/tool_new.rs` (Test)
+- `tests/mcp/helpers.rs` (Test helper)
 - `tests/common/mcp.rs` (Test helper)
 
 ## Functional Overview

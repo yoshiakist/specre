@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-02-16T04:39:39Z",
+  "generated_at": "2026-02-16T04:47:11Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -376,21 +376,6 @@
       "line": 1
     },
     {
-      "specre_id": "01KHJ98T83DPJGMEFH9HAXXAZ1",
-      "file": "tests/cli_mcp.rs",
-      "line": 1
-    },
-    {
-      "specre_id": "01KHJ98TFCDTCARMMX1GC5ZHXE",
-      "file": "tests/cli_mcp_resources.rs",
-      "line": 1
-    },
-    {
-      "specre_id": "01KHK7MFZJZ12XFPQE4RHCBHQN",
-      "file": "tests/cli_mcp_tool_new.rs",
-      "line": 1
-    },
-    {
       "specre_id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
       "file": "tests/cli_new.rs",
       "line": 1
@@ -422,33 +407,48 @@
     },
     {
       "specre_id": "01KHJ98T83DPJGMEFH9HAXXAZ1",
-      "file": "tests/common/mcp.rs",
+      "file": "tests/mcp/helpers.rs",
       "line": 1
     },
     {
       "specre_id": "01KHJ98TFCDTCARMMX1GC5ZHXE",
-      "file": "tests/common/mcp.rs",
+      "file": "tests/mcp/helpers.rs",
       "line": 2
     },
     {
       "specre_id": "01KHK7MFZJZ12XFPQE4RHCBHQN",
-      "file": "tests/common/mcp.rs",
+      "file": "tests/mcp/helpers.rs",
       "line": 3
     },
     {
       "specre_id": "01KHJ98T83DPJGMEFH9HAXXAZ1",
-      "file": "tests/common/mod.rs",
+      "file": "tests/mcp/main.rs",
       "line": 1
     },
     {
       "specre_id": "01KHJ98TFCDTCARMMX1GC5ZHXE",
-      "file": "tests/common/mod.rs",
+      "file": "tests/mcp/main.rs",
       "line": 2
     },
     {
       "specre_id": "01KHK7MFZJZ12XFPQE4RHCBHQN",
-      "file": "tests/common/mod.rs",
+      "file": "tests/mcp/main.rs",
       "line": 3
+    },
+    {
+      "specre_id": "01KHJ98TFCDTCARMMX1GC5ZHXE",
+      "file": "tests/mcp/resources.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHJ98T83DPJGMEFH9HAXXAZ1",
+      "file": "tests/mcp/server.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHK7MFZJZ12XFPQE4RHCBHQN",
+      "file": "tests/mcp/tool_new.rs",
+      "line": 1
     }
   ]
 }
