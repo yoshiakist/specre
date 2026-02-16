@@ -2,7 +2,7 @@
 id: "01KHFGVXWP100JXYBZTRJGMB9H"
 name: "specre_health_check_verifies_ecosystem_trustworthiness"
 status: "stable"
-last_verified: "2026-02-15"
+last_verified: "2026-02-16"
 ---
 
 ## Related Files
@@ -118,6 +118,7 @@ AI agents need a fast, unambiguous signal before trusting specre cards as a sour
 ## Failures / Exceptions
 
 - If `specre.toml` is missing, CLI exits with error: `Error: specre.toml not found. Run 'specre init' first.`
-- If `index.json` exists but cannot be parsed (malformed JSON or missing `generated_at`), `index_age_hours` is reported as `null` and treated as failing
+- If `index.json` exists but cannot be read (IO error other than not found), CLI prints a warning to stderr and `index_age_hours` is reported as `null`
+- If `index.json` exists but cannot be parsed (malformed JSON or missing `generated_at`), CLI prints a warning to stderr and `index_age_hours` is reported as `null` and treated as failing
 - If `source_dirs` entries do not exist, they are skipped silently (consistent with `coverage` behavior)
 - If `specre_dir` does not exist, orphan count is 0 (no specres to be orphaned)

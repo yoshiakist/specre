@@ -476,4 +476,61 @@ fn health_check_malformed_index_json() {
     let json = parse_json(&output.stdout);
     assert_eq!(json["healthy"], false);
     assert!(json["index_age_hours"].is_null());
+
+    // Should warn about malformed JSON
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("Warning:"),
+        "Expected warning about malformed index.json in stderr, got: {stderr}"
+    );
+}
+
+// -- Failures / Exceptions: IO error on index.json warns --
+
+#[cfg(unix)]
+#[test]
+fn health_check_warns_on_unreadable_index_json() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src"]);
+
+    write_source(
+        tmp.path(),
+        "src/a.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nfn a() {}\n",
+    );
+    write_specre_card(
+        tmp.path(),
+        "docs/specres/cli/card_a.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "card_a",
+        "stable",
+    );
+
+    // Create index.json but make it unreadable
+    let index_path = tmp.path().join("docs/specres/index.json");
+    let generated_at = fresh_index_timestamp(0);
+    fs::write(&index_path, make_index_json(&generated_at)).unwrap();
+    fs::set_permissions(&index_path, fs::Permissions::from_mode(0o000)).unwrap();
+
+    let output = specre()
+        .args(["health-check"])
+        .current_dir(tmp.path())
+        .output()
+        .unwrap();
+
+    assert!(!output.status.success());
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("Warning:"),
+        "Expected warning about unreadable index.json in stderr, got: {stderr}"
+    );
+
+    let json = parse_json(&output.stdout);
+    assert_eq!(json["healthy"], false);
+    assert!(json["index_age_hours"].is_null());
+
+    fs::set_permissions(&index_path, fs::Permissions::from_mode(0o644)).unwrap();
 }

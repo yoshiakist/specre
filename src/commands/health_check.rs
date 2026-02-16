@@ -25,11 +25,38 @@ struct Thresholds {
 
 fn get_index_age_hours(specre_dir: &str) -> Option<f64> {
     let index_path = std::path::Path::new(specre_dir).join("index.json");
-    let content = fs::read_to_string(index_path).ok()?;
-    let parsed: serde_json::Value = serde_json::from_str(&content).ok()?;
+    let content = match fs::read_to_string(&index_path) {
+        Ok(c) => c,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return None,
+        Err(e) => {
+            eprintln!(
+                "Warning: failed to read '{}': {e}",
+                index_path.display()
+            );
+            return None;
+        }
+    };
+    let parsed: serde_json::Value = match serde_json::from_str(&content) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!(
+                "Warning: failed to parse '{}': {e}",
+                index_path.display()
+            );
+            return None;
+        }
+    };
     let generated_at = parsed["generated_at"].as_str()?;
-    let generated =
-        chrono::DateTime::parse_from_rfc3339(generated_at).ok()?;
+    let generated = match chrono::DateTime::parse_from_rfc3339(generated_at) {
+        Ok(dt) => dt,
+        Err(e) => {
+            eprintln!(
+                "Warning: invalid generated_at in '{}': {e}",
+                index_path.display()
+            );
+            return None;
+        }
+    };
     let age = Utc::now().signed_duration_since(generated);
     let hours = age.num_minutes() as f64 / 60.0;
     // Round to one decimal place
