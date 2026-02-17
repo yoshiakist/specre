@@ -10,6 +10,7 @@ use serde::Serialize;
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::rc::Rc;
 
 #[derive(Serialize)]
 struct IndexOutput {
@@ -30,7 +31,7 @@ struct Index {
 #[derive(Serialize)]
 struct SourceRef {
     specre_id: String,
-    file: String,
+    file: Rc<str>,
     line: usize,
 }
 
@@ -99,12 +100,12 @@ fn scan_source_refs(
                     return;
                 }
             };
-            let rel_path = to_forward_slash(path).into_owned();
+            let rel_path: Rc<str> = Rc::from(to_forward_slash(path).as_ref());
             for (line_num, line) in content.lines().enumerate() {
                 if let Some(ulid) = extract_marker_ulid(line) {
                     refs.push(SourceRef {
                         specre_id: ulid.to_string(),
-                        file: rel_path.clone(),
+                        file: Rc::clone(&rel_path),
                         line: line_num + 1,
                     });
                 }
