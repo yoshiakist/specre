@@ -221,7 +221,7 @@ fn scan_cards(dir: &Path, specre_dir_str: &str) -> Vec<CardData> {
             }
         };
         let rel_path = to_forward_slash(path);
-        let domain = extract_domain(&rel_path, &prefix);
+        let domain = extract_domain(&rel_path, &prefix).to_owned();
         let excerpt = extract_excerpt(&content);
 
         cards.push(CardData {
@@ -229,7 +229,7 @@ fn scan_cards(dir: &Path, specre_dir_str: &str) -> Vec<CardData> {
             name: fm.name,
             status: fm.status,
             domain,
-            path: rel_path,
+            path: rel_path.into_owned(),
             last_verified: fm.last_verified,
             content,
             excerpt,
@@ -241,9 +241,9 @@ fn scan_cards(dir: &Path, specre_dir_str: &str) -> Vec<CardData> {
     cards
 }
 
-fn extract_domain(rel_path: &str, prefix: &str) -> String {
+fn extract_domain<'a>(rel_path: &'a str, prefix: &str) -> &'a str {
     let after = rel_path.strip_prefix(prefix).unwrap_or(rel_path);
-    after.split('/').next().unwrap_or("unknown").to_string()
+    after.split('/').next().unwrap_or("unknown")
 }
 
 fn extract_excerpt(content: &str) -> Option<String> {

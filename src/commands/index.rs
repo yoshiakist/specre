@@ -9,6 +9,7 @@ use crate::error::SpecreError;
 use crate::status::Status;
 use chrono::Utc;
 use serde::Serialize;
+use std::borrow::Cow;
 use std::collections::{BTreeMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -109,13 +110,13 @@ fn scan_specre_files(dir: &Path, specre_dir_str: &str) -> Vec<SpecreEntry> {
         match parse_frontmatter(&content) {
             Some(fm) => {
                 let rel_path = to_forward_slash(path);
-                let domain = extract_domain(&rel_path, specre_dir_str);
+                let domain = extract_domain(&rel_path, specre_dir_str).to_owned();
                 entries.push(SpecreEntry {
                     id: fm.id,
                     name: fm.name,
                     status: fm.status,
                     domain,
-                    path: rel_path,
+                    path: rel_path.into_owned(),
                     last_verified: fm.last_verified,
                 });
             }
@@ -220,14 +221,14 @@ pub fn parse_frontmatter(content: &str) -> Option<Frontmatter> {
     })
 }
 
-fn extract_domain(rel_path: &str, specre_dir: &str) -> String {
+fn extract_domain<'a>(rel_path: &'a str, specre_dir: &str) -> &'a str {
     let prefix = if specre_dir.ends_with('/') {
         specre_dir.to_string()
     } else {
         format!("{specre_dir}/")
     };
     let after = rel_path.strip_prefix(&prefix).unwrap_or(rel_path);
-    after.split('/').next().unwrap_or("unknown").to_string()
+    after.split('/').next().unwrap_or("unknown")
 }
 
 /// Extracts a ULID from a `@specre` marker on a line.
@@ -298,11 +299,11 @@ pub fn scan_source_markers(
                 Ok(c) => c,
                 Err(e) => {
                     eprintln!("Warning: failed to read '{}': {e}", path.display());
-                    uncovered.push(to_forward_slash(path));
+                    uncovered.push(to_forward_slash(path).into_owned());
                     return;
                 }
             };
-            let rel_path = to_forward_slash(path);
+            let rel_path = to_forward_slash(path).into_owned();
             let mut file_has_marker = false;
             for (line_num, line) in content.lines().enumerate() {
                 if let Some(candidate) = extract_marker_ulid(line) {
@@ -353,7 +354,7 @@ fn scan_source_refs(
                     return;
                 }
             };
-            let rel_path = to_forward_slash(path);
+            let rel_path = to_forward_slash(path).into_owned();
             for (line_num, line) in content.lines().enumerate() {
                 if let Some(ulid) = extract_marker_ulid(line) {
                     refs.push(SourceRef {
@@ -419,8 +420,13 @@ pub fn collect_all_files<F: FnMut(&Path)>(
     }
 }
 
-pub fn to_forward_slash(path: &Path) -> String {
-    path.to_string_lossy().replace('\\', "/")
+pub fn to_forward_slash(path: &Path) -> Cow<'_, str> {
+    let s = path.to_string_lossy();
+    if s.contains('\\') {
+        Cow::Owned(s.replace('\\', "/"))
+    } else {
+        s
+    }
 }
 
 fn generate_index_md(
@@ -473,7 +479,8 @@ fn generate_index_md(
         })?;
 
         let index_rel =
-            to_forward_slash(&PathBuf::from(specre_dir_str).join(domain).join("_INDEX.md"));
+            to_forward_slash(&PathBuf::from(specre_dir_str).join(domain).join("_INDEX.md"))
+                .into_owned();
         generated_files.push(index_rel);
     }
 

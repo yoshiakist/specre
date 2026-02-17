@@ -50,7 +50,7 @@ fn collect_specre_entries(specre_dir: &str) -> Vec<(String, String, Status)> {
             };
             match parse_frontmatter(&content) {
                 Some(fm) => {
-                    specres.push((fm.id, to_forward_slash(path), fm.status));
+                    specres.push((fm.id, to_forward_slash(path).into_owned(), fm.status));
                 }
                 None => {
                     eprintln!(

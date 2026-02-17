@@ -88,7 +88,7 @@ impl SpecreMcpServer {
 
         let result = serde_json::json!({
             "id": id,
-            "path": to_forward_slash(&file_path),
+            "path": to_forward_slash(&file_path).as_ref(),
         });
 
         Ok(CallToolResult::success(vec![Content::text(
