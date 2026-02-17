@@ -20,7 +20,7 @@ pub enum FrontmatterError {
     NoClosingDelimiter,
     /// The YAML block could not be deserialized (missing field, invalid
     /// status value, syntax error, etc.).
-    Yaml(serde_yaml::Error),
+    Yaml(serde_yml::Error),
 }
 
 impl fmt::Display for FrontmatterError {
@@ -66,7 +66,7 @@ pub fn parse_frontmatter(content: &str) -> Result<Frontmatter, FrontmatterError>
         .ok_or(FrontmatterError::NoClosingDelimiter)?;
     let block = &after_first[..end];
 
-    let raw: RawFrontmatter = serde_yaml::from_str(block).map_err(FrontmatterError::Yaml)?;
+    let raw: RawFrontmatter = serde_yml::from_str(block).map_err(FrontmatterError::Yaml)?;
 
     Ok(Frontmatter {
         id: raw.id,

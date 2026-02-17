@@ -4,7 +4,7 @@
 |------|--------|---------------|
 | [specre_new_scaffolds_a_new_specre](specre_new_scaffolds_a_new_specre.md) | stable | 2026-02-16 |
 | [specre_init_initializes_project_configuration](specre_init_initializes_project_configuration.md) | stable | 2026-02-17 |
-| [specre_index_generates_project_index](specre_index_generates_project_index.md) | stable | 2026-02-17 |
+| [specre_index_generates_project_index](specre_index_generates_project_index.md) | stable | 2026-02-18 |
 | [specre_status_reports_project_health](specre_status_reports_project_health.md) | stable | 2026-02-17 |
 | [specre_trace_resolves_bidirectional_references](specre_trace_resolves_bidirectional_references.md) | stable | 2026-02-17 |
 | [specre_orphans_detects_unlinked_specres_and_markers](specre_orphans_detects_unlinked_specres_and_markers.md) | stable | 2026-02-17 |
