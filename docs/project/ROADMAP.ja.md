@@ -1,5 +1,7 @@
 # ロードマップ
 
+test
+
 ## v0.1 — コア CLI ✅
 
 - [x] `specre init` — プロジェクトに specre を初期化し、specre ディレクトリと設定ファイルを作成できる
