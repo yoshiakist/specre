@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-02-16T08:15:21Z",
+  "generated_at": "2026-02-17T00:02:46Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -24,7 +24,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_index_generates_project_index.md",
-      "last_verified": "2026-02-15"
+      "last_verified": "2026-02-16"
     },
     {
       "id": "01KHAN6JE712ZAKXPP97854PKJ",
@@ -40,7 +40,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_trace_resolves_bidirectional_references.md",
-      "last_verified": "2026-02-13"
+      "last_verified": "2026-02-16"
     },
     {
       "id": "01KHB48EES4FR5TFV6ZP2W3MGT",
@@ -48,7 +48,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_orphans_detects_unlinked_specres_and_markers.md",
-      "last_verified": "2026-02-13"
+      "last_verified": "2026-02-16"
     },
     {
       "id": "01KHB48EYB9686YYQMYFYQ5R1Z",
@@ -80,7 +80,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_coverage_reports_source_file_tagging.md",
-      "last_verified": "2026-02-15"
+      "last_verified": "2026-02-16"
     },
     {
       "id": "01KHFFCX8BCDAYP8YHG0J65H0E",
@@ -96,7 +96,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_health_check_verifies_ecosystem_trustworthiness.md",
-      "last_verified": "2026-02-15"
+      "last_verified": "2026-02-16"
     },
     {
       "id": "01KHFTCYJN8YJMW2RNHJTAQV49",
@@ -104,7 +104,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_search_finds_specre_cards_by_query.md",
-      "last_verified": "2026-02-15"
+      "last_verified": "2026-02-16"
     },
     {
       "id": "01KHG0A2V4YXE918WMJCY7WFE8",
@@ -136,6 +136,14 @@
       "status": "stable",
       "domain": "mcp",
       "path": "docs/specres/mcp/mcp_tool_new_creates_specre_card.md",
+      "last_verified": "2026-02-16"
+    },
+    {
+      "id": "01KHMEB8WF7BFZASE8SQHF5PR2",
+      "name": "specre_error_provides_contextual_diagnostics",
+      "status": "stable",
+      "domain": "cli",
+      "path": "docs/specres/cli/specre_error_provides_contextual_diagnostics.md",
       "last_verified": "2026-02-16"
     }
   ],
@@ -324,6 +332,11 @@
       "specre_id": "01KHFD5R1G3C5R34XMQXQTTMM9",
       "file": "src/config.rs",
       "line": 8
+    },
+    {
+      "specre_id": "01KHMEB8WF7BFZASE8SQHF5PR2",
+      "file": "src/error.rs",
+      "line": 1
     },
     {
       "specre_id": "01KHFFCX8BCDAYP8YHG0J65H0E",

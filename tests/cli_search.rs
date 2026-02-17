@@ -940,3 +940,51 @@ fn search_excerpt_joins_multiline_paragraph() {
     let excerpt = json["results"][0]["excerpt"].as_str().unwrap();
     assert_eq!(excerpt, "First line of overview. Second line of overview.");
 }
+
+// -- Failures / Exceptions: IO error warns and skips --
+
+#[cfg(unix)]
+#[test]
+fn search_warns_on_unreadable_specre_card() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let tmp = TempDir::new().unwrap();
+    write_config(&tmp, "docs/specres", &["src"]);
+
+    write_specre_card(
+        &tmp,
+        "docs/specres/cli/good_card.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "good_card",
+        "stable",
+    );
+
+    // Create an unreadable card
+    let bad_card = tmp.path().join("docs/specres/cli/bad_card.md");
+    fs::write(
+        &bad_card,
+        "---\nid: \"01BBBBBBBBBBBBBBBBBBBBBBBB\"\nname: \"bad_card\"\nstatus: \"draft\"\n---\n",
+    )
+    .unwrap();
+    fs::set_permissions(&bad_card, fs::Permissions::from_mode(0o000)).unwrap();
+
+    let output = specre()
+        .args(["search"])
+        .current_dir(&tmp)
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("Warning: failed to read"),
+        "Expected warning about unreadable file in stderr, got: {stderr}"
+    );
+
+    let json = parse_json(&output.stdout);
+    assert_eq!(json["total"], 1);
+    assert_eq!(json["results"][0]["name"], "good_card");
+
+    fs::set_permissions(&bad_card, fs::Permissions::from_mode(0o644)).unwrap();
+}

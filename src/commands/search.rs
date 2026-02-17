@@ -206,11 +206,20 @@ fn scan_cards(dir: &Path, specre_dir_str: &str) -> Vec<CardData> {
     collect_md_files(dir, &mut |path| {
         let content = match fs::read_to_string(path) {
             Ok(c) => c,
-            Err(_) => return,
+            Err(e) => {
+                eprintln!("Warning: failed to read '{}': {e}", path.display());
+                return;
+            }
         };
         let fm = match parse_frontmatter(&content) {
             Some(fm) => fm,
-            None => return,
+            None => {
+                eprintln!(
+                    "Warning: skipping '{}' (malformed front-matter)",
+                    path.display()
+                );
+                return;
+            }
         };
         let rel_path = to_forward_slash(path);
         let domain = extract_domain(&rel_path, &prefix);

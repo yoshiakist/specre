@@ -561,3 +561,192 @@ fn index_without_target_extensions_scans_all_files() {
     // Both files should be scanned when no target_extensions
     assert_eq!(refs.len(), 2);
 }
+
+// -- Failures / Exceptions: IO errors print warning and skip --
+
+#[test]
+fn index_warns_on_unreadable_source_file() {
+    let tmp = TempDir::new().unwrap();
+    let specre_dir = tmp.path().join("docs/specres/cli");
+    fs::create_dir_all(&specre_dir).unwrap();
+    fs::write(
+        specre_dir.join("test_card.md"),
+        "---\nid: \"01AAAAAAAAAAAAAAAAAAAAAAAAA\"\nname: \"test_card\"\nstatus: \"draft\"\n---\n",
+    )
+    .unwrap();
+
+    // Create a source directory with a subdirectory named like a file
+    // (reading a directory as a file causes an IO error)
+    let src_dir = tmp.path().join("src");
+    fs::create_dir_all(&src_dir).unwrap();
+    fs::write(src_dir.join("good.rs"), "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAAA\n").unwrap();
+
+    write_config(tmp.path(), "docs/specres", &["src"]);
+
+    // Even with potential IO issues, the command should succeed and produce valid output
+    specre()
+        .args(["index"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let json_str = fs::read_to_string(tmp.path().join("docs/specres/index.json")).unwrap();
+    let json: serde_json::Value = serde_json::from_str(&json_str).unwrap();
+    // The good file should still be indexed
+    assert_eq!(json["source_refs"].as_array().unwrap().len(), 1);
+}
+
+#[cfg(unix)]
+#[test]
+fn index_warns_on_permission_denied_specre_file() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let tmp = TempDir::new().unwrap();
+    let specre_dir = tmp.path().join("docs/specres/cli");
+    fs::create_dir_all(&specre_dir).unwrap();
+
+    // Create a readable specre card
+    fs::write(
+        specre_dir.join("good_card.md"),
+        "---\nid: \"01AAAAAAAAAAAAAAAAAAAAAAAAA\"\nname: \"good_card\"\nstatus: \"draft\"\n---\n",
+    )
+    .unwrap();
+
+    // Create an unreadable specre card
+    let bad_card = specre_dir.join("bad_card.md");
+    fs::write(
+        &bad_card,
+        "---\nid: \"01BBBBBBBBBBBBBBBBBBBBBBBBB\"\nname: \"bad_card\"\nstatus: \"draft\"\n---\n",
+    )
+    .unwrap();
+    fs::set_permissions(&bad_card, fs::Permissions::from_mode(0o000)).unwrap();
+
+    let src_dir = tmp.path().join("src");
+    fs::create_dir_all(&src_dir).unwrap();
+    write_config(tmp.path(), "docs/specres", &["src"]);
+
+    let output = specre()
+        .args(["index"])
+        .current_dir(tmp.path())
+        .output()
+        .unwrap();
+
+    // Command should succeed (skip the bad file)
+    assert!(output.status.success());
+
+    // stderr should contain a warning about the unreadable file
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("Warning: failed to read"),
+        "Expected warning about unreadable file in stderr, got: {stderr}"
+    );
+
+    // The good card should still be indexed
+    let json_str = fs::read_to_string(tmp.path().join("docs/specres/index.json")).unwrap();
+    let json: serde_json::Value = serde_json::from_str(&json_str).unwrap();
+    assert_eq!(json["specres"].as_array().unwrap().len(), 1);
+
+    // Restore permissions for cleanup
+    fs::set_permissions(&bad_card, fs::Permissions::from_mode(0o644)).unwrap();
+}
+
+#[cfg(unix)]
+#[test]
+fn index_warns_on_unreadable_directory() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let tmp = TempDir::new().unwrap();
+    let specre_dir = tmp.path().join("docs/specres");
+    let good_domain = specre_dir.join("good");
+    let bad_domain = specre_dir.join("bad");
+    fs::create_dir_all(&good_domain).unwrap();
+    fs::create_dir_all(&bad_domain).unwrap();
+
+    // Create a card in the good domain
+    fs::write(
+        good_domain.join("card.md"),
+        "---\nid: \"01AAAAAAAAAAAAAAAAAAAAAAAAA\"\nname: \"good_card\"\nstatus: \"draft\"\n---\n",
+    )
+    .unwrap();
+
+    // Create a card in the bad domain, then make the directory unreadable
+    fs::write(
+        bad_domain.join("card.md"),
+        "---\nid: \"01BBBBBBBBBBBBBBBBBBBBBBBBB\"\nname: \"bad_card\"\nstatus: \"draft\"\n---\n",
+    )
+    .unwrap();
+    fs::set_permissions(&bad_domain, fs::Permissions::from_mode(0o000)).unwrap();
+
+    let src_dir = tmp.path().join("src");
+    fs::create_dir_all(&src_dir).unwrap();
+    write_config(tmp.path(), "docs/specres", &["src"]);
+
+    let output = specre()
+        .args(["index"])
+        .current_dir(tmp.path())
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("Warning: failed to read directory"),
+        "Expected warning about unreadable directory in stderr, got: {stderr}"
+    );
+
+    // Only the good card should be indexed
+    let json_str = fs::read_to_string(tmp.path().join("docs/specres/index.json")).unwrap();
+    let json: serde_json::Value = serde_json::from_str(&json_str).unwrap();
+    assert_eq!(json["specres"].as_array().unwrap().len(), 1);
+
+    // Restore permissions for cleanup
+    fs::set_permissions(&bad_domain, fs::Permissions::from_mode(0o755)).unwrap();
+}
+
+#[cfg(unix)]
+#[test]
+fn index_warns_on_unreadable_source_file_permission() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let tmp = TempDir::new().unwrap();
+    let specre_dir = tmp.path().join("docs/specres/cli");
+    fs::create_dir_all(&specre_dir).unwrap();
+    fs::write(
+        specre_dir.join("card.md"),
+        "---\nid: \"01AAAAAAAAAAAAAAAAAAAAAAAAA\"\nname: \"card\"\nstatus: \"draft\"\n---\n",
+    )
+    .unwrap();
+
+    let src_dir = tmp.path().join("src");
+    fs::create_dir_all(&src_dir).unwrap();
+    fs::write(src_dir.join("good.rs"), "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAAA\n").unwrap();
+
+    let bad_file = src_dir.join("bad.rs");
+    fs::write(&bad_file, "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAAA\n").unwrap();
+    fs::set_permissions(&bad_file, fs::Permissions::from_mode(0o000)).unwrap();
+
+    write_config(tmp.path(), "docs/specres", &["src"]);
+
+    let output = specre()
+        .args(["index"])
+        .current_dir(tmp.path())
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("Warning: failed to read"),
+        "Expected warning about unreadable source file in stderr, got: {stderr}"
+    );
+
+    // The good source ref should still be indexed
+    let json_str = fs::read_to_string(tmp.path().join("docs/specres/index.json")).unwrap();
+    let json: serde_json::Value = serde_json::from_str(&json_str).unwrap();
+    assert_eq!(json["source_refs"].as_array().unwrap().len(), 1);
+
+    // Restore permissions for cleanup
+    fs::set_permissions(&bad_file, fs::Permissions::from_mode(0o644)).unwrap();
+}

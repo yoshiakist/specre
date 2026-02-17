@@ -102,7 +102,10 @@ fn scan_cards(specre_dir: &Path) -> Vec<(String, String, String, PathBuf)> {
     collect_md_files(specre_dir, &mut |path| {
         let content = match fs::read_to_string(path) {
             Ok(c) => c,
-            Err(_) => return,
+            Err(e) => {
+                eprintln!("Warning: failed to read '{}': {e}", path.display());
+                return;
+            }
         };
         if let Some(fm) = parse_frontmatter(&content) {
             cards.push((fm.id, fm.name, fm.status, path.to_path_buf()));

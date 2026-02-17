@@ -2,7 +2,7 @@
 id: "01KHB48DYZDN8GHXPX7MSYJ1NZ"
 name: "specre_trace_resolves_bidirectional_references"
 status: "stable"
-last_verified: "2026-02-13"
+last_verified: "2026-02-16"
 ---
 
 ## Related Files
@@ -144,3 +144,4 @@ The output is designed for both human developers navigating a codebase and AI ag
 - If `specre_dir` does not exist, CLI treats it as no specre found
 - If a `source_dirs` entry does not exist, CLI skips it silently
 - If the file path does not exist, CLI exits with error: `Error: file not found: <path>`
+- If a specre or source file cannot be read (IO error), CLI prints a warning to stderr (`Warning: failed to read '<path>': <reason>`) and skips that file

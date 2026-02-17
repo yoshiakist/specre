@@ -57,7 +57,10 @@ fn trace_by_ulid(ulid: &str, json: bool) -> Result<(), SpecreError> {
             }
             let content = match fs::read_to_string(path) {
                 Ok(c) => c,
-                Err(_) => return,
+                Err(e) => {
+                    eprintln!("Warning: failed to read '{}': {e}", path.display());
+                    return;
+                }
             };
             if let Some(fm) = parse_frontmatter(&content)
                 && fm.id == ulid
@@ -77,7 +80,10 @@ fn trace_by_ulid(ulid: &str, json: bool) -> Result<(), SpecreError> {
         collect_all_files(dir, config.target_extensions.as_deref(), &mut |path| {
             let content = match fs::read_to_string(path) {
                 Ok(c) => c,
-                Err(_) => return,
+                Err(e) => {
+                    eprintln!("Warning: failed to read '{}': {e}", path.display());
+                    return;
+                }
             };
             let rel_path = to_forward_slash(path);
             for (line_num, line) in content.lines().enumerate() {
@@ -164,7 +170,10 @@ fn trace_by_file(file_path: &str, json: bool) -> Result<(), SpecreError> {
         collect_md_files(specre_dir, &mut |path| {
             let content = match fs::read_to_string(path) {
                 Ok(c) => c,
-                Err(_) => return,
+                Err(e) => {
+                    eprintln!("Warning: failed to read '{}': {e}", path.display());
+                    return;
+                }
             };
             if let Some(fm) = parse_frontmatter(&content) {
                 ulid_to_path.insert(fm.id, to_forward_slash(path));

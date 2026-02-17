@@ -2,7 +2,7 @@
 id: "01KHB48EES4FR5TFV6ZP2W3MGT"
 name: "specre_orphans_detects_unlinked_specres_and_markers"
 status: "stable"
-last_verified: "2026-02-13"
+last_verified: "2026-02-16"
 ---
 
 ## Related Files
@@ -102,3 +102,4 @@ The primary consumers are CI pipelines (where a non-zero exit code can block mer
 - If `specre_dir` does not exist, CLI treats it as no specres found
 - If a `source_dirs` entry does not exist, CLI skips it silently
 - Specre files with malformed front-matter are skipped with a warning to stderr
+- If a specre or source file cannot be read (IO error), CLI prints a warning to stderr (`Warning: failed to read '<path>': <reason>`) and skips that file

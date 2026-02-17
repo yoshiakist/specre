@@ -2,7 +2,7 @@
 id: "01KHAKAYN5WPTDVR99D5Q5TMJE"
 name: "specre_index_generates_project_index"
 status: "stable"
-last_verified: "2026-02-15"
+last_verified: "2026-02-16"
 ---
 
 ## Related Files
@@ -99,5 +99,8 @@ Per-domain `_INDEX.md` files provide a browsable overview of all specres in a do
 
 - If `specre.toml` is missing, CLI exits with error: `Error: specre.toml not found. Run 'specre init' first.`
 - If a specre file has malformed front-matter (missing `---` delimiters or required fields), CLI prints a warning to stderr and skips that file
+- If a specre or source file cannot be read (IO error), CLI prints a warning to stderr (`Warning: failed to read '<path>': <reason>`) and skips that file
+- If a directory cannot be read during traversal (permission denied, etc.), CLI prints a warning to stderr (`Warning: failed to read directory '<path>': <reason>`) and skips that directory
+- If a directory entry cannot be read during traversal, CLI prints a warning to stderr and skips that entry
 - If `specre_dir` does not exist, CLI treats it as empty (no specres found)
 - If a `source_dirs` entry does not exist, CLI skips it silently
