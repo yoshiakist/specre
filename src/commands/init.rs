@@ -32,26 +32,33 @@ pub fn execute(args: InitArgs, json: bool) -> Result<(), SpecreError> {
         return Err(SpecreError::AlreadyInitialized);
     }
 
-    let specre_dir = Path::new(&args.specre_dir);
-    let dir_already_existed = specre_dir.exists();
+    let InitArgs {
+        specre_dir,
+        source_dirs,
+        language,
+        ext,
+    } = args;
+
+    let specre_dir_path = Path::new(&specre_dir);
+    let dir_already_existed = specre_dir_path.exists();
 
     if !dir_already_existed {
-        fs::create_dir_all(specre_dir).map_err(|e| SpecreError::Io {
-            path: specre_dir.to_path_buf(),
+        fs::create_dir_all(specre_dir_path).map_err(|e| SpecreError::Io {
+            path: specre_dir_path.to_path_buf(),
             source: e,
         })?;
         if !json {
-            println!("Created {}/", args.specre_dir);
+            println!("Created {specre_dir}/");
         }
     } else if !json {
-        println!("Exists  {}/", args.specre_dir);
+        println!("Exists  {specre_dir}/");
     }
 
     let config = SpecreConfig {
-        specre_dir: args.specre_dir.clone(),
-        source_dirs: args.source_dirs.clone(),
-        language: args.language.clone(),
-        target_extensions: args.ext.clone(),
+        specre_dir: specre_dir.clone(),
+        source_dirs,
+        language,
+        target_extensions: ext,
     };
     let config_content =
         toml::to_string(&config).map_err(SpecreError::ConfigSerialize)?;
@@ -63,7 +70,7 @@ pub fn execute(args: InitArgs, json: bool) -> Result<(), SpecreError> {
 
     if json {
         let output = InitOutput {
-            specre_dir: args.specre_dir,
+            specre_dir,
             config_file: CONFIG_FILE.to_string(),
         };
         let json_str = serde_json::to_string_pretty(&output)?;
