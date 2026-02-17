@@ -35,10 +35,16 @@ impl OrphanResult {
     }
 }
 
-/// Collects specre card metadata (id, path, status) from the specre directory.
-fn collect_specre_entries(specre_dir: &str) -> Vec<(String, String, Status)> {
+struct SpecreEntry {
+    id: String,
+    path: String,
+    status: Status,
+}
+
+/// Collects specre card metadata from the specre directory.
+fn collect_specre_entries(specre_dir: &str) -> Vec<SpecreEntry> {
     let specre_path = Path::new(specre_dir);
-    let mut specres: Vec<(String, String, Status)> = Vec::new();
+    let mut specres: Vec<SpecreEntry> = Vec::new();
     if specre_path.exists() {
         collect_md_files(specre_path, &mut |path| {
             let content = match fs::read_to_string(path) {
@@ -50,7 +56,11 @@ fn collect_specre_entries(specre_dir: &str) -> Vec<(String, String, Status)> {
             };
             match parse_frontmatter(&content) {
                 Some(fm) => {
-                    specres.push((fm.id, to_forward_slash(path).into_owned(), fm.status));
+                    specres.push(SpecreEntry {
+                        id: fm.id,
+                        path: to_forward_slash(path).into_owned(),
+                        status: fm.status,
+                    });
                 }
                 None => {
                     eprintln!(
@@ -67,7 +77,7 @@ fn collect_specre_entries(specre_dir: &str) -> Vec<(String, String, Status)> {
 /// Derives an `OrphanResult` from a pre-computed `SourceScanResult`.
 pub fn orphans_from_scan(specre_dir: &str, scan: &SourceScanResult) -> OrphanResult {
     let specres = collect_specre_entries(specre_dir);
-    let specre_ids: HashSet<&str> = specres.iter().map(|(id, _, _)| id.as_str()).collect();
+    let specre_ids: HashSet<&str> = specres.iter().map(|e| e.id.as_str()).collect();
 
     // Find dangling markers (markers with no matching specre)
     let mut dangling: Vec<DanglingMarkerDetail> = scan
@@ -85,10 +95,8 @@ pub fn orphans_from_scan(specre_dir: &str, scan: &SourceScanResult) -> OrphanRes
     // Find orphan specres (non-deprecated specres with no source markers)
     let mut orphan_paths: Vec<String> = specres
         .iter()
-        .filter(|(id, _, status)| {
-            *status != Status::Deprecated && !scan.marker_ulids.contains(id.as_str())
-        })
-        .map(|(_, path, _)| path.clone())
+        .filter(|e| e.status != Status::Deprecated && !scan.marker_ulids.contains(e.id.as_str()))
+        .map(|e| e.path.clone())
         .collect();
     orphan_paths.sort();
 

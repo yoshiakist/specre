@@ -97,8 +97,15 @@ impl SpecreMcpServer {
     }
 }
 
-/// Scan specre_dir and return (ULID, name, status, file_path) for each card.
-fn scan_cards(specre_dir: &Path) -> Vec<(String, String, Status, PathBuf)> {
+struct ScannedCard {
+    id: String,
+    name: String,
+    status: Status,
+    path: PathBuf,
+}
+
+/// Scan specre_dir and collect metadata for each card.
+fn scan_cards(specre_dir: &Path) -> Vec<ScannedCard> {
     let mut cards = Vec::new();
     collect_md_files(specre_dir, &mut |path| {
         let content = match fs::read_to_string(path) {
@@ -109,10 +116,15 @@ fn scan_cards(specre_dir: &Path) -> Vec<(String, String, Status, PathBuf)> {
             }
         };
         if let Some(fm) = parse_frontmatter(&content) {
-            cards.push((fm.id, fm.name, fm.status, path.to_path_buf()));
+            cards.push(ScannedCard {
+                id: fm.id,
+                name: fm.name,
+                status: fm.status,
+                path: path.to_path_buf(),
+            });
         }
     });
-    cards.sort_by(|a, b| a.0.cmp(&b.0));
+    cards.sort_by(|a, b| a.id.cmp(&b.id));
     cards
 }
 
@@ -148,12 +160,12 @@ impl ServerHandler for SpecreMcpServer {
         let cards = scan_cards(&self.specre_dir);
         let resources = cards
             .into_iter()
-            .map(|(id, name, status, _path)| {
+            .map(|card| {
                 RawResource {
-                    uri: format!("{URI_PREFIX}{id}"),
-                    name: name.clone(),
+                    uri: format!("{URI_PREFIX}{}", card.id),
+                    name: card.name.clone(),
                     title: None,
-                    description: Some(format!("[{status}] {name}")),
+                    description: Some(format!("[{}] {}", card.status, card.name)),
                     mime_type: Some("text/markdown".to_string()),
                     size: None,
                     icons: None,
@@ -183,9 +195,9 @@ impl ServerHandler for SpecreMcpServer {
 
         // Find the card whose frontmatter id matches the requested ULID
         let cards = scan_cards(&self.specre_dir);
-        let (_id, _name, _status, path) = cards
+        let card = cards
             .into_iter()
-            .find(|(id, _, _, _)| id == ulid)
+            .find(|card| card.id == ulid)
             .ok_or_else(|| {
                 McpError::resource_not_found(
                     "specre card not found",
@@ -193,7 +205,7 @@ impl ServerHandler for SpecreMcpServer {
                 )
             })?;
 
-        let content = fs::read_to_string(&path).map_err(|e| {
+        let content = fs::read_to_string(&card.path).map_err(|e| {
             McpError::internal_error(
                 "failed to read specre card",
                 Some(serde_json::json!({ "error": e.to_string() })),
