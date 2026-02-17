@@ -2,7 +2,7 @@
 id: "01KHAKAYN5WPTDVR99D5Q5TMJE"
 name: "specre_index_generates_project_index"
 status: "stable"
-last_verified: "2026-02-17"
+last_verified: "2026-02-18"
 ---
 
 ## Related Files
@@ -44,7 +44,7 @@ Per-domain `_INDEX.md` files provide a browsable overview of all specres in a do
 ### specres array contains correct entries
 
 1. Each specre `.md` file produces one entry in the `specres` array
-2. Entry contains `id`, `name`, `status`, and `last_verified` from front-matter, parsed using a standards-compliant YAML parser (`serde_yaml`) that correctly handles quoted values containing colons, escaped quotes, and other YAML features
+2. Entry contains `id`, `name`, `status`, and `last_verified` from front-matter, parsed using a standards-compliant YAML parser (`serde_yml`) that correctly handles quoted values containing colons, escaped quotes, and other YAML features
 3. Entry contains `domain` derived from the first directory level under `specre_dir` (e.g., `docs/specres/quotation/creation/foo.md` → `"quotation"`)
 4. Entry contains `path` as the relative path from project root to the specre file using forward slashes
 
