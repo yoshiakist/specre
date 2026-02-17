@@ -4,6 +4,7 @@ use crate::cli::TagArgs;
 use crate::error::SpecreError;
 use crate::ulid;
 use serde::Serialize;
+use std::borrow::Cow;
 use std::fs;
 use std::path::Path;
 
@@ -53,8 +54,12 @@ fn comment_syntax(ext: &str) -> Option<(&'static str, &'static str)> {
     }
 }
 
-fn to_forward_slash(s: &str) -> String {
-    s.replace('\\', "/")
+fn to_forward_slash(s: &str) -> Cow<'_, str> {
+    if s.contains('\\') {
+        Cow::Owned(s.replace('\\', "/"))
+    } else {
+        Cow::Borrowed(s)
+    }
 }
 
 pub fn execute(args: TagArgs, json: bool) -> Result<(), SpecreError> {
@@ -97,7 +102,7 @@ pub fn execute(args: TagArgs, json: bool) -> Result<(), SpecreError> {
                 .unwrap_or(1);
             let output = TagOutput {
                 id: args.ulid,
-                file: to_forward_slash(&args.file),
+                file: to_forward_slash(&args.file).into_owned(),
                 line,
             };
             let json_str = serde_json::to_string_pretty(&output)?;
@@ -128,7 +133,7 @@ pub fn execute(args: TagArgs, json: bool) -> Result<(), SpecreError> {
     if json {
         let output = TagOutput {
             id: args.ulid,
-            file: to_forward_slash(&args.file),
+            file: to_forward_slash(&args.file).into_owned(),
             line: 1,
         };
         let json_str = serde_json::to_string_pretty(&output)?;

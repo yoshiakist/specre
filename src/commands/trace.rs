@@ -65,7 +65,7 @@ fn trace_by_ulid(ulid: &str, json: bool) -> Result<(), SpecreError> {
             if let Some(fm) = parse_frontmatter(&content)
                 && fm.id == ulid
             {
-                specre_path = Some(to_forward_slash(path));
+                specre_path = Some(to_forward_slash(path).into_owned());
             }
         });
     }
@@ -85,7 +85,7 @@ fn trace_by_ulid(ulid: &str, json: bool) -> Result<(), SpecreError> {
                     return;
                 }
             };
-            let rel_path = to_forward_slash(path);
+            let rel_path = to_forward_slash(path).into_owned();
             for (line_num, line) in content.lines().enumerate() {
                 if let Some(found_ulid) = extract_marker_ulid(line)
                     && found_ulid == ulid
@@ -176,7 +176,7 @@ fn trace_by_file(file_path: &str, json: bool) -> Result<(), SpecreError> {
                 }
             };
             if let Some(fm) = parse_frontmatter(&content) {
-                ulid_to_path.insert(fm.id, to_forward_slash(path));
+                ulid_to_path.insert(fm.id, to_forward_slash(path).into_owned());
             }
         });
     }

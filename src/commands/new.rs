@@ -56,7 +56,7 @@ pub fn execute(args: NewArgs, json: bool) -> Result<(), SpecreError> {
     if json {
         let output = NewOutput {
             id,
-            path: to_forward_slash(&file_path),
+            path: to_forward_slash(&file_path).into_owned(),
         };
         let json_str = serde_json::to_string_pretty(&output)?;
         println!("{json_str}");

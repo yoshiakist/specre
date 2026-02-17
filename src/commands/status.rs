@@ -90,7 +90,7 @@ pub fn execute(args: StatusArgs, json: bool) -> Result<(), SpecreError> {
                         if let Some(reason) = reason {
                             stale_entries.push(StaleEntry {
                                 name: fm.name,
-                                path: to_forward_slash(path),
+                                path: to_forward_slash(path).into_owned(),
                                 reason,
                             });
                         }
