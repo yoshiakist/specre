@@ -1,6 +1,7 @@
 // @specre 01KHFTCYJN8YJMW2RNHJTAQV49
+use crate::card::{extract_domain, to_forward_slash};
 use crate::cli::SearchArgs;
-use crate::commands::index::{collect_md_files, parse_frontmatter, to_forward_slash};
+use crate::commands::index::{collect_md_files, parse_frontmatter};
 use crate::config;
 use crate::error::SpecreError;
 use crate::status::Status;
@@ -38,7 +39,7 @@ struct Hint {
     status_counts: BTreeMap<Status, usize>,
 }
 
-struct CardData {
+struct SearchableCard {
     id: String,
     name: String,
     status: Status,
@@ -83,7 +84,7 @@ pub fn execute(args: SearchArgs) -> Result<(), SpecreError> {
     let cards = scan_cards(specre_dir, &cfg.specre_dir);
 
     // Apply filters
-    let filtered: Vec<CardData> = cards
+    let filtered: Vec<SearchableCard> = cards
         .into_iter()
         .filter(|card| {
             // Text query filter
@@ -171,17 +172,11 @@ fn validate_date(date: &str) -> Result<(), SpecreError> {
     Ok(())
 }
 
-fn scan_cards(dir: &Path, specre_dir_str: &str) -> Vec<CardData> {
+fn scan_cards(dir: &Path, specre_dir_str: &str) -> Vec<SearchableCard> {
     let mut cards = Vec::new();
     if !dir.exists() {
         return cards;
     }
-
-    let prefix = if specre_dir_str.ends_with('/') {
-        specre_dir_str.to_string()
-    } else {
-        format!("{specre_dir_str}/")
-    };
 
     collect_md_files(dir, &mut |path| {
         let content = match fs::read_to_string(path) {
@@ -202,10 +197,10 @@ fn scan_cards(dir: &Path, specre_dir_str: &str) -> Vec<CardData> {
             }
         };
         let rel_path = to_forward_slash(path);
-        let domain = extract_domain(&rel_path, &prefix).to_owned();
+        let domain = extract_domain(&rel_path, specre_dir_str).to_owned();
         let excerpt = extract_excerpt(&content);
 
-        cards.push(CardData {
+        cards.push(SearchableCard {
             id: fm.id,
             name: fm.name,
             status: fm.status,
@@ -220,11 +215,6 @@ fn scan_cards(dir: &Path, specre_dir_str: &str) -> Vec<CardData> {
     // Sort by domain then name
     cards.sort_by(|a, b| a.domain.cmp(&b.domain).then(a.name.cmp(&b.name)));
     cards
-}
-
-fn extract_domain<'a>(rel_path: &'a str, prefix: &str) -> &'a str {
-    let after = rel_path.strip_prefix(prefix).unwrap_or(rel_path);
-    after.split('/').next().unwrap_or("unknown")
 }
 
 fn extract_excerpt(content: &str) -> Option<String> {
@@ -285,7 +275,7 @@ fn skip_frontmatter(content: &str) -> &str {
     }
 }
 
-fn card_to_result(card: CardData) -> SearchResult {
+fn card_to_result(card: SearchableCard) -> SearchResult {
     SearchResult {
         id: card.id,
         name: card.name,
@@ -297,7 +287,7 @@ fn card_to_result(card: CardData) -> SearchResult {
     }
 }
 
-fn build_hint(cards: &[CardData]) -> Hint {
+fn build_hint(cards: &[SearchableCard]) -> Hint {
     let total = cards.len();
 
     // Collect unique domains (sorted)

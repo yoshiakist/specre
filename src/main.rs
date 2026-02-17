@@ -1,4 +1,5 @@
 // @specre 01KHFFCX8BCDAYP8YHG0J65H0E
+pub mod card;
 mod cli;
 mod commands;
 mod config;

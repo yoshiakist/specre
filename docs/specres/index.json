@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-02-17T06:16:37Z",
+  "generated_at": "2026-02-17T06:37:34Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -148,6 +148,26 @@
     }
   ],
   "source_refs": [
+    {
+      "specre_id": "01KHB48EYB9686YYQMYFYQ5R1Z",
+      "file": "src/card.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHB48EES4FR5TFV6ZP2W3MGT",
+      "file": "src/card.rs",
+      "line": 2
+    },
+    {
+      "specre_id": "01KHFTCYJN8YJMW2RNHJTAQV49",
+      "file": "src/card.rs",
+      "line": 3
+    },
+    {
+      "specre_id": "01KHJ98T83DPJGMEFH9HAXXAZ1",
+      "file": "src/card.rs",
+      "line": 4
+    },
     {
       "specre_id": "01KHFFCX8BCDAYP8YHG0J65H0E",
       "file": "src/cli.rs",

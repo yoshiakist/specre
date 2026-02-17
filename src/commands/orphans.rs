@@ -1,14 +1,12 @@
 // @specre 01KHB48EES4FR5TFV6ZP2W3MGT
 // @specre 01KHG0A2V4YXE918WMJCY7WFE8
-use crate::commands::index::{
-    collect_md_files, parse_frontmatter, scan_source_markers, to_forward_slash, SourceScanResult,
-};
+use crate::card;
+use crate::commands::index::{scan_source_markers, SourceScanResult};
 use crate::config;
 use crate::error::SpecreError;
 use crate::status::Status;
 use serde::Serialize;
 use std::collections::HashSet;
-use std::fs;
 use std::path::Path;
 
 #[derive(Serialize)]
@@ -35,49 +33,11 @@ impl OrphanResult {
     }
 }
 
-struct SpecreEntry {
-    id: String,
-    path: String,
-    status: Status,
-}
-
-/// Collects specre card metadata from the specre directory.
-fn collect_specre_entries(specre_dir: &str) -> Vec<SpecreEntry> {
-    let specre_path = Path::new(specre_dir);
-    let mut specres: Vec<SpecreEntry> = Vec::new();
-    if specre_path.exists() {
-        collect_md_files(specre_path, &mut |path| {
-            let content = match fs::read_to_string(path) {
-                Ok(c) => c,
-                Err(e) => {
-                    eprintln!("Warning: failed to read '{}': {e}", path.display());
-                    return;
-                }
-            };
-            match parse_frontmatter(&content) {
-                Some(fm) => {
-                    specres.push(SpecreEntry {
-                        id: fm.id,
-                        path: to_forward_slash(path).into_owned(),
-                        status: fm.status,
-                    });
-                }
-                None => {
-                    eprintln!(
-                        "Warning: skipping '{}' (malformed front-matter)",
-                        path.display()
-                    );
-                }
-            }
-        });
-    }
-    specres
-}
-
 /// Derives an `OrphanResult` from a pre-computed `SourceScanResult`.
 pub fn orphans_from_scan(specre_dir: &str, scan: &SourceScanResult) -> OrphanResult {
-    let specres = collect_specre_entries(specre_dir);
-    let specre_ids: HashSet<&str> = specres.iter().map(|e| e.id.as_str()).collect();
+    let specre_dir_path = Path::new(specre_dir);
+    let cards = card::scan_specre_cards(specre_dir_path, specre_dir);
+    let specre_ids: HashSet<&str> = cards.iter().map(|c| c.id.as_str()).collect();
 
     // Find dangling markers (markers with no matching specre)
     let mut dangling: Vec<DanglingMarkerDetail> = scan
@@ -93,10 +53,10 @@ pub fn orphans_from_scan(specre_dir: &str, scan: &SourceScanResult) -> OrphanRes
     dangling.sort_by(|a, b| a.file.cmp(&b.file).then(a.line.cmp(&b.line)));
 
     // Find orphan specres (non-deprecated specres with no source markers)
-    let mut orphan_paths: Vec<String> = specres
+    let mut orphan_paths: Vec<String> = cards
         .iter()
-        .filter(|e| e.status != Status::Deprecated && !scan.marker_ulids.contains(e.id.as_str()))
-        .map(|e| e.path.clone())
+        .filter(|c| c.status != Status::Deprecated && !scan.marker_ulids.contains(c.id.as_str()))
+        .map(|c| c.path.clone())
         .collect();
     orphan_paths.sort();
 

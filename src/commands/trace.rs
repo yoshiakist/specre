@@ -1,8 +1,9 @@
 // @specre 01KHB48DYZDN8GHXPX7MSYJ1NZ
 // @specre 01KHG0A2V4YXE918WMJCY7WFE8
 use crate::cli::TraceArgs;
+use crate::card::to_forward_slash;
 use crate::commands::index::{
-    collect_all_files, collect_md_files, extract_marker_ulid, parse_frontmatter, to_forward_slash,
+    collect_all_files, collect_md_files, extract_marker_ulid, parse_frontmatter,
 };
 use crate::config;
 use crate::error::SpecreError;
