@@ -281,6 +281,95 @@ fn index_handles_subdirectories_within_domain() {
     );
 }
 
+// -- Scenario: Front-matter values containing colons are parsed correctly --
+
+#[test]
+fn index_parses_name_with_colon_in_value() {
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src"]);
+
+    // Manually write a specre card whose name contains a colon
+    let specre_dir = tmp.path().join("docs/specres/cli");
+    fs::create_dir_all(&specre_dir).unwrap();
+    fs::write(
+        specre_dir.join("spec_with_colon.md"),
+        "---\nid: \"01AAAAAAAAAAAAAAAAAAAAAAAA\"\nname: \"foo: bar\"\nstatus: \"draft\"\n---\n\n## Related Files\n\n-\n",
+    )
+    .unwrap();
+
+    specre()
+        .args(["index"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let json_str = fs::read_to_string(tmp.path().join("docs/specres/index.json")).unwrap();
+    let json: serde_json::Value = serde_json::from_str(&json_str).unwrap();
+
+    let specres = json["specres"].as_array().unwrap();
+    assert_eq!(specres.len(), 1);
+    assert_eq!(specres[0]["name"], "foo: bar");
+}
+
+#[test]
+fn index_parses_frontmatter_with_unquoted_values() {
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src"]);
+
+    // Unquoted YAML values are valid YAML
+    let specre_dir = tmp.path().join("docs/specres/cli");
+    fs::create_dir_all(&specre_dir).unwrap();
+    fs::write(
+        specre_dir.join("unquoted_spec.md"),
+        "---\nid: 01AAAAAAAAAAAAAAAAAAAAAAAA\nname: unquoted_spec\nstatus: draft\n---\n\n## Related Files\n\n-\n",
+    )
+    .unwrap();
+
+    specre()
+        .args(["index"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let json_str = fs::read_to_string(tmp.path().join("docs/specres/index.json")).unwrap();
+    let json: serde_json::Value = serde_json::from_str(&json_str).unwrap();
+
+    let specres = json["specres"].as_array().unwrap();
+    assert_eq!(specres.len(), 1);
+    assert_eq!(specres[0]["id"], "01AAAAAAAAAAAAAAAAAAAAAAAA");
+    assert_eq!(specres[0]["name"], "unquoted_spec");
+    assert_eq!(specres[0]["status"], "draft");
+}
+
+#[test]
+fn index_parses_frontmatter_with_single_quoted_values() {
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src"]);
+
+    // Single-quoted YAML values are valid YAML
+    let specre_dir = tmp.path().join("docs/specres/cli");
+    fs::create_dir_all(&specre_dir).unwrap();
+    fs::write(
+        specre_dir.join("single_quoted_spec.md"),
+        "---\nid: '01AAAAAAAAAAAAAAAAAAAAAAAA'\nname: 'single_quoted: spec'\nstatus: 'draft'\n---\n\n## Related Files\n\n-\n",
+    )
+    .unwrap();
+
+    specre()
+        .args(["index"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let json_str = fs::read_to_string(tmp.path().join("docs/specres/index.json")).unwrap();
+    let json: serde_json::Value = serde_json::from_str(&json_str).unwrap();
+
+    let specres = json["specres"].as_array().unwrap();
+    assert_eq!(specres.len(), 1);
+    assert_eq!(specres[0]["id"], "01AAAAAAAAAAAAAAAAAAAAAAAA");
+    assert_eq!(specres[0]["name"], "single_quoted: spec");
+}
+
 // -- Scenario: specre.toml does not exist --
 
 #[test]
