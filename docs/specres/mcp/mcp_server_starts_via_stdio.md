@@ -2,7 +2,7 @@
 id: "01KHJ98T83DPJGMEFH9HAXXAZ1"
 name: "mcp_server_starts_via_stdio"
 status: "stable"
-last_verified: "2026-02-16"
+last_verified: "2026-02-17"
 ---
 
 ## Related Files

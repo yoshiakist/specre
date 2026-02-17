@@ -54,7 +54,7 @@ pub fn execute(args: InitArgs, json: bool) -> Result<(), SpecreError> {
         target_extensions: args.ext.clone(),
     };
     let config_content =
-        toml::to_string(&config).map_err(|e| SpecreError::Runtime(Box::new(e)))?;
+        toml::to_string(&config).map_err(SpecreError::ConfigSerialize)?;
 
     fs::write(config_path, &config_content).map_err(|e| SpecreError::Io {
         path: config_path.to_path_buf(),

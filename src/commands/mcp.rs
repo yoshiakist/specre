@@ -219,10 +219,7 @@ impl ServerHandler for SpecreMcpServer {
 }
 
 pub fn execute() -> Result<(), crate::error::SpecreError> {
-    let rt = tokio::runtime::Runtime::new().map_err(|e| crate::error::SpecreError::Io {
-        path: PathBuf::from("tokio-runtime"),
-        source: e,
-    })?;
+    let rt = tokio::runtime::Runtime::new().map_err(crate::error::SpecreError::TokioRuntime)?;
     rt.block_on(run_server())
 }
 
@@ -245,12 +242,12 @@ async fn run_server() -> Result<(), crate::error::SpecreError> {
     let service = SpecreMcpServer::new(specre_dir)
         .serve(stdio())
         .await
-        .map_err(|e| crate::error::SpecreError::Runtime(Box::new(e)))?;
+        .map_err(|e| crate::error::SpecreError::McpInit(e.to_string()))?;
 
     service
         .waiting()
         .await
-        .map_err(|e| crate::error::SpecreError::Runtime(Box::new(e)))?;
+        .map_err(|e| crate::error::SpecreError::McpTask(e.to_string()))?;
 
     Ok(())
 }
