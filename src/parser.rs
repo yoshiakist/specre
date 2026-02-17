@@ -41,6 +41,19 @@ impl std::error::Error for FrontmatterError {
     }
 }
 
+#[derive(serde::Deserialize)]
+struct RawFrontmatter {
+    id: String,
+    name: String,
+    status: Status,
+    last_verified: Option<String>,
+}
+
+/// Parses YAML front-matter delimited by `---` from specre card content.
+///
+/// # Errors
+///
+/// Returns [`FrontmatterError`] if delimiters are missing or the YAML is invalid.
 pub fn parse_frontmatter(content: &str) -> Result<Frontmatter, FrontmatterError> {
     let content = content.trim_start_matches('\u{feff}'); // BOM
     if !content.starts_with("---") {
@@ -51,14 +64,6 @@ pub fn parse_frontmatter(content: &str) -> Result<Frontmatter, FrontmatterError>
         .find("\n---")
         .ok_or(FrontmatterError::NoClosingDelimiter)?;
     let block = &after_first[..end];
-
-    #[derive(serde::Deserialize)]
-    struct RawFrontmatter {
-        id: String,
-        name: String,
-        status: Status,
-        last_verified: Option<String>,
-    }
 
     let raw: RawFrontmatter = serde_yaml::from_str(block).map_err(FrontmatterError::Yaml)?;
 
@@ -73,6 +78,7 @@ pub fn parse_frontmatter(content: &str) -> Result<Frontmatter, FrontmatterError>
 /// Extracts a ULID from a `@specre` marker on a line.
 /// Returns None if the marker appears inside a string literal
 /// (preceded by a quote character `"` or `'` on the same line).
+#[must_use]
 pub fn extract_marker_ulid(line: &str) -> Option<&str> {
     let pos = line.find("@specre ")?;
     let before = &line[..pos];

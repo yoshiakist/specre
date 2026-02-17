@@ -24,16 +24,19 @@ pub struct OrphanResult {
 }
 
 impl OrphanResult {
-    pub fn orphan_count(&self) -> usize {
+    #[must_use]
+    pub const fn orphan_count(&self) -> usize {
         self.orphan_specres.len()
     }
 
-    pub fn dangling_count(&self) -> usize {
+    #[must_use]
+    pub const fn dangling_count(&self) -> usize {
         self.dangling_markers.len()
     }
 }
 
-/// Derives an `OrphanResult` from a pre-computed `SourceScanResult`.
+/// Derives an [`OrphanResult`] from a pre-computed [`SourceScanResult`].
+#[must_use]
 pub fn orphans_from_scan(specre_dir: &str, scan: &SourceScanResult) -> OrphanResult {
     let specre_dir_path = Path::new(specre_dir);
     let cards = card::scan_specre_cards(specre_dir_path, specre_dir);
@@ -69,6 +72,7 @@ pub fn orphans_from_scan(specre_dir: &str, scan: &SourceScanResult) -> OrphanRes
     }
 }
 
+#[must_use]
 pub fn compute_orphans(
     specre_dir: &str,
     source_dirs: &[String],
@@ -78,6 +82,10 @@ pub fn compute_orphans(
     orphans_from_scan(specre_dir, &scan)
 }
 
+/// # Errors
+///
+/// Returns [`SpecreError`] on config or serialization failure, or
+/// [`SpecreError::NonZeroExit`] when orphans or dangling markers are detected.
 pub fn execute(json: bool) -> Result<(), SpecreError> {
     let config = config::load()?;
     let result = compute_orphans(

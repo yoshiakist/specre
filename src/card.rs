@@ -29,6 +29,7 @@ pub struct SpecreCard {
 ///
 /// On Windows, backslashes are replaced with forward slashes.
 /// On Unix, the path string is returned as-is.
+#[must_use]
 pub fn to_forward_slash(path: &Path) -> Cow<'_, str> {
     let s = path.to_string_lossy();
     if s.contains('\\') {
@@ -44,6 +45,7 @@ pub fn to_forward_slash(path: &Path) -> Cow<'_, str> {
 /// ```text
 /// extract_domain("docs/specres/cli/foo.md", "docs/specres") => "cli"
 /// ```
+#[must_use]
 pub fn extract_domain<'a>(rel_path: &'a str, specre_dir: &str) -> &'a str {
     let prefix = if specre_dir.ends_with('/') {
         specre_dir.to_string()
@@ -58,6 +60,7 @@ pub fn extract_domain<'a>(rel_path: &'a str, specre_dir: &str) -> &'a str {
 ///
 /// Cards are sorted by ID. Files with malformed front-matter are
 /// skipped with a warning printed to stderr.
+#[must_use]
 pub fn scan_specre_cards(specre_dir: &Path, specre_dir_str: &str) -> Vec<SpecreCard> {
     let mut cards = Vec::new();
     if !specre_dir.exists() {

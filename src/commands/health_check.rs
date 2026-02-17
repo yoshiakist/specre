@@ -64,6 +64,10 @@ fn get_index_age_hours(specre_dir: &str) -> Option<f64> {
     Some((hours * 10.0).round() / 10.0)
 }
 
+/// # Errors
+///
+/// Returns [`SpecreError`] on config or serialization failure, or
+/// [`SpecreError::NonZeroExit`] when health checks fail.
 pub fn execute() -> Result<(), SpecreError> {
     let cfg = config::load()?;
 
@@ -94,9 +98,7 @@ pub fn execute() -> Result<(), SpecreError> {
     // Healthy check
     let coverage_ok = coverage_ratio >= threshold_coverage;
     let orphans_ok = orphan_count <= threshold_orphans;
-    let index_ok = index_age_hours
-        .map(|age| age <= threshold_index_age)
-        .unwrap_or(false);
+    let index_ok = index_age_hours.is_some_and(|age| age <= threshold_index_age);
     let healthy = coverage_ok && orphans_ok && index_ok;
 
     let result = HealthCheckResult {

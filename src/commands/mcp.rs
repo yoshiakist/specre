@@ -8,7 +8,11 @@ use crate::{template, ulid};
 use rmcp::{
     ErrorData as McpError, RoleServer, ServerHandler, ServiceExt,
     handler::server::{router::tool::ToolRouter, wrapper::Parameters},
-    model::*,
+    model::{
+        AnnotateAble, CallToolResult, Content, Implementation, ListResourcesResult,
+        PaginatedRequestParams, ProtocolVersion, RawResource, ReadResourceRequestParams,
+        ReadResourceResult, ResourceContents, ServerCapabilities, ServerInfo,
+    },
     schemars, tool, tool_handler, tool_router,
     service::RequestContext,
     transport::stdio,
@@ -22,7 +26,7 @@ const URI_PREFIX: &str = "specre:///";
 #[derive(Clone)]
 pub struct SpecreMcpServer {
     specre_dir: PathBuf,
-    tool_router: ToolRouter<SpecreMcpServer>,
+    tool_router: ToolRouter<Self>,
 }
 
 #[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
@@ -43,6 +47,7 @@ impl SpecreMcpServer {
     }
 
     #[tool(name = "new", description = "Create a new specre card from a template, auto-generating a ULID")]
+    #[allow(clippy::unused_self)] // &self required by rmcp #[tool] macro
     fn new_card(
         &self,
         Parameters(req): Parameters<NewToolRequest>,
@@ -189,6 +194,9 @@ impl ServerHandler for SpecreMcpServer {
     }
 }
 
+/// # Errors
+///
+/// Returns [`SpecreError`] on runtime creation, MCP init, or server failure.
 pub fn execute() -> Result<(), crate::error::SpecreError> {
     let rt = tokio::runtime::Runtime::new().map_err(crate::error::SpecreError::TokioRuntime)?;
     rt.block_on(run_server())

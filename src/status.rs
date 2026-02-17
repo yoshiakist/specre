@@ -18,10 +18,10 @@ pub enum Status {
 impl fmt::Display for Status {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Status::Draft => write!(f, "draft"),
-            Status::InDevelopment => write!(f, "in-development"),
-            Status::Stable => write!(f, "stable"),
-            Status::Deprecated => write!(f, "deprecated"),
+            Self::Draft => write!(f, "draft"),
+            Self::InDevelopment => write!(f, "in-development"),
+            Self::Stable => write!(f, "stable"),
+            Self::Deprecated => write!(f, "deprecated"),
         }
     }
 }
@@ -31,10 +31,10 @@ impl FromStr for Status {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "draft" => Ok(Status::Draft),
-            "in-development" => Ok(Status::InDevelopment),
-            "stable" => Ok(Status::Stable),
-            "deprecated" => Ok(Status::Deprecated),
+            "draft" => Ok(Self::Draft),
+            "in-development" => Ok(Self::InDevelopment),
+            "stable" => Ok(Self::Stable),
+            "deprecated" => Ok(Self::Deprecated),
             other => Err(format!(
                 "invalid status: {other}. Expected one of: draft, in-development, stable, deprecated."
             )),

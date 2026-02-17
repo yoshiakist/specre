@@ -54,6 +54,9 @@ fn comment_syntax(ext: &str) -> Option<(&'static str, &'static str)> {
     }
 }
 
+/// # Errors
+///
+/// Returns [`SpecreError`] on invalid arguments, I/O, or serialization failure.
 pub fn execute(args: TagArgs, json: bool) -> Result<(), SpecreError> {
     if !ulid::is_valid(&args.ulid) {
         return Err(SpecreError::InvalidArgument(
@@ -90,8 +93,7 @@ pub fn execute(args: TagArgs, json: bool) -> Result<(), SpecreError> {
             let line = content
                 .lines()
                 .position(|l| l.contains(&marker_pattern))
-                .map(|n| n + 1)
-                .unwrap_or(1);
+                .map_or(1, |n| n + 1);
             let output = TagOutput {
                 id: args.ulid,
                 file: to_forward_slash(file_path).into_owned(),
@@ -109,8 +111,7 @@ pub fn execute(args: TagArgs, json: bool) -> Result<(), SpecreError> {
     let ext = file_path.extension().and_then(|e| e.to_str()).unwrap_or("");
     let (prefix, suffix) = comment_syntax(ext).ok_or_else(|| {
         SpecreError::InvalidArgument(format!(
-            "unsupported file extension '.{}' — comment syntax is unknown",
-            ext
+            "unsupported file extension '.{ext}' — comment syntax is unknown"
         ))
     })?;
 

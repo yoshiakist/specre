@@ -17,7 +17,10 @@ struct NewOutput {
     path: String,
 }
 
-pub fn execute(args: NewArgs, json: bool) -> Result<(), SpecreError> {
+/// # Errors
+///
+/// Returns [`SpecreError`] on invalid arguments, I/O, or serialization failure.
+pub fn execute(args: &NewArgs, json: bool) -> Result<(), SpecreError> {
     let target = Path::new(&args.target_dir);
 
     if target.is_file() {

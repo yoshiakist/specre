@@ -20,7 +20,8 @@ pub struct CoverageResult {
     pub uncovered: Vec<String>,
 }
 
-/// Derives a `CoverageResult` from a pre-computed `SourceScanResult`.
+/// Derives a [`CoverageResult`] from a pre-computed [`SourceScanResult`].
+#[must_use]
 pub fn coverage_from_scan(scan: &SourceScanResult) -> CoverageResult {
     CoverageResult {
         total: scan.total,
@@ -29,6 +30,7 @@ pub fn coverage_from_scan(scan: &SourceScanResult) -> CoverageResult {
     }
 }
 
+#[must_use]
 pub fn compute_coverage(
     source_dirs: &[String],
     target_extensions: Option<&[String]>,
@@ -37,6 +39,9 @@ pub fn compute_coverage(
     coverage_from_scan(&scan)
 }
 
+/// # Errors
+///
+/// Returns [`SpecreError`] on config or serialization failure.
 pub fn execute(args: CoverageArgs, json: bool) -> Result<(), SpecreError> {
     let config = config::load()?;
 
@@ -65,7 +70,10 @@ pub fn execute(args: CoverageArgs, json: bool) -> Result<(), SpecreError> {
             println!("Coverage: 0/0 files (N/A)");
         } else {
             let pct = result.tagged as f64 / result.total as f64 * 100.0;
-            println!("Coverage: {}/{} files ({:.1}%)", result.tagged, result.total, pct);
+            println!(
+                "Coverage: {}/{} files ({:.1}%)",
+                result.tagged, result.total, pct
+            );
         }
 
         if !result.uncovered.is_empty() {
