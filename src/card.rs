@@ -15,7 +15,7 @@ use std::path::Path;
 /// This is the single source of truth for specre card data,
 /// replacing per-command struct definitions (`SpecreEntry`,
 /// `CardData`, `ScannedCard`) with one shared type.
-#[derive(Serialize)]
+#[derive(Debug, Serialize)]
 pub struct SpecreCard {
     pub id: String,
     pub name: String,

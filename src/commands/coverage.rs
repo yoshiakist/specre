@@ -14,6 +14,7 @@ struct CoverageOutput {
     uncovered: Vec<String>,
 }
 
+#[derive(Debug)]
 pub struct CoverageResult {
     pub total: usize,
     pub tagged: usize,
