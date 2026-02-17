@@ -346,6 +346,8 @@ Each entry records a `@specre` marker found in the source tree:
 
 specre is in its early stages. Contributions, feedback, and real-world usage reports are welcome. Please open an issue or pull request on GitHub.
 
+If you are contributing Rust code, please read the **[Rust Conventions](docs/guides/RUST-CONVENTIONS.md)** before submitting a pull request.
+
 ## License
 
 MIT

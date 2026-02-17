@@ -349,6 +349,8 @@ class QuotationService:
 
 specre は初期段階にあります。コントリビューション、フィードバック、実際の使用レポートを歓迎します。GitHub で Issue または Pull Request を開いてください。
 
+Rust コードをコントリビュートする場合は、Pull Request を提出する前に **[Rust Conventions](docs/guides/RUST-CONVENTIONS.md)** をお読みください。
+
 ## ライセンス
 
 MIT
