@@ -2,7 +2,7 @@
 id: "01KHMEB8WF7BFZASE8SQHF5PR2"
 name: "specre_error_provides_contextual_diagnostics"
 status: "stable"
-last_verified: "2026-02-16"
+last_verified: "2026-02-17"
 ---
 
 ## Related Files
@@ -27,7 +27,10 @@ A single error enum ensures consistent formatting across all commands. The `Disp
 - `Serialize(serde_json::Error)` — JSON serialization failure
 - `InvalidArgument(String)` — caller-provided message for bad CLI input
 - `NonZeroExit` — silent exit code 1 (no stderr output)
-- `Runtime(Box<dyn Error + Send + Sync>)` — catch-all for external library errors
+- `ConfigSerialize(toml::ser::Error)` — TOML serialization failure (specre.toml generation)
+- `TokioRuntime(std::io::Error)` — tokio runtime creation failure
+- `McpInit(String)` — MCP server initialization failure
+- `McpTask(String)` — MCP server runtime task error
 
 ## Scenarios
 
@@ -39,7 +42,10 @@ A single error enum ensures consistent formatting across all commands. The `Disp
 4. `Io { path, source }` displays `"Failed to access '<path>': <inner message>"`
 5. `Serialize(e)` displays `"Failed to serialize: <inner message>"`
 6. `InvalidArgument(msg)` displays the message as-is (no prefix)
-7. `Runtime(e)` displays the inner error's message as-is
+7. `ConfigSerialize(e)` displays `"Failed to serialize specre.toml: <inner message>"`
+8. `TokioRuntime(e)` displays `"Failed to create tokio runtime: <inner message>"`
+9. `McpInit(e)` displays `"Failed to initialize MCP server: <inner message>"`
+10. `McpTask(e)` displays `"MCP server error: <inner message>"`
 
 ### NonZeroExit produces an empty display string
 
@@ -51,8 +57,9 @@ A single error enum ensures consistent formatting across all commands. The `Disp
 1. `ConfigParse(e)` returns `Some(e)` from `source()`
 2. `Io { source, .. }` returns `Some(source)` from `source()`
 3. `Serialize(e)` returns `Some(e)` from `source()`
-4. `Runtime(e)` returns `Some(e)` from `source()`
-5. `AlreadyInitialized`, `ConfigNotFound`, `InvalidArgument`, `NonZeroExit` return `None` from `source()`
+4. `ConfigSerialize(e)` returns `Some(e)` from `source()`
+5. `TokioRuntime(e)` returns `Some(e)` from `source()`
+6. `AlreadyInitialized`, `ConfigNotFound`, `InvalidArgument`, `NonZeroExit`, `McpInit`, `McpTask` return `None` from `source()`
 
 ### From<serde_json::Error> converts to Serialize variant
 
@@ -68,4 +75,4 @@ A single error enum ensures consistent formatting across all commands. The `Disp
 ## Failures / Exceptions
 
 - `SpecreError` implements `std::error::Error` and `Display`; it does not implement `Clone` or `PartialEq`
-- `Runtime` uses a boxed trait object, so it cannot be downcast to a specific type in tests
+- `McpInit` and `McpTask` store stringified messages because rmcp's error types (`ServerInitializeError`, `tokio::task::JoinError`) are not stored directly to avoid tight coupling with rmcp internals
