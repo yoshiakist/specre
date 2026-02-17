@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-02-17T07:04:31Z",
+  "generated_at": "2026-02-17T07:24:09Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -32,7 +32,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_status_reports_project_health.md",
-      "last_verified": "2026-02-13"
+      "last_verified": "2026-02-17"
     },
     {
       "id": "01KHB48DYZDN8GHXPX7MSYJ1NZ",
