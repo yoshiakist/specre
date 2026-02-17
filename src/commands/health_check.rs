@@ -83,7 +83,7 @@ pub fn execute() -> Result<(), SpecreError> {
     // Orphans
     let orphan_result =
         compute_orphans(&cfg.specre_dir, &cfg.source_dirs, cfg.target_extensions.as_deref());
-    let orphan_count = orphan_result.orphan_specres + orphan_result.dangling_markers;
+    let orphan_count = orphan_result.orphan_count() + orphan_result.dangling_count();
 
     // Index freshness
     let index_age_hours = get_index_age_hours(&cfg.specre_dir);

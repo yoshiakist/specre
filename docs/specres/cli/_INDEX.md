@@ -7,7 +7,7 @@
 | [specre_index_generates_project_index](specre_index_generates_project_index.md) | stable | 2026-02-16 |
 | [specre_status_reports_project_health](specre_status_reports_project_health.md) | stable | 2026-02-13 |
 | [specre_trace_resolves_bidirectional_references](specre_trace_resolves_bidirectional_references.md) | stable | 2026-02-16 |
-| [specre_orphans_detects_unlinked_specres_and_markers](specre_orphans_detects_unlinked_specres_and_markers.md) | stable | 2026-02-16 |
+| [specre_orphans_detects_unlinked_specres_and_markers](specre_orphans_detects_unlinked_specres_and_markers.md) | stable | 2026-02-17 |
 | [specre_tag_inserts_marker_into_source_file](specre_tag_inserts_marker_into_source_file.md) | stable | 2026-02-16 |
 | [user_can_set_language_config](user_can_set_language_config.md) | stable | 2026-02-14 |
 | [user_can_set_target_extensions](user_can_set_target_extensions.md) | stable | 2026-02-15 |
