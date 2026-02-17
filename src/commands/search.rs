@@ -3,12 +3,11 @@ use crate::cli::SearchArgs;
 use crate::commands::index::{collect_md_files, parse_frontmatter, to_forward_slash};
 use crate::config;
 use crate::error::SpecreError;
+use crate::status::Status;
 use serde::Serialize;
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
-
-const VALID_STATUSES: &[&str] = &["draft", "in-development", "stable", "deprecated"];
 const DEFAULT_MAX_RESULTS: usize = 10;
 const EXCERPT_MAX_CHARS: usize = 200;
 
@@ -25,7 +24,7 @@ struct SearchOutput {
 struct SearchResult {
     id: String,
     name: String,
-    status: String,
+    status: Status,
     domain: String,
     path: String,
     last_verified: Option<String>,
@@ -36,13 +35,13 @@ struct SearchResult {
 struct Hint {
     message: String,
     available_domains: Vec<String>,
-    status_counts: BTreeMap<String, usize>,
+    status_counts: BTreeMap<Status, usize>,
 }
 
 struct CardData {
     id: String,
     name: String,
-    status: String,
+    status: Status,
     domain: String,
     path: String,
     last_verified: Option<String>,
@@ -52,13 +51,13 @@ struct CardData {
 
 pub fn execute(args: SearchArgs) -> Result<(), SpecreError> {
     // Validate inputs
-    if let Some(ref s) = args.status {
-        if !VALID_STATUSES.contains(&s.as_str()) {
-            return Err(SpecreError::InvalidArgument(format!(
-                "invalid status: {s}. Expected one of: draft, in-development, stable, deprecated."
-            )));
-        }
-    }
+    let status_filter: Option<Status> = match &args.status {
+        Some(s) => Some(
+            s.parse::<Status>()
+                .map_err(SpecreError::InvalidArgument)?,
+        ),
+        None => None,
+    };
     if let Some(ref d) = args.verified_before {
         validate_date(d)?;
     }
@@ -95,8 +94,8 @@ pub fn execute(args: SearchArgs) -> Result<(), SpecreError> {
                 }
             }
             // Status filter
-            if let Some(ref s) = args.status {
-                if card.status != *s {
+            if let Some(s) = status_filter {
+                if card.status != s {
                     return false;
                 }
             }
@@ -326,9 +325,9 @@ fn build_hint(cards: &[CardData]) -> Hint {
     domains.dedup();
 
     // Count by status
-    let mut status_counts: BTreeMap<String, usize> = BTreeMap::new();
+    let mut status_counts: BTreeMap<Status, usize> = BTreeMap::new();
     for card in cards {
-        *status_counts.entry(card.status.clone()).or_insert(0) += 1;
+        *status_counts.entry(card.status).or_insert(0) += 1;
     }
 
     Hint {

@@ -4,6 +4,7 @@
 
 use crate::commands::index::{collect_md_files, parse_frontmatter, to_forward_slash};
 use crate::config;
+use crate::status::Status;
 use crate::{template, ulid};
 use rmcp::{
     ErrorData as McpError, RoleServer, ServerHandler, ServiceExt,
@@ -97,7 +98,7 @@ impl SpecreMcpServer {
 }
 
 /// Scan specre_dir and return (ULID, name, status, file_path) for each card.
-fn scan_cards(specre_dir: &Path) -> Vec<(String, String, String, PathBuf)> {
+fn scan_cards(specre_dir: &Path) -> Vec<(String, String, Status, PathBuf)> {
     let mut cards = Vec::new();
     collect_md_files(specre_dir, &mut |path| {
         let content = match fs::read_to_string(path) {

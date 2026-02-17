@@ -5,6 +5,7 @@ use crate::commands::index::{
 };
 use crate::config;
 use crate::error::SpecreError;
+use crate::status::Status;
 use serde::Serialize;
 use std::collections::HashSet;
 use std::fs;
@@ -13,7 +14,7 @@ use std::path::Path;
 struct SpecreInfo {
     id: String,
     path: String,
-    status: String,
+    status: Status,
 }
 
 struct DanglingMarker {
@@ -100,7 +101,7 @@ pub fn compute_orphans(
 
     let orphan_specres = specres
         .iter()
-        .filter(|s| s.status != "deprecated" && !marker_ulids.contains(&s.id))
+        .filter(|s| s.status != Status::Deprecated && !marker_ulids.contains(&s.id))
         .count();
 
     OrphanResult {
@@ -180,7 +181,7 @@ pub fn execute(json: bool) -> Result<(), SpecreError> {
     // Find orphan specres (non-deprecated specres with no source markers)
     let mut orphans: Vec<&SpecreInfo> = specres
         .iter()
-        .filter(|s| s.status != "deprecated" && !marker_ulids.contains(&s.id))
+        .filter(|s| s.status != Status::Deprecated && !marker_ulids.contains(&s.id))
         .collect();
     orphans.sort_by(|a, b| a.path.cmp(&b.path));
 
