@@ -131,7 +131,7 @@ fn scan_specre_files(dir: &Path, specre_dir_str: &str) -> Vec<SpecreEntry> {
     entries
 }
 
-pub fn collect_md_files(dir: &Path, cb: &mut dyn FnMut(&Path)) {
+pub fn collect_md_files<F: FnMut(&Path)>(dir: &Path, cb: &mut F) {
     let read_dir = match fs::read_dir(dir) {
         Ok(rd) => rd,
         Err(e) => {
@@ -288,10 +288,10 @@ fn scan_source_refs(
     refs
 }
 
-pub fn collect_all_files(
+pub fn collect_all_files<F: FnMut(&Path)>(
     dir: &Path,
     target_extensions: Option<&[String]>,
-    cb: &mut dyn FnMut(&Path),
+    cb: &mut F,
 ) {
     let read_dir = match fs::read_dir(dir) {
         Ok(rd) => rd,
