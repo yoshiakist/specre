@@ -100,6 +100,7 @@ pub fn collect_all_files<F: FnMut(&Path)>(
 /// Result of a single-pass scan of all source files for `@specre` markers.
 /// Used by `compute_coverage`, `compute_orphans`, and `health_check` to
 /// avoid duplicate directory traversals and file reads.
+#[derive(Debug)]
 pub struct SourceScanResult {
     /// Total number of source files scanned.
     pub total: usize,
@@ -113,6 +114,7 @@ pub struct SourceScanResult {
     pub all_markers: Vec<MarkerLocation>,
 }
 
+#[derive(Debug)]
 pub struct MarkerLocation {
     pub file: String,
     pub line: usize,

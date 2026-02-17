@@ -1,7 +1,7 @@
 // @specre 01KHFFCX8BCDAYP8YHG0J65H0E
 use clap::{Args, Parser, Subcommand};
 
-#[derive(Parser)]
+#[derive(Debug, Parser)]
 #[command(
     name = "specre",
     version,
@@ -16,7 +16,7 @@ pub struct Cli {
     pub command: Commands,
 }
 
-#[derive(Subcommand)]
+#[derive(Debug, Subcommand)]
 pub enum Commands {
     /// Initialize specre in a project
     Init(InitArgs),
@@ -52,7 +52,7 @@ pub enum Commands {
     Mcp,
 }
 
-#[derive(Args)]
+#[derive(Debug, Args)]
 pub struct SearchArgs {
     /// Free-text substring to match against card content (case-insensitive)
     pub query: Option<String>,
@@ -78,7 +78,7 @@ pub struct SearchArgs {
     pub limit: Option<usize>,
 }
 
-#[derive(Args)]
+#[derive(Debug, Args)]
 pub struct InitArgs {
     /// Directory where specre cards are stored
     #[arg(long, default_value = "docs/specres")]
@@ -97,20 +97,20 @@ pub struct InitArgs {
     pub ext: Option<Vec<String>>,
 }
 
-#[derive(Args)]
+#[derive(Debug, Args)]
 pub struct StatusArgs {
     /// Number of days after which a stable specre's `last_verified` is considered stale
     #[arg(long, default_value_t = 30)]
     pub threshold: u32,
 }
 
-#[derive(Args)]
+#[derive(Debug, Args)]
 pub struct TraceArgs {
     /// ULID (26 uppercase alphanumeric characters) or file path to look up
     pub query: String,
 }
 
-#[derive(Args)]
+#[derive(Debug, Args)]
 pub struct TagArgs {
     /// ULID to insert as a marker (26 uppercase alphanumeric characters)
     pub ulid: String,
@@ -119,14 +119,14 @@ pub struct TagArgs {
     pub file: String,
 }
 
-#[derive(Args)]
+#[derive(Debug, Args)]
 pub struct CoverageArgs {
     /// Target file extensions to filter by (comma-separated, e.g., "rs,ts")
     #[arg(long, value_delimiter = ',')]
     pub ext: Option<Vec<String>>,
 }
 
-#[derive(Args)]
+#[derive(Debug, Args)]
 pub struct NewArgs {
     /// Target directory where the specre file will be created
     pub target_dir: String,

@@ -9,7 +9,7 @@ use serde::Serialize;
 use std::collections::HashSet;
 use std::path::Path;
 
-#[derive(Serialize)]
+#[derive(Debug, Serialize)]
 pub struct DanglingMarkerDetail {
     pub file: String,
     pub line: usize,
@@ -17,7 +17,7 @@ pub struct DanglingMarkerDetail {
     pub ulid: String,
 }
 
-#[derive(Serialize)]
+#[derive(Debug, Serialize)]
 pub struct OrphanResult {
     pub orphan_specres: Vec<String>,
     pub dangling_markers: Vec<DanglingMarkerDetail>,

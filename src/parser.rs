@@ -2,6 +2,7 @@
 use crate::status::Status;
 use std::fmt;
 
+#[derive(Debug)]
 pub struct Frontmatter {
     pub id: String,
     pub name: String,

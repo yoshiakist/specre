@@ -13,7 +13,7 @@ use std::path::Path;
 
 const CONFIG_FILE: &str = "specre.toml";
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct Config {
     pub specre_dir: String,
     pub source_dirs: Vec<String>,
@@ -23,14 +23,14 @@ pub struct Config {
     pub search: Option<SearchConfig>,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct HealthCheckConfig {
     pub coverage: Option<f64>,
     pub orphans: Option<usize>,
     pub index_age_hours: Option<f64>,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct SearchConfig {
     pub max_results: Option<usize>,
 }
