@@ -897,6 +897,46 @@ fn search_invalid_date_error() {
         .stderr(predicate::str::contains("invalid date format"));
 }
 
+// -- Scenario: Calendar-invalid date rejected --
+
+#[test]
+fn search_rejects_calendar_invalid_date() {
+    let tmp = TempDir::new().unwrap();
+    write_config(&tmp, "docs/specres", &["src"]);
+
+    // Feb 30 does not exist
+    specre()
+        .args(["search", "--verified-before", "2025-02-30"])
+        .current_dir(&tmp)
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("invalid date format"));
+
+    // Month 13 does not exist
+    specre()
+        .args(["search", "--verified-after", "2025-13-01"])
+        .current_dir(&tmp)
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("invalid date format"));
+
+    // Month 00 does not exist
+    specre()
+        .args(["search", "--verified-before", "2025-00-15"])
+        .current_dir(&tmp)
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("invalid date format"));
+
+    // Day 00 does not exist
+    specre()
+        .args(["search", "--verified-after", "2025-01-00"])
+        .current_dir(&tmp)
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("invalid date format"));
+}
+
 // -- Scenario: --limit must be positive --
 
 #[test]

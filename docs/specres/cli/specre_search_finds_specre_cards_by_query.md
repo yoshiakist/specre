@@ -2,7 +2,7 @@
 id: "01KHFTCYJN8YJMW2RNHJTAQV49"
 name: "specre_search_finds_specre_cards_by_query"
 status: "stable"
-last_verified: "2026-02-16"
+last_verified: "2026-02-17"
 ---
 
 ## Related Files
@@ -192,6 +192,6 @@ Search results are consumed as LLM input tokens by coding agents. Returning too 
 - If `specre_dir` does not exist, CLI returns empty results (exit code 0)
 - If a specre card has malformed front-matter (unparseable YAML), it is skipped with a warning to stderr and not included in results
 - If a specre card cannot be read (IO error), CLI prints a warning to stderr (`Warning: failed to read '<path>': <reason>`) and skips that file
-- `--verified-before` and `--verified-after` expect `YYYY-MM-DD` format; invalid dates produce an error: `Error: invalid date format: <value>. Expected YYYY-MM-DD.`
+- `--verified-before` and `--verified-after` expect a valid calendar date in `YYYY-MM-DD` format. Both syntactically malformed strings (e.g., `not-a-date`) and well-formed but calendar-invalid dates (e.g., `2025-02-30`, `2025-13-01`) produce an error: `Error: invalid date format: <value>. Expected YYYY-MM-DD.`
 - `--status` accepts only `draft`, `in-development`, `stable`, `deprecated`; other values produce an error: `Error: invalid status: <value>. Expected one of: draft, in-development, stable, deprecated.`
 - `--limit` must be a positive integer; zero or negative values produce an error: `Error: --limit must be a positive integer.`
