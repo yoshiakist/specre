@@ -63,7 +63,7 @@ pub fn execute(args: StatusArgs, json: bool) -> Result<(), SpecreError> {
                 }
             };
             match parse_frontmatter(&content) {
-                Some(fm) => match fm.status {
+                Ok(fm) => match fm.status {
                     Status::Draft => draft += 1,
                     Status::InDevelopment => in_development += 1,
                     Status::Stable => {
@@ -99,9 +99,9 @@ pub fn execute(args: StatusArgs, json: bool) -> Result<(), SpecreError> {
                     }
                     Status::Deprecated => deprecated += 1,
                 },
-                None => {
+                Err(e) => {
                     eprintln!(
-                        "Warning: skipping '{}' (malformed front-matter)",
+                        "Warning: skipping '{}': {e}",
                         path.display()
                     );
                 }

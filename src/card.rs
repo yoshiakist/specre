@@ -72,7 +72,7 @@ pub fn scan_specre_cards(specre_dir: &Path, specre_dir_str: &str) -> Vec<SpecreC
             }
         };
         match parse_frontmatter(&content) {
-            Some(fm) => {
+            Ok(fm) => {
                 let rel_path = to_forward_slash(path);
                 let domain = extract_domain(&rel_path, specre_dir_str).to_owned();
                 cards.push(SpecreCard {
@@ -84,9 +84,9 @@ pub fn scan_specre_cards(specre_dir: &Path, specre_dir_str: &str) -> Vec<SpecreC
                     last_verified: fm.last_verified,
                 });
             }
-            None => {
+            Err(e) => {
                 eprintln!(
-                    "Warning: skipping '{}' (malformed front-matter)",
+                    "Warning: skipping '{}': {e}",
                     path.display()
                 );
             }
