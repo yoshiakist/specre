@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-02-16T23:52:08Z",
+  "generated_at": "2026-02-17T00:02:46Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -136,6 +136,14 @@
       "status": "stable",
       "domain": "mcp",
       "path": "docs/specres/mcp/mcp_tool_new_creates_specre_card.md",
+      "last_verified": "2026-02-16"
+    },
+    {
+      "id": "01KHMEB8WF7BFZASE8SQHF5PR2",
+      "name": "specre_error_provides_contextual_diagnostics",
+      "status": "stable",
+      "domain": "cli",
+      "path": "docs/specres/cli/specre_error_provides_contextual_diagnostics.md",
       "last_verified": "2026-02-16"
     }
   ],
@@ -324,6 +332,11 @@
       "specre_id": "01KHFD5R1G3C5R34XMQXQTTMM9",
       "file": "src/config.rs",
       "line": 8
+    },
+    {
+      "specre_id": "01KHMEB8WF7BFZASE8SQHF5PR2",
+      "file": "src/error.rs",
+      "line": 1
     },
     {
       "specre_id": "01KHFFCX8BCDAYP8YHG0J65H0E",
