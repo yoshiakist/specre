@@ -1,6 +1,7 @@
 // @specre 01KHFGVXWP100JXYBZTRJGMB9H
-use crate::commands::coverage::compute_coverage;
-use crate::commands::orphans::compute_orphans;
+use crate::commands::coverage::coverage_from_scan;
+use crate::commands::index::scan_source_markers;
+use crate::commands::orphans::orphans_from_scan;
 use crate::config;
 use crate::error::SpecreError;
 use chrono::Utc;
@@ -71,8 +72,11 @@ pub fn execute() -> Result<(), SpecreError> {
     let threshold_orphans = hc.and_then(|h| h.orphans).unwrap_or(5);
     let threshold_index_age = hc.and_then(|h| h.index_age_hours).unwrap_or(24.0);
 
+    // Single scan for both coverage and orphans
+    let scan = scan_source_markers(&cfg.source_dirs, cfg.target_extensions.as_deref());
+
     // Coverage
-    let cov = compute_coverage(&cfg.source_dirs, cfg.target_extensions.as_deref());
+    let cov = coverage_from_scan(&scan);
     let coverage_ratio = if cov.total == 0 {
         0.0
     } else {
@@ -81,8 +85,7 @@ pub fn execute() -> Result<(), SpecreError> {
     };
 
     // Orphans
-    let orphan_result =
-        compute_orphans(&cfg.specre_dir, &cfg.source_dirs, cfg.target_extensions.as_deref());
+    let orphan_result = orphans_from_scan(&cfg.specre_dir, &scan);
     let orphan_count = orphan_result.orphan_count() + orphan_result.dangling_count();
 
     // Index freshness

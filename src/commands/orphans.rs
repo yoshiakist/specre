@@ -1,7 +1,7 @@
 // @specre 01KHB48EES4FR5TFV6ZP2W3MGT
 // @specre 01KHG0A2V4YXE918WMJCY7WFE8
 use crate::commands::index::{
-    collect_all_files, collect_md_files, extract_marker_ulid, parse_frontmatter, to_forward_slash,
+    collect_md_files, parse_frontmatter, scan_source_markers, to_forward_slash, SourceScanResult,
 };
 use crate::config;
 use crate::error::SpecreError;
@@ -35,14 +35,9 @@ impl OrphanResult {
     }
 }
 
-pub fn compute_orphans(
-    specre_dir: &str,
-    source_dirs: &[String],
-    target_extensions: Option<&[String]>,
-) -> OrphanResult {
+/// Collects specre card metadata (id, path, status) from the specre directory.
+fn collect_specre_entries(specre_dir: &str) -> Vec<(String, String, Status)> {
     let specre_path = Path::new(specre_dir);
-
-    // Collect all specre ids, paths, and statuses
     let mut specres: Vec<(String, String, Status)> = Vec::new();
     if specre_path.exists() {
         collect_md_files(specre_path, &mut |path| {
@@ -66,56 +61,50 @@ pub fn compute_orphans(
             }
         });
     }
+    specres
+}
 
+/// Derives an `OrphanResult` from a pre-computed `SourceScanResult`.
+pub fn orphans_from_scan(specre_dir: &str, scan: &SourceScanResult) -> OrphanResult {
+    let specres = collect_specre_entries(specre_dir);
     let specre_ids: HashSet<&str> = specres.iter().map(|(id, _, _)| id.as_str()).collect();
 
-    // Collect all source markers
-    let mut marker_ulids: HashSet<String> = HashSet::new();
-    let mut dangling: Vec<DanglingMarkerDetail> = Vec::new();
-
-    for dir_str in source_dirs {
-        let dir = Path::new(dir_str);
-        if !dir.exists() {
-            continue;
-        }
-        collect_all_files(dir, target_extensions, &mut |path| {
-            let content = match fs::read_to_string(path) {
-                Ok(c) => c,
-                Err(e) => {
-                    eprintln!("Warning: failed to read '{}': {e}", path.display());
-                    return;
-                }
-            };
-            let rel_path = to_forward_slash(path);
-            for (line_num, line) in content.lines().enumerate() {
-                if let Some(candidate) = extract_marker_ulid(line) {
-                    marker_ulids.insert(candidate.to_string());
-                    if !specre_ids.contains(candidate) {
-                        dangling.push(DanglingMarkerDetail {
-                            file: rel_path.clone(),
-                            line: line_num + 1,
-                            ulid: candidate.to_string(),
-                        });
-                    }
-                }
-            }
-        });
-    }
+    // Find dangling markers (markers with no matching specre)
+    let mut dangling: Vec<DanglingMarkerDetail> = scan
+        .all_markers
+        .iter()
+        .filter(|m| !specre_ids.contains(m.ulid.as_str()))
+        .map(|m| DanglingMarkerDetail {
+            file: m.file.clone(),
+            line: m.line,
+            ulid: m.ulid.clone(),
+        })
+        .collect();
+    dangling.sort_by(|a, b| a.file.cmp(&b.file).then(a.line.cmp(&b.line)));
 
     // Find orphan specres (non-deprecated specres with no source markers)
     let mut orphan_paths: Vec<String> = specres
         .iter()
-        .filter(|(id, _, status)| *status != Status::Deprecated && !marker_ulids.contains(id.as_str()))
+        .filter(|(id, _, status)| {
+            *status != Status::Deprecated && !scan.marker_ulids.contains(id.as_str())
+        })
         .map(|(_, path, _)| path.clone())
         .collect();
     orphan_paths.sort();
-
-    dangling.sort_by(|a, b| a.file.cmp(&b.file).then(a.line.cmp(&b.line)));
 
     OrphanResult {
         orphan_specres: orphan_paths,
         dangling_markers: dangling,
     }
+}
+
+pub fn compute_orphans(
+    specre_dir: &str,
+    source_dirs: &[String],
+    target_extensions: Option<&[String]>,
+) -> OrphanResult {
+    let scan = scan_source_markers(source_dirs, target_extensions);
+    orphans_from_scan(specre_dir, &scan)
 }
 
 pub fn execute(json: bool) -> Result<(), SpecreError> {
