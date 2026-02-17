@@ -37,26 +37,29 @@ impl OrphanResult {
 pub fn orphans_from_scan(specre_dir: &str, scan: &SourceScanResult) -> OrphanResult {
     let specre_dir_path = Path::new(specre_dir);
     let cards = card::scan_specre_cards(specre_dir_path, specre_dir);
-    let specre_ids: HashSet<&str> = cards.iter().map(|c| c.id.as_str()).collect();
 
     // Find dangling markers (markers with no matching specre)
-    let mut dangling: Vec<DanglingMarkerDetail> = scan
-        .all_markers
-        .iter()
-        .filter(|m| !specre_ids.contains(m.ulid.as_str()))
-        .map(|m| DanglingMarkerDetail {
-            file: m.file.clone(),
-            line: m.line,
-            ulid: m.ulid.clone(),
-        })
-        .collect();
+    // Scope specre_ids borrow so cards can be consumed below
+    let mut dangling: Vec<DanglingMarkerDetail> = {
+        let specre_ids: HashSet<&str> = cards.iter().map(|c| c.id.as_str()).collect();
+        scan.all_markers
+            .iter()
+            .filter(|m| !specre_ids.contains(m.ulid.as_str()))
+            .map(|m| DanglingMarkerDetail {
+                file: m.file.clone(),
+                line: m.line,
+                ulid: m.ulid.clone(),
+            })
+            .collect()
+    };
     dangling.sort_by(|a, b| a.file.cmp(&b.file).then(a.line.cmp(&b.line)));
 
     // Find orphan specres (non-deprecated specres with no source markers)
+    // into_iter() moves c.path instead of cloning
     let mut orphan_paths: Vec<String> = cards
-        .iter()
+        .into_iter()
         .filter(|c| c.status != Status::Deprecated && !scan.marker_ulids.contains(c.id.as_str()))
-        .map(|c| c.path.clone())
+        .map(|c| c.path)
         .collect();
     orphan_paths.sort();
 
