@@ -62,7 +62,7 @@ fn trace_by_ulid(ulid: &str, json: bool) -> Result<(), SpecreError> {
                     return;
                 }
             };
-            if let Some(fm) = parse_frontmatter(&content)
+            if let Ok(fm) = parse_frontmatter(&content)
                 && fm.id == ulid
             {
                 specre_path = Some(to_forward_slash(path).into_owned());
@@ -175,7 +175,7 @@ fn trace_by_file(file_path: &str, json: bool) -> Result<(), SpecreError> {
                     return;
                 }
             };
-            if let Some(fm) = parse_frontmatter(&content) {
+            if let Ok(fm) = parse_frontmatter(&content) {
                 ulid_to_path.insert(fm.id, to_forward_slash(path).into_owned());
             }
         });

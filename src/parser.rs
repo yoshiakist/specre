@@ -1,5 +1,6 @@
 // @specre 01KHB48DYZDN8GHXPX7MSYJ1NZ
 use crate::status::Status;
+use std::fmt;
 
 pub struct Frontmatter {
     pub id: String,
@@ -8,13 +9,47 @@ pub struct Frontmatter {
     pub last_verified: Option<String>,
 }
 
-pub fn parse_frontmatter(content: &str) -> Option<Frontmatter> {
+/// Describes why front-matter parsing failed, preserving diagnostic
+/// information so that callers can tell the user *what* to fix.
+#[derive(Debug)]
+pub enum FrontmatterError {
+    /// The content does not start with `---`.
+    NoOpeningDelimiter,
+    /// An opening `---` was found but the closing `---` is missing.
+    NoClosingDelimiter,
+    /// The YAML block could not be deserialized (missing field, invalid
+    /// status value, syntax error, etc.).
+    Yaml(serde_yaml::Error),
+}
+
+impl fmt::Display for FrontmatterError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::NoOpeningDelimiter => write!(f, "missing opening '---' delimiter"),
+            Self::NoClosingDelimiter => write!(f, "missing closing '---' delimiter"),
+            Self::Yaml(e) => write!(f, "{e}"),
+        }
+    }
+}
+
+impl std::error::Error for FrontmatterError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Yaml(e) => Some(e),
+            _ => None,
+        }
+    }
+}
+
+pub fn parse_frontmatter(content: &str) -> Result<Frontmatter, FrontmatterError> {
     let content = content.trim_start_matches('\u{feff}'); // BOM
     if !content.starts_with("---") {
-        return None;
+        return Err(FrontmatterError::NoOpeningDelimiter);
     }
     let after_first = &content[3..];
-    let end = after_first.find("\n---")?;
+    let end = after_first
+        .find("\n---")
+        .ok_or(FrontmatterError::NoClosingDelimiter)?;
     let block = &after_first[..end];
 
     #[derive(serde::Deserialize)]
@@ -25,9 +60,9 @@ pub fn parse_frontmatter(content: &str) -> Option<Frontmatter> {
         last_verified: Option<String>,
     }
 
-    let raw: RawFrontmatter = serde_yaml::from_str(block).ok()?;
+    let raw: RawFrontmatter = serde_yaml::from_str(block).map_err(FrontmatterError::Yaml)?;
 
-    Some(Frontmatter {
+    Ok(Frontmatter {
         id: raw.id,
         name: raw.name,
         status: raw.status,

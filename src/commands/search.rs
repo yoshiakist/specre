@@ -184,10 +184,10 @@ fn scan_cards(dir: &Path, specre_dir_str: &str) -> Vec<SearchableCard> {
             }
         };
         let fm = match parse_frontmatter(&content) {
-            Some(fm) => fm,
-            None => {
+            Ok(fm) => fm,
+            Err(e) => {
                 eprintln!(
-                    "Warning: skipping '{}' (malformed front-matter)",
+                    "Warning: skipping '{}': {e}",
                     path.display()
                 );
                 return;
