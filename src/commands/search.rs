@@ -1,7 +1,8 @@
 // @specre 01KHFTCYJN8YJMW2RNHJTAQV49
 use crate::card::{extract_domain, to_forward_slash};
 use crate::cli::SearchArgs;
-use crate::commands::index::{collect_md_files, parse_frontmatter};
+use crate::parser::parse_frontmatter;
+use crate::scanner::collect_md_files;
 use crate::config;
 use crate::error::SpecreError;
 use crate::status::Status;
@@ -65,12 +66,12 @@ pub fn execute(args: SearchArgs) -> Result<(), SpecreError> {
     if let Some(ref d) = args.verified_after {
         validate_date(d)?;
     }
-    if let Some(limit) = args.limit {
-        if limit == 0 {
-            return Err(SpecreError::InvalidArgument(
-                "--limit must be a positive integer.".to_string(),
-            ));
-        }
+    if let Some(limit) = args.limit
+        && limit == 0
+    {
+        return Err(SpecreError::InvalidArgument(
+            "--limit must be a positive integer.".to_string(),
+        ));
     }
 
     let cfg = config::load()?;
@@ -95,27 +96,23 @@ pub fn execute(args: SearchArgs) -> Result<(), SpecreError> {
                 }
             }
             // Status filter
-            if let Some(s) = status_filter {
-                if card.status != s {
-                    return false;
-                }
+            if let Some(s) = status_filter
+                && card.status != s
+            {
+                return false;
             }
             // Domain filter
-            if let Some(ref d) = args.domain {
-                if card.domain != *d {
-                    return false;
-                }
+            if let Some(ref d) = args.domain
+                && card.domain != *d
+            {
+                return false;
             }
             // verified-before filter
-            if let Some(ref before) = args.verified_before {
-                match &card.last_verified {
-                    Some(lv) => {
-                        if lv >= before {
-                            return false;
-                        }
-                    }
-                    None => {} // No last_verified → include (never verified = "before" any date)
-                }
+            if let Some(ref before) = args.verified_before
+                && let Some(lv) = &card.last_verified
+                && lv >= before
+            {
+                return false;
             }
             // verified-after filter
             if let Some(ref after) = args.verified_after {

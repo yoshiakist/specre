@@ -2,13 +2,14 @@
 id: "01KHB48DYZDN8GHXPX7MSYJ1NZ"
 name: "specre_trace_resolves_bidirectional_references"
 status: "stable"
-last_verified: "2026-02-16"
+last_verified: "2026-02-17"
 ---
 
 ## Related Files
 
 - `src/commands/trace.rs`
-- `src/commands/index.rs` (reuses scanning helpers)
+- `src/parser.rs` (reuses parsing helpers)
+- `src/scanner.rs` (reuses scanning helpers)
 - `src/config.rs`
 - `tests/cli_trace.rs` (Test)
 

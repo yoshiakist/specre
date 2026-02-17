@@ -8,7 +8,7 @@ last_verified: "2026-02-17"
 ## Related Files
 
 - `src/commands/orphans.rs`
-- `src/commands/index.rs` (reuses scanning helpers)
+- `src/scanner.rs` (reuses scanning helpers)
 - `src/config.rs`
 - `tests/cli_orphans.rs` (Test)
 

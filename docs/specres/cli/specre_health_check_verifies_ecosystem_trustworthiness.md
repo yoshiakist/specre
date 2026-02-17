@@ -8,7 +8,7 @@ last_verified: "2026-02-17"
 ## Related Files
 
 - `src/commands/health_check.rs`
-- `src/commands/index.rs` (reuses `scan_source_markers()`)
+- `src/scanner.rs` (reuses `scan_source_markers()`)
 - `src/commands/coverage.rs` (reuses `coverage_from_scan()`)
 - `src/commands/orphans.rs` (reuses `orphans_from_scan()`)
 - `src/cli.rs`
