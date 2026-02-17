@@ -2,7 +2,7 @@
 id: "01KHAGG8NQQ7RSNYZ6SWBCYH3N"
 name: "specre_init_initializes_project_configuration"
 status: "stable"
-last_verified: "2026-02-16"
+last_verified: "2026-02-17"
 ---
 
 ## Related Files
@@ -77,6 +77,16 @@ The primary consumer of this command is expected to be a human developer setting
 2. CLI keeps the existing directory as-is (does not overwrite or delete contents)
 3. CLI writes `specre.toml`
 4. CLI prints the summary, noting the directory already existed
+
+### Special characters in arguments
+
+1. User runs `specre init --specre-dir 'path with "quotes"'`
+2. CLI writes `specre.toml` with properly escaped TOML values (e.g., `specre_dir = "path with \"quotes\""`)
+3. The generated `specre.toml` is always valid TOML regardless of user input
+
+## Implementation Notes
+
+- Config generation uses `toml::to_string()` for serialization to prevent TOML injection via special characters in user-supplied values (quotes, backslashes, etc.)
 
 ## Failures / Exceptions
 

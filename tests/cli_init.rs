@@ -192,6 +192,50 @@ fn init_without_ext_omits_target_extensions() {
     assert!(!content.contains("target_extensions"));
 }
 
+// -- Scenario: Special characters in arguments --
+
+#[test]
+fn init_escapes_backslash_in_specre_dir() {
+    let tmp = TempDir::new().unwrap();
+
+    // A backslash in specre_dir (common on Windows paths) would produce invalid TOML
+    // when manually formatted: `specre_dir = "my\ndir"` would be parsed as a newline.
+    // With proper toml::to_string() serialization, it becomes `specre_dir = "my\\ndir"`.
+    specre()
+        .args(["init", "--specre-dir", r"my\ndir"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("specre.toml")).unwrap();
+
+    // The generated TOML must be parseable and round-trip correctly
+    let parsed: toml::Value = toml::from_str(&content).expect("generated TOML must be valid");
+    assert_eq!(
+        parsed["specre_dir"].as_str().unwrap(),
+        r"my\ndir",
+        "specre_dir value must round-trip through TOML correctly"
+    );
+}
+
+#[test]
+fn init_escapes_backslash_in_source_dirs() {
+    let tmp = TempDir::new().unwrap();
+
+    specre()
+        .args(["init", "--source-dirs", r"src\main,lib\\test"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("specre.toml")).unwrap();
+
+    let parsed: toml::Value = toml::from_str(&content).expect("generated TOML must be valid");
+    let dirs = parsed["source_dirs"].as_array().unwrap();
+    assert_eq!(dirs[0].as_str().unwrap(), r"src\main");
+    assert_eq!(dirs[1].as_str().unwrap(), r"lib\\test");
+}
+
 // -- Failures / Exceptions: SpecreError::Io --
 
 #[test]

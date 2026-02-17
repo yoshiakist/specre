@@ -8,6 +8,16 @@ use std::fs;
 use std::path::Path;
 
 #[derive(Serialize)]
+struct SpecreConfig {
+    specre_dir: String,
+    source_dirs: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    language: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    target_extensions: Option<Vec<String>>,
+}
+
+#[derive(Serialize)]
 struct InitOutput {
     specre_dir: String,
     config_file: String,
@@ -37,27 +47,14 @@ pub fn execute(args: InitArgs, json: bool) -> Result<(), SpecreError> {
         println!("Exists  {}/", args.specre_dir);
     }
 
-    let source_dirs_toml: Vec<String> = args
-        .source_dirs
-        .iter()
-        .map(|s| format!("\"{s}\""))
-        .collect();
-    let language_line = match &args.language {
-        Some(lang) => format!("language = \"{lang}\"\n"),
-        None => String::new(),
+    let config = SpecreConfig {
+        specre_dir: args.specre_dir.clone(),
+        source_dirs: args.source_dirs.clone(),
+        language: args.language.clone(),
+        target_extensions: args.ext.clone(),
     };
-    let ext_line = match &args.ext {
-        Some(exts) => {
-            let ext_toml: Vec<String> = exts.iter().map(|s| format!("\"{s}\"")).collect();
-            format!("target_extensions = [{}]\n", ext_toml.join(", "))
-        }
-        None => String::new(),
-    };
-    let config_content = format!(
-        "specre_dir = \"{}\"\nsource_dirs = [{}]\n{language_line}{ext_line}",
-        args.specre_dir,
-        source_dirs_toml.join(", ")
-    );
+    let config_content =
+        toml::to_string(&config).map_err(|e| SpecreError::Runtime(Box::new(e)))?;
 
     fs::write(config_path, &config_content).map_err(|e| SpecreError::Io {
         path: config_path.to_path_buf(),
