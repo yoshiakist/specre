@@ -130,11 +130,12 @@ impl ServerHandler for SpecreMcpServer {
         let resources = cards
             .into_iter()
             .map(|c| {
+                let description = Some(format!("[{}] {}", c.status, c.name));
                 RawResource {
                     uri: format!("{URI_PREFIX}{}", c.id),
-                    name: c.name.clone(),
+                    name: c.name,
                     title: None,
-                    description: Some(format!("[{}] {}", c.status, c.name)),
+                    description,
                     mime_type: Some("text/markdown".to_string()),
                     size: None,
                     icons: None,

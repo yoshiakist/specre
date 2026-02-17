@@ -15,7 +15,7 @@ use std::path::Path;
 #[derive(Serialize)]
 struct StatusOutput {
     summary: StatusSummary,
-    stale: Vec<StaleOutput>,
+    stale: Vec<StaleEntry>,
 }
 
 #[derive(Serialize)]
@@ -28,12 +28,6 @@ struct StatusSummary {
 }
 
 #[derive(Serialize)]
-struct StaleOutput {
-    name: String,
-    path: String,
-    reason: String,
-}
-
 struct StaleEntry {
     name: String,
     path: String,
@@ -120,14 +114,7 @@ pub fn execute(args: StatusArgs, json: bool) -> Result<(), SpecreError> {
                 deprecated,
                 total,
             },
-            stale: stale_entries
-                .iter()
-                .map(|e| StaleOutput {
-                    name: e.name.clone(),
-                    path: e.path.clone(),
-                    reason: e.reason.clone(),
-                })
-                .collect(),
+            stale: stale_entries,
         };
         let json_str = serde_json::to_string_pretty(&output)?;
         println!("{json_str}");

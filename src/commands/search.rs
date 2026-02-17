@@ -287,10 +287,9 @@ fn card_to_result(card: SearchableCard) -> SearchResult {
 fn build_hint(cards: &[SearchableCard]) -> Hint {
     let total = cards.len();
 
-    // Collect unique domains (sorted)
-    let mut domains: Vec<String> = cards.iter().map(|c| c.domain.clone()).collect();
-    domains.sort();
-    domains.dedup();
+    // Collect unique domains (BTreeSet gives sorted + deduplicated without cloning)
+    let domain_set: std::collections::BTreeSet<&str> =
+        cards.iter().map(|c| c.domain.as_str()).collect();
 
     // Count by status
     let mut status_counts: BTreeMap<Status, usize> = BTreeMap::new();
@@ -302,7 +301,7 @@ fn build_hint(cards: &[SearchableCard]) -> Hint {
         message: format!(
             "Too many results ({total}). Refine your query with --status, --domain, or a more specific search term."
         ),
-        available_domains: domains,
+        available_domains: domain_set.into_iter().map(String::from).collect(),
         status_counts,
     }
 }
