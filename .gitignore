@@ -1,6 +1,7 @@
 # Claude
 CLAUDE.local.md
-.claude/settings.local.json
+.claude/*.local.json
+.claude/*.local.sh
 
 # Rust
 /target
