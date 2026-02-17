@@ -2,9 +2,8 @@
 // @specre 01KHJ98TFCDTCARMMX1GC5ZHXE
 // @specre 01KHK7MFZJZ12XFPQE4RHCBHQN
 
-use crate::commands::index::{collect_md_files, parse_frontmatter, to_forward_slash};
+use crate::card::{self, to_forward_slash};
 use crate::config;
-use crate::status::Status;
 use crate::{template, ulid};
 use rmcp::{
     ErrorData as McpError, RoleServer, ServerHandler, ServiceExt,
@@ -97,37 +96,6 @@ impl SpecreMcpServer {
     }
 }
 
-struct ScannedCard {
-    id: String,
-    name: String,
-    status: Status,
-    path: PathBuf,
-}
-
-/// Scan specre_dir and collect metadata for each card.
-fn scan_cards(specre_dir: &Path) -> Vec<ScannedCard> {
-    let mut cards = Vec::new();
-    collect_md_files(specre_dir, &mut |path| {
-        let content = match fs::read_to_string(path) {
-            Ok(c) => c,
-            Err(e) => {
-                eprintln!("Warning: failed to read '{}': {e}", path.display());
-                return;
-            }
-        };
-        if let Some(fm) = parse_frontmatter(&content) {
-            cards.push(ScannedCard {
-                id: fm.id,
-                name: fm.name,
-                status: fm.status,
-                path: path.to_path_buf(),
-            });
-        }
-    });
-    cards.sort_by(|a, b| a.id.cmp(&b.id));
-    cards
-}
-
 #[tool_handler]
 impl ServerHandler for SpecreMcpServer {
     fn get_info(&self) -> ServerInfo {
@@ -157,15 +125,16 @@ impl ServerHandler for SpecreMcpServer {
         _request: Option<PaginatedRequestParams>,
         _ctx: RequestContext<RoleServer>,
     ) -> Result<ListResourcesResult, McpError> {
-        let cards = scan_cards(&self.specre_dir);
+        let specre_dir_str = to_forward_slash(&self.specre_dir);
+        let cards = card::scan_specre_cards(&self.specre_dir, &specre_dir_str);
         let resources = cards
             .into_iter()
-            .map(|card| {
+            .map(|c| {
                 RawResource {
-                    uri: format!("{URI_PREFIX}{}", card.id),
-                    name: card.name.clone(),
+                    uri: format!("{URI_PREFIX}{}", c.id),
+                    name: c.name.clone(),
                     title: None,
-                    description: Some(format!("[{}] {}", card.status, card.name)),
+                    description: Some(format!("[{}] {}", c.status, c.name)),
                     mime_type: Some("text/markdown".to_string()),
                     size: None,
                     icons: None,
@@ -194,10 +163,11 @@ impl ServerHandler for SpecreMcpServer {
             })?;
 
         // Find the card whose frontmatter id matches the requested ULID
-        let cards = scan_cards(&self.specre_dir);
-        let card = cards
+        let specre_dir_str = to_forward_slash(&self.specre_dir);
+        let cards = card::scan_specre_cards(&self.specre_dir, &specre_dir_str);
+        let found = cards
             .into_iter()
-            .find(|card| card.id == ulid)
+            .find(|c| c.id == ulid)
             .ok_or_else(|| {
                 McpError::resource_not_found(
                     "specre card not found",
@@ -205,7 +175,7 @@ impl ServerHandler for SpecreMcpServer {
                 )
             })?;
 
-        let content = fs::read_to_string(&card.path).map_err(|e| {
+        let content = fs::read_to_string(&found.path).map_err(|e| {
             McpError::internal_error(
                 "failed to read specre card",
                 Some(serde_json::json!({ "error": e.to_string() })),

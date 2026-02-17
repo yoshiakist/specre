@@ -1,10 +1,10 @@
 // @specre 01KHB48EYB9686YYQMYFYQ5R1Z
 // @specre 01KHG0A2V4YXE918WMJCY7WFE8
+use crate::card::to_forward_slash;
 use crate::cli::TagArgs;
 use crate::error::SpecreError;
 use crate::ulid;
 use serde::Serialize;
-use std::borrow::Cow;
 use std::fs;
 use std::path::Path;
 
@@ -54,14 +54,6 @@ fn comment_syntax(ext: &str) -> Option<(&'static str, &'static str)> {
     }
 }
 
-fn to_forward_slash(s: &str) -> Cow<'_, str> {
-    if s.contains('\\') {
-        Cow::Owned(s.replace('\\', "/"))
-    } else {
-        Cow::Borrowed(s)
-    }
-}
-
 pub fn execute(args: TagArgs, json: bool) -> Result<(), SpecreError> {
     if !ulid::is_valid(&args.ulid) {
         return Err(SpecreError::InvalidArgument(
@@ -74,14 +66,14 @@ pub fn execute(args: TagArgs, json: bool) -> Result<(), SpecreError> {
     if !file_path.exists() {
         return Err(SpecreError::InvalidArgument(format!(
             "file not found: {}",
-            to_forward_slash(&args.file)
+            to_forward_slash(file_path)
         )));
     }
 
     if file_path.is_dir() {
         return Err(SpecreError::InvalidArgument(format!(
             "'{}' is a directory, not a file",
-            to_forward_slash(&args.file)
+            to_forward_slash(file_path)
         )));
     }
 
@@ -102,13 +94,13 @@ pub fn execute(args: TagArgs, json: bool) -> Result<(), SpecreError> {
                 .unwrap_or(1);
             let output = TagOutput {
                 id: args.ulid,
-                file: to_forward_slash(&args.file).into_owned(),
+                file: to_forward_slash(file_path).into_owned(),
                 line,
             };
             let json_str = serde_json::to_string_pretty(&output)?;
             println!("{json_str}");
         } else {
-            println!("Marker already exists in {}", to_forward_slash(&args.file));
+            println!("Marker already exists in {}", to_forward_slash(file_path));
         }
         return Ok(());
     }
@@ -133,13 +125,13 @@ pub fn execute(args: TagArgs, json: bool) -> Result<(), SpecreError> {
     if json {
         let output = TagOutput {
             id: args.ulid,
-            file: to_forward_slash(&args.file).into_owned(),
+            file: to_forward_slash(file_path).into_owned(),
             line: 1,
         };
         let json_str = serde_json::to_string_pretty(&output)?;
         println!("{json_str}");
     } else {
-        println!("Tagged {} with {}", to_forward_slash(&args.file), args.ulid);
+        println!("Tagged {} with {}", to_forward_slash(file_path), args.ulid);
     }
 
     Ok(())

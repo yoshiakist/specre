@@ -4,12 +4,12 @@
 // @specre 01KHAKAYN5WPTDVR99D5Q5TMJE
 // @specre 01KHFD5R1G3C5R34XMQXQTTMM9
 // @specre 01KHG0A2V4YXE918WMJCY7WFE8
+use crate::card::{self, to_forward_slash, SpecreCard};
 use crate::config;
 use crate::error::SpecreError;
 use crate::status::Status;
 use chrono::Utc;
 use serde::Serialize;
-use std::borrow::Cow;
 use std::collections::{BTreeMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -26,18 +26,8 @@ struct IndexOutput {
 struct Index {
     version: u32,
     generated_at: String,
-    specres: Vec<SpecreEntry>,
+    specres: Vec<SpecreCard>,
     source_refs: Vec<SourceRef>,
-}
-
-#[derive(Serialize)]
-struct SpecreEntry {
-    id: String,
-    name: String,
-    status: Status,
-    domain: String,
-    path: String,
-    last_verified: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -51,7 +41,7 @@ pub fn execute(json_flag: bool) -> Result<(), SpecreError> {
     let config = config::load()?;
 
     let specre_dir = Path::new(&config.specre_dir);
-    let specres = scan_specre_files(specre_dir, &config.specre_dir);
+    let specres = card::scan_specre_cards(specre_dir, &config.specre_dir);
     let source_refs = scan_source_refs(&config.source_dirs, config.target_extensions.as_deref());
 
     let index = Index {
@@ -92,44 +82,6 @@ pub fn execute(json_flag: bool) -> Result<(), SpecreError> {
     }
 
     Ok(())
-}
-
-fn scan_specre_files(dir: &Path, specre_dir_str: &str) -> Vec<SpecreEntry> {
-    let mut entries = Vec::new();
-    if !dir.exists() {
-        return entries;
-    }
-    collect_md_files(dir, &mut |path| {
-        let content = match fs::read_to_string(path) {
-            Ok(c) => c,
-            Err(e) => {
-                eprintln!("Warning: failed to read '{}': {e}", path.display());
-                return;
-            }
-        };
-        match parse_frontmatter(&content) {
-            Some(fm) => {
-                let rel_path = to_forward_slash(path);
-                let domain = extract_domain(&rel_path, specre_dir_str).to_owned();
-                entries.push(SpecreEntry {
-                    id: fm.id,
-                    name: fm.name,
-                    status: fm.status,
-                    domain,
-                    path: rel_path.into_owned(),
-                    last_verified: fm.last_verified,
-                });
-            }
-            None => {
-                eprintln!(
-                    "Warning: skipping '{}' (malformed front-matter)",
-                    path.display()
-                );
-            }
-        }
-    });
-    entries.sort_by(|a, b| a.id.cmp(&b.id));
-    entries
 }
 
 pub fn collect_md_files<F: FnMut(&Path)>(dir: &Path, cb: &mut F) {
@@ -206,16 +158,6 @@ pub fn parse_frontmatter(content: &str) -> Option<Frontmatter> {
         status: raw.status,
         last_verified: raw.last_verified,
     })
-}
-
-fn extract_domain<'a>(rel_path: &'a str, specre_dir: &str) -> &'a str {
-    let prefix = if specre_dir.ends_with('/') {
-        specre_dir.to_string()
-    } else {
-        format!("{specre_dir}/")
-    };
-    let after = rel_path.strip_prefix(&prefix).unwrap_or(rel_path);
-    after.split('/').next().unwrap_or("unknown")
 }
 
 /// Extracts a ULID from a `@specre` marker on a line.
@@ -407,22 +349,13 @@ pub fn collect_all_files<F: FnMut(&Path)>(
     }
 }
 
-pub fn to_forward_slash(path: &Path) -> Cow<'_, str> {
-    let s = path.to_string_lossy();
-    if s.contains('\\') {
-        Cow::Owned(s.replace('\\', "/"))
-    } else {
-        s
-    }
-}
-
 fn generate_index_md(
     specre_dir: &Path,
     specre_dir_str: &str,
-    specres: &[SpecreEntry],
+    specres: &[SpecreCard],
 ) -> Result<Vec<String>, SpecreError> {
     // Group specres by domain
-    let mut by_domain: BTreeMap<String, Vec<&SpecreEntry>> = BTreeMap::new();
+    let mut by_domain: BTreeMap<String, Vec<&SpecreCard>> = BTreeMap::new();
     for entry in specres {
         by_domain
             .entry(entry.domain.clone())
