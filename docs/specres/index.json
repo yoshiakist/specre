@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-02-17T03:24:38Z",
+  "generated_at": "2026-02-17T03:37:42Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -80,7 +80,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_coverage_reports_source_file_tagging.md",
-      "last_verified": "2026-02-16"
+      "last_verified": "2026-02-17"
     },
     {
       "id": "01KHFFCX8BCDAYP8YHG0J65H0E",
@@ -96,7 +96,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_health_check_verifies_ecosystem_trustworthiness.md",
-      "last_verified": "2026-02-16"
+      "last_verified": "2026-02-17"
     },
     {
       "id": "01KHFTCYJN8YJMW2RNHJTAQV49",

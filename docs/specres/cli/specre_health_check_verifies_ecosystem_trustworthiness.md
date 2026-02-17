@@ -2,14 +2,15 @@
 id: "01KHFGVXWP100JXYBZTRJGMB9H"
 name: "specre_health_check_verifies_ecosystem_trustworthiness"
 status: "stable"
-last_verified: "2026-02-16"
+last_verified: "2026-02-17"
 ---
 
 ## Related Files
 
 - `src/commands/health_check.rs`
-- `src/commands/coverage.rs` (reuses `compute_coverage()`)
-- `src/commands/orphans.rs` (reuses `compute_orphans()`)
+- `src/commands/index.rs` (reuses `scan_source_markers()`)
+- `src/commands/coverage.rs` (reuses `coverage_from_scan()`)
+- `src/commands/orphans.rs` (reuses `orphans_from_scan()`)
 - `src/cli.rs`
 - `src/commands/mod.rs`
 - `src/main.rs`

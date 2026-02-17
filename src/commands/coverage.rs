@@ -1,12 +1,10 @@
 // @specre 01KHFEA9QVV4A127VCRJY97A68
 // @specre 01KHG0A2V4YXE918WMJCY7WFE8
 use crate::cli::CoverageArgs;
-use crate::commands::index::{collect_all_files, extract_marker_ulid, to_forward_slash};
+use crate::commands::index::{scan_source_markers, SourceScanResult};
 use crate::config;
 use crate::error::SpecreError;
 use serde::Serialize;
-use std::fs;
-use std::path::Path;
 
 #[derive(Serialize)]
 struct CoverageOutput {
@@ -22,47 +20,21 @@ pub struct CoverageResult {
     pub uncovered: Vec<String>,
 }
 
+/// Derives a `CoverageResult` from a pre-computed `SourceScanResult`.
+pub fn coverage_from_scan(scan: &SourceScanResult) -> CoverageResult {
+    CoverageResult {
+        total: scan.total,
+        tagged: scan.tagged,
+        uncovered: scan.uncovered.clone(),
+    }
+}
+
 pub fn compute_coverage(
     source_dirs: &[String],
     target_extensions: Option<&[String]>,
 ) -> CoverageResult {
-    let mut total = 0usize;
-    let mut tagged = 0usize;
-    let mut uncovered = Vec::new();
-
-    for dir_str in source_dirs {
-        let dir = Path::new(dir_str);
-        if !dir.exists() {
-            continue;
-        }
-        collect_all_files(dir, target_extensions, &mut |path| {
-            total += 1;
-            let content = match fs::read_to_string(path) {
-                Ok(c) => c,
-                Err(e) => {
-                    eprintln!("Warning: failed to read '{}': {e}", path.display());
-                    uncovered.push(to_forward_slash(path));
-                    return;
-                }
-            };
-            let has_marker = content
-                .lines()
-                .any(|line| extract_marker_ulid(line).is_some());
-            if has_marker {
-                tagged += 1;
-            } else {
-                uncovered.push(to_forward_slash(path));
-            }
-        });
-    }
-
-    uncovered.sort();
-
-    CoverageResult {
-        total,
-        tagged,
-        uncovered,
-    }
+    let scan = scan_source_markers(source_dirs, target_extensions);
+    coverage_from_scan(&scan)
 }
 
 pub fn execute(args: CoverageArgs, json: bool) -> Result<(), SpecreError> {
