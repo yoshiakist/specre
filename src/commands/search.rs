@@ -6,6 +6,7 @@ use crate::scanner::collect_md_files;
 use crate::config;
 use crate::error::SpecreError;
 use crate::status::Status;
+use chrono::NaiveDate;
 use serde::Serialize;
 use std::collections::BTreeMap;
 use std::fs;
@@ -60,12 +61,16 @@ pub fn execute(args: SearchArgs) -> Result<(), SpecreError> {
         ),
         None => None,
     };
-    if let Some(ref d) = args.verified_before {
-        validate_date(d)?;
-    }
-    if let Some(ref d) = args.verified_after {
-        validate_date(d)?;
-    }
+    let verified_before: Option<NaiveDate> = args
+        .verified_before
+        .as_deref()
+        .map(parse_date)
+        .transpose()?;
+    let verified_after: Option<NaiveDate> = args
+        .verified_after
+        .as_deref()
+        .map(parse_date)
+        .transpose()?;
     if let Some(limit) = args.limit
         && limit == 0
     {
@@ -108,21 +113,25 @@ pub fn execute(args: SearchArgs) -> Result<(), SpecreError> {
                 return false;
             }
             // verified-before filter
-            if let Some(ref before) = args.verified_before
+            if let Some(before) = verified_before
                 && let Some(lv) = &card.last_verified
-                && lv >= before
+                && let Ok(lv_date) = NaiveDate::parse_from_str(lv, "%Y-%m-%d")
+                && lv_date >= before
             {
                 return false;
             }
             // verified-after filter
-            if let Some(ref after) = args.verified_after {
+            if let Some(after) = verified_after {
                 match &card.last_verified {
-                    Some(lv) => {
-                        if lv < after {
-                            return false;
+                    Some(lv) => match NaiveDate::parse_from_str(lv, "%Y-%m-%d") {
+                        Ok(lv_date) => {
+                            if lv_date < after {
+                                return false;
+                            }
                         }
-                    }
-                    None => return false, // No last_verified → exclude
+                        Err(_) => return false,
+                    },
+                    None => return false,
                 }
             }
             true
@@ -162,11 +171,10 @@ pub fn execute(args: SearchArgs) -> Result<(), SpecreError> {
     Ok(())
 }
 
-fn validate_date(date: &str) -> Result<(), SpecreError> {
-    chrono::NaiveDate::parse_from_str(date, "%Y-%m-%d").map_err(|_| {
+fn parse_date(date: &str) -> Result<NaiveDate, SpecreError> {
+    NaiveDate::parse_from_str(date, "%Y-%m-%d").map_err(|_| {
         SpecreError::InvalidArgument(format!("invalid date format: {date}. Expected YYYY-MM-DD."))
-    })?;
-    Ok(())
+    })
 }
 
 fn scan_cards(dir: &Path, specre_dir_str: &str) -> Vec<SearchableCard> {
