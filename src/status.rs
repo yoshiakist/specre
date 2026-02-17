@@ -1,3 +1,7 @@
+// @specre 01KHAKAYN5WPTDVR99D5Q5TMJE
+// @specre 01KHB48EES4FR5TFV6ZP2W3MGT
+// @specre 01KHFTCYJN8YJMW2RNHJTAQV49
+// @specre 01KHAN6JE712ZAKXPP97854PKJ
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::str::FromStr;
