@@ -11,6 +11,7 @@ use serde::Serialize;
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
+use std::rc::Rc;
 
 #[derive(Serialize)]
 struct TraceByUlidOutput {
@@ -71,7 +72,7 @@ fn trace_by_ulid(ulid: &str, json: bool) -> Result<(), SpecreError> {
     }
 
     // Find source references
-    let mut source_refs: Vec<(String, usize)> = Vec::new();
+    let mut source_refs: Vec<(Rc<str>, usize)> = Vec::new();
     for dir_str in &config.source_dirs {
         let dir = Path::new(dir_str);
         if !dir.exists() {
@@ -85,26 +86,28 @@ fn trace_by_ulid(ulid: &str, json: bool) -> Result<(), SpecreError> {
                     return;
                 }
             };
-            let rel_path = to_forward_slash(path).into_owned();
+            let rel_path: Rc<str> = Rc::from(to_forward_slash(path).as_ref());
             for (line_num, line) in content.lines().enumerate() {
                 if let Some(found_ulid) = extract_marker_ulid(line)
                     && found_ulid == ulid
                 {
-                    source_refs.push((rel_path.clone(), line_num + 1));
+                    source_refs.push((Rc::clone(&rel_path), line_num + 1));
                 }
             }
         });
     }
     source_refs.sort_by(|a, b| a.0.cmp(&b.0).then(a.1.cmp(&b.1)));
 
+    let nothing_found = specre_path.is_none() && source_refs.is_empty();
+
     if json {
         let output = TraceByUlidOutput {
-            specre: specre_path.clone(),
+            specre: specre_path,
             source_refs: source_refs
-                .iter()
+                .into_iter()
                 .map(|(file, line)| SourceRefOutput {
-                    file: file.clone(),
-                    line: *line,
+                    file: file.to_string(),
+                    line,
                 })
                 .collect(),
         };
@@ -130,7 +133,7 @@ fn trace_by_ulid(ulid: &str, json: bool) -> Result<(), SpecreError> {
     }
 
     // Exit with error if nothing found at all
-    if specre_path.is_none() && source_refs.is_empty() {
+    if nothing_found {
         return Err(SpecreError::NonZeroExit);
     }
 
