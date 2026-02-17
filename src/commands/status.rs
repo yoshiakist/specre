@@ -2,7 +2,8 @@
 // @specre 01KHG0A2V4YXE918WMJCY7WFE8
 use crate::cli::StatusArgs;
 use crate::card::to_forward_slash;
-use crate::commands::index::{collect_md_files, parse_frontmatter};
+use crate::parser::parse_frontmatter;
+use crate::scanner::collect_md_files;
 use crate::config;
 use crate::error::SpecreError;
 use crate::status::Status;

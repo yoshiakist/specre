@@ -2,13 +2,13 @@
 id: "01KHB48EYB9686YYQMYFYQ5R1Z"
 name: "specre_tag_inserts_marker_into_source_file"
 status: "stable"
-last_verified: "2026-02-16"
+last_verified: "2026-02-17"
 ---
 
 ## Related Files
 
 - `src/commands/tag.rs`
-- `src/commands/index.rs` (reuses scanning helpers)
+- `src/scanner.rs` (reuses scanning helpers)
 - `src/config.rs`
 - `tests/cli_tag.rs` (Test)
 

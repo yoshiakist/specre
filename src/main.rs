@@ -4,6 +4,8 @@ mod cli;
 mod commands;
 mod config;
 pub mod error;
+pub mod parser;
+pub mod scanner;
 mod status;
 mod template;
 mod ulid;

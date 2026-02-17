@@ -8,6 +8,8 @@ last_verified: "2026-02-17"
 ## Related Files
 
 - `src/commands/index.rs`
+- `src/parser.rs`
+- `src/scanner.rs`
 - `src/config.rs`
 - `tests/cli_index.rs` (Test)
 

@@ -2,14 +2,14 @@
 id: "01KHFD5R1G3C5R34XMQXQTTMM9"
 name: "user_can_set_target_extensions"
 status: "stable"
-last_verified: "2026-02-15"
+last_verified: "2026-02-17"
 ---
 
 ## Related Files
 
 - `src/config.rs`
 - `src/commands/init.rs`
-- `src/commands/index.rs`
+- `src/scanner.rs`
 - `src/cli.rs`
 - `tests/cli_init.rs` (Test)
 - `tests/cli_index.rs` (Test)

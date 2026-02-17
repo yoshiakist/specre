@@ -2,7 +2,8 @@
 // @specre 01KHB48EES4FR5TFV6ZP2W3MGT
 // @specre 01KHFTCYJN8YJMW2RNHJTAQV49
 // @specre 01KHJ98T83DPJGMEFH9HAXXAZ1
-use crate::commands::index::{collect_md_files, parse_frontmatter};
+use crate::parser::parse_frontmatter;
+use crate::scanner::collect_md_files;
 use crate::status::Status;
 use serde::Serialize;
 use std::borrow::Cow;

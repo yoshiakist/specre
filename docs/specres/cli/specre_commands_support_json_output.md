@@ -2,7 +2,7 @@
 id: "01KHG0A2V4YXE918WMJCY7WFE8"
 name: "specre_commands_support_json_output"
 status: "stable"
-last_verified: "2026-02-15"
+last_verified: "2026-02-17"
 ---
 
 ## Related Files

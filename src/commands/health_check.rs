@@ -1,6 +1,6 @@
 // @specre 01KHFGVXWP100JXYBZTRJGMB9H
 use crate::commands::coverage::coverage_from_scan;
-use crate::commands::index::scan_source_markers;
+use crate::scanner::scan_source_markers;
 use crate::commands::orphans::orphans_from_scan;
 use crate::config;
 use crate::error::SpecreError;
