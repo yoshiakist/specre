@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-02-17T20:57:36Z",
+  "generated_at": "2026-02-17T21:45:50Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -24,7 +24,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_index_generates_project_index.md",
-      "last_verified": "2026-02-17"
+      "last_verified": "2026-02-18"
     },
     {
       "id": "01KHAN6JE712ZAKXPP97854PKJ",
