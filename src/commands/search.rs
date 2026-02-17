@@ -165,28 +165,9 @@ pub fn execute(args: SearchArgs) -> Result<(), SpecreError> {
 }
 
 fn validate_date(date: &str) -> Result<(), SpecreError> {
-    if date.len() != 10 {
-        return Err(SpecreError::InvalidArgument(format!(
-            "invalid date format: {date}. Expected YYYY-MM-DD."
-        )));
-    }
-    let parts: Vec<&str> = date.split('-').collect();
-    if parts.len() != 3 {
-        return Err(SpecreError::InvalidArgument(format!(
-            "invalid date format: {date}. Expected YYYY-MM-DD."
-        )));
-    }
-    if parts[0].len() != 4
-        || parts[1].len() != 2
-        || parts[2].len() != 2
-        || parts[0].parse::<u32>().is_err()
-        || parts[1].parse::<u32>().is_err()
-        || parts[2].parse::<u32>().is_err()
-    {
-        return Err(SpecreError::InvalidArgument(format!(
-            "invalid date format: {date}. Expected YYYY-MM-DD."
-        )));
-    }
+    chrono::NaiveDate::parse_from_str(date, "%Y-%m-%d").map_err(|_| {
+        SpecreError::InvalidArgument(format!("invalid date format: {date}. Expected YYYY-MM-DD."))
+    })?;
     Ok(())
 }
 

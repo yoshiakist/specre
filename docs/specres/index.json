@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-02-17T04:13:23Z",
+  "generated_at": "2026-02-17T04:47:53Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -104,7 +104,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_search_finds_specre_cards_by_query.md",
-      "last_verified": "2026-02-16"
+      "last_verified": "2026-02-17"
     },
     {
       "id": "01KHG0A2V4YXE918WMJCY7WFE8",
