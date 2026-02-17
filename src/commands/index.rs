@@ -190,34 +190,21 @@ pub fn parse_frontmatter(content: &str) -> Option<Frontmatter> {
     let end = after_first.find("\n---")?;
     let block = &after_first[..end];
 
-    let mut id = None;
-    let mut name = None;
-    let mut status: Option<Status> = None;
-    let mut last_verified = None;
-
-    for line in block.lines() {
-        let line = line.trim();
-        if line.is_empty() {
-            continue;
-        }
-        if let Some((key, val)) = line.split_once(':') {
-            let key = key.trim();
-            let val = val.trim().trim_matches('"');
-            match key {
-                "id" => id = Some(val.to_string()),
-                "name" => name = Some(val.to_string()),
-                "status" => status = val.parse::<Status>().ok(),
-                "last_verified" => last_verified = Some(val.to_string()),
-                _ => {}
-            }
-        }
+    #[derive(serde::Deserialize)]
+    struct RawFrontmatter {
+        id: String,
+        name: String,
+        status: Status,
+        last_verified: Option<String>,
     }
 
+    let raw: RawFrontmatter = serde_yaml::from_str(block).ok()?;
+
     Some(Frontmatter {
-        id: id?,
-        name: name?,
-        status: status?,
-        last_verified,
+        id: raw.id,
+        name: raw.name,
+        status: raw.status,
+        last_verified: raw.last_verified,
     })
 }
 
