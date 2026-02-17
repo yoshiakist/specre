@@ -27,7 +27,7 @@ pub enum Commands {
     /// Generate index.json and per-domain _INDEX.md
     Index,
 
-    /// Report specre counts by status and flag stale last_verified dates
+    /// Report specre counts by status and flag stale `last_verified` dates
     Status(StatusArgs),
 
     /// Bidirectional traceability lookup by ULID or file path
@@ -61,15 +61,15 @@ pub struct SearchArgs {
     #[arg(long)]
     pub status: Option<String>,
 
-    /// Filter by domain (top-level directory under specre_dir)
+    /// Filter by domain (top-level directory under `specre_dir`)
     #[arg(long)]
     pub domain: Option<String>,
 
-    /// Include only specres whose last_verified is before this date (YYYY-MM-DD)
+    /// Include only specres whose `last_verified` is before this date (YYYY-MM-DD)
     #[arg(long)]
     pub verified_before: Option<String>,
 
-    /// Include only specres whose last_verified is on or after this date (YYYY-MM-DD)
+    /// Include only specres whose `last_verified` is on or after this date (YYYY-MM-DD)
     #[arg(long)]
     pub verified_after: Option<String>,
 
@@ -99,7 +99,7 @@ pub struct InitArgs {
 
 #[derive(Args)]
 pub struct StatusArgs {
-    /// Number of days after which a stable specre's last_verified is considered stale
+    /// Number of days after which a stable specre's `last_verified` is considered stale
     #[arg(long, default_value_t = 30)]
     pub threshold: u32,
 }

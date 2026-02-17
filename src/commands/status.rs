@@ -34,7 +34,10 @@ struct StaleEntry {
     reason: String,
 }
 
-pub fn execute(args: StatusArgs, json: bool) -> Result<(), SpecreError> {
+/// # Errors
+///
+/// Returns [`SpecreError`] on config or serialization failure.
+pub fn execute(args: &StatusArgs, json: bool) -> Result<(), SpecreError> {
     let config = config::load()?;
     let specre_dir = Path::new(&config.specre_dir);
 
@@ -62,27 +65,28 @@ pub fn execute(args: StatusArgs, json: bool) -> Result<(), SpecreError> {
                     Status::InDevelopment => in_development += 1,
                     Status::Stable => {
                         stable += 1;
-                        let reason = match &fm.last_verified {
-                            None => Some("no last_verified".to_string()),
-                            Some(date_str) => match NaiveDate::parse_from_str(date_str, "%Y-%m-%d")
-                            {
-                                Ok(date) => {
-                                    let days = (today - date).num_days();
-                                    if days > threshold as i64 {
-                                        Some(format!("{days} days"))
-                                    } else {
-                                        None
-                                    }
-                                }
-                                Err(_) => {
-                                    let rel_path = to_forward_slash(path);
-                                    eprintln!(
-                                        "Warning: invalid last_verified in {rel_path}: \"{date_str}\""
-                                    );
-                                    Some("invalid last_verified".to_string())
-                                }
+                        let reason = fm.last_verified.as_ref().map_or_else(
+                            || Some("no last_verified".to_string()),
+                            |date_str| {
+                                NaiveDate::parse_from_str(date_str, "%Y-%m-%d").map_or_else(
+                                    |_| {
+                                        let rel_path = to_forward_slash(path);
+                                        eprintln!(
+                                            "Warning: invalid last_verified in {rel_path}: \"{date_str}\""
+                                        );
+                                        Some("invalid last_verified".to_string())
+                                    },
+                                    |date| {
+                                        let days = (today - date).num_days();
+                                        if days > i64::from(threshold) {
+                                            Some(format!("{days} days"))
+                                        } else {
+                                            None
+                                        }
+                                    },
+                                )
                             },
-                        };
+                        );
                         if let Some(reason) = reason {
                             stale_entries.push(StaleEntry {
                                 name: fm.name,

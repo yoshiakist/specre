@@ -25,6 +25,15 @@ assert_cmd = "2"
 assert_fs = "1"
 predicates = "3"
 
+[lints.clippy]
+pedantic = { level = "deny", priority = -1 }
+nursery = { level = "deny", priority = -1 }
+all = { level = "deny", priority = -1 }
+# allow specre::config::Config etc.
+module_name_repetitions = "allow"
+# percentage computation from file counts inherently requires usize/i64 → f64 casts
+cast_precision_loss = "allow"
+
 # The profile that 'dist' will build with
 [profile.dist]
 inherits = "release"

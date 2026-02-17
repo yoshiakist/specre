@@ -25,6 +25,9 @@ struct InitOutput {
 
 const CONFIG_FILE: &str = "specre.toml";
 
+/// # Errors
+///
+/// Returns [`SpecreError`] if already initialized, or on I/O / serialization failure.
 pub fn execute(args: InitArgs, json: bool) -> Result<(), SpecreError> {
     let config_path = Path::new(CONFIG_FILE);
 

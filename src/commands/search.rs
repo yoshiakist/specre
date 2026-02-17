@@ -52,7 +52,10 @@ struct SearchableCard {
     excerpt: Option<String>,
 }
 
-pub fn execute(args: SearchArgs) -> Result<(), SpecreError> {
+/// # Errors
+///
+/// Returns [`SpecreError`] on invalid arguments, config, or serialization failure.
+pub fn execute(args: &SearchArgs) -> Result<(), SpecreError> {
     // Validate inputs
     let status_filter: Option<Status> = match &args.status {
         Some(s) => Some(
@@ -270,14 +273,11 @@ fn skip_frontmatter(content: &str) -> &str {
         return content;
     }
     let after_first = &content[3..];
-    match after_first.find("\n---") {
-        Some(end) => {
-            let rest = &after_first[end + 4..];
-            // Skip the newline after closing ---
-            rest.strip_prefix('\n').unwrap_or(rest)
-        }
-        None => content,
-    }
+    after_first.find("\n---").map_or(content, |end| {
+        let rest = &after_first[end + 4..];
+        // Skip the newline after closing ---
+        rest.strip_prefix('\n').unwrap_or(rest)
+    })
 }
 
 fn card_to_result(card: SearchableCard) -> SearchResult {

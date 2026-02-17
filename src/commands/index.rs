@@ -8,6 +8,7 @@ use crate::scanner::collect_all_files;
 use chrono::Utc;
 use serde::Serialize;
 use std::collections::BTreeMap;
+use std::fmt::Write as _;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
@@ -35,6 +36,9 @@ struct SourceRef {
     line: usize,
 }
 
+/// # Errors
+///
+/// Returns [`SpecreError`] on config, I/O, or serialization failure.
 pub fn execute(json_flag: bool) -> Result<(), SpecreError> {
     let config = config::load()?;
 
@@ -154,10 +158,11 @@ fn generate_index_md(
                 .unwrap_or(&entry.path);
             let display_name = &entry.name;
             let last_verified = entry.last_verified.as_deref().unwrap_or("-");
-            md.push_str(&format!(
-                "| [{display_name}]({rel_to_domain}) | {} | {last_verified} |\n",
+            let _ = writeln!(
+                md,
+                "| [{display_name}]({rel_to_domain}) | {} | {last_verified} |",
                 entry.status
-            ));
+            );
         }
 
         fs::write(&index_path, &md).map_err(|e| SpecreError::Io {

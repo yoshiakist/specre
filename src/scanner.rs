@@ -27,14 +27,13 @@ pub fn collect_md_files<F: FnMut(&Path)>(dir: &Path, cb: &mut F) {
             }
         })
         .collect();
-    sub_entries.sort_by_key(|e| e.file_name());
+    sub_entries.sort_by_key(std::fs::DirEntry::file_name);
     for entry in sub_entries {
         let path = entry.path();
         if path.is_dir() {
             if path
                 .file_name()
-                .map(|n| n.to_string_lossy().starts_with('.'))
-                .unwrap_or(false)
+                .is_some_and(|n| n.to_string_lossy().starts_with('.'))
             {
                 continue;
             }
@@ -73,27 +72,26 @@ pub fn collect_all_files<F: FnMut(&Path)>(
             }
         })
         .collect();
-    sub_entries.sort_by_key(|e| e.file_name());
+    sub_entries.sort_by_key(std::fs::DirEntry::file_name);
     for entry in sub_entries {
         let path = entry.path();
         if path.is_dir() {
             if path
                 .file_name()
-                .map(|n| n.to_string_lossy().starts_with('.'))
-                .unwrap_or(false)
+                .is_some_and(|n| n.to_string_lossy().starts_with('.'))
             {
                 continue;
             }
             collect_all_files(&path, target_extensions, cb);
-        } else {
-            if let Some(exts) = target_extensions {
-                let matches = path
-                    .extension()
-                    .is_some_and(|ext| exts.iter().any(|e| e == ext.to_string_lossy().as_ref()));
-                if !matches {
-                    continue;
-                }
+        } else if let Some(exts) = target_extensions {
+            let matches = path
+                .extension()
+                .is_some_and(|ext| exts.iter().any(|e| e == ext.to_string_lossy().as_ref()));
+            if !matches {
+                continue;
             }
+            cb(&path);
+        } else {
             cb(&path);
         }
     }
@@ -122,6 +120,7 @@ pub struct MarkerLocation {
 }
 
 /// Scans all files in `source_dirs` once, collecting both coverage and marker data.
+#[must_use]
 pub fn scan_source_markers(
     source_dirs: &[String],
     target_extensions: Option<&[String]>,

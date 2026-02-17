@@ -37,7 +37,11 @@ struct SpecreRefOutput {
     path: Option<String>,
 }
 
-pub fn execute(args: TraceArgs, json: bool) -> Result<(), SpecreError> {
+/// # Errors
+///
+/// Returns [`SpecreError`] on config, I/O, or serialization failure, or
+/// [`SpecreError::NonZeroExit`] when no trace results are found.
+pub fn execute(args: &TraceArgs, json: bool) -> Result<(), SpecreError> {
     if ulid::is_valid(&args.query) {
         trace_by_ulid(&args.query, json)
     } else {

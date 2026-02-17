@@ -35,6 +35,12 @@ pub struct SearchConfig {
     pub max_results: Option<usize>,
 }
 
+/// Loads and parses `specre.toml` from the current directory.
+///
+/// # Errors
+///
+/// Returns [`SpecreError::ConfigNotFound`] if `specre.toml` is missing,
+/// or [`SpecreError::ConfigParse`] if deserialization fails.
 pub fn load() -> Result<Config, SpecreError> {
     let path = Path::new(CONFIG_FILE);
     if !path.exists() {
@@ -47,6 +53,7 @@ pub fn load() -> Result<Config, SpecreError> {
     toml::from_str(&content).map_err(SpecreError::ConfigParse)
 }
 
+#[must_use]
 pub fn load_language() -> String {
     load()
         .ok()
