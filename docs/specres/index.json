@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-02-17T05:55:50Z",
+  "generated_at": "2026-02-17T06:16:37Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -120,7 +120,7 @@
       "status": "stable",
       "domain": "mcp",
       "path": "docs/specres/mcp/mcp_server_starts_via_stdio.md",
-      "last_verified": "2026-02-16"
+      "last_verified": "2026-02-17"
     },
     {
       "id": "01KHJ98TFCDTCARMMX1GC5ZHXE",
@@ -144,7 +144,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_error_provides_contextual_diagnostics.md",
-      "last_verified": "2026-02-16"
+      "last_verified": "2026-02-17"
     }
   ],
   "source_refs": [

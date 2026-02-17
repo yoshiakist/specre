@@ -16,4 +16,4 @@
 | [specre_health_check_verifies_ecosystem_trustworthiness](specre_health_check_verifies_ecosystem_trustworthiness.md) | stable | 2026-02-17 |
 | [specre_search_finds_specre_cards_by_query](specre_search_finds_specre_cards_by_query.md) | stable | 2026-02-17 |
 | [specre_commands_support_json_output](specre_commands_support_json_output.md) | stable | 2026-02-15 |
-| [specre_error_provides_contextual_diagnostics](specre_error_provides_contextual_diagnostics.md) | stable | 2026-02-16 |
+| [specre_error_provides_contextual_diagnostics](specre_error_provides_contextual_diagnostics.md) | stable | 2026-02-17 |
