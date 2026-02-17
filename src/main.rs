@@ -3,6 +3,7 @@ mod cli;
 mod commands;
 mod config;
 pub mod error;
+mod status;
 mod template;
 mod ulid;
 

@@ -6,6 +6,7 @@
 // @specre 01KHG0A2V4YXE918WMJCY7WFE8
 use crate::config;
 use crate::error::SpecreError;
+use crate::status::Status;
 use chrono::Utc;
 use serde::Serialize;
 use std::collections::BTreeMap;
@@ -32,7 +33,7 @@ struct Index {
 struct SpecreEntry {
     id: String,
     name: String,
-    status: String,
+    status: Status,
     domain: String,
     path: String,
     last_verified: Option<String>,
@@ -175,7 +176,7 @@ pub fn collect_md_files(dir: &Path, cb: &mut dyn FnMut(&Path)) {
 pub struct Frontmatter {
     pub id: String,
     pub name: String,
-    pub status: String,
+    pub status: Status,
     pub last_verified: Option<String>,
 }
 
@@ -190,7 +191,7 @@ pub fn parse_frontmatter(content: &str) -> Option<Frontmatter> {
 
     let mut id = None;
     let mut name = None;
-    let mut status = None;
+    let mut status: Option<Status> = None;
     let mut last_verified = None;
 
     for line in block.lines() {
@@ -204,7 +205,7 @@ pub fn parse_frontmatter(content: &str) -> Option<Frontmatter> {
             match key {
                 "id" => id = Some(val.to_string()),
                 "name" => name = Some(val.to_string()),
-                "status" => status = Some(val.to_string()),
+                "status" => status = val.parse::<Status>().ok(),
                 "last_verified" => last_verified = Some(val.to_string()),
                 _ => {}
             }

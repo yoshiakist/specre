@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-02-17T02:54:20Z",
+  "generated_at": "2026-02-17T03:06:24Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -342,6 +342,26 @@
       "specre_id": "01KHFFCX8BCDAYP8YHG0J65H0E",
       "file": "src/main.rs",
       "line": 1
+    },
+    {
+      "specre_id": "01KHAKAYN5WPTDVR99D5Q5TMJE",
+      "file": "src/status.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHB48EES4FR5TFV6ZP2W3MGT",
+      "file": "src/status.rs",
+      "line": 2
+    },
+    {
+      "specre_id": "01KHFTCYJN8YJMW2RNHJTAQV49",
+      "file": "src/status.rs",
+      "line": 3
+    },
+    {
+      "specre_id": "01KHAN6JE712ZAKXPP97854PKJ",
+      "file": "src/status.rs",
+      "line": 4
     },
     {
       "specre_id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",

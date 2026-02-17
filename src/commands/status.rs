@@ -4,6 +4,7 @@ use crate::cli::StatusArgs;
 use crate::commands::index::{collect_md_files, parse_frontmatter, to_forward_slash};
 use crate::config;
 use crate::error::SpecreError;
+use crate::status::Status;
 use chrono::{NaiveDate, Utc};
 use serde::Serialize;
 use std::fs;
@@ -60,10 +61,10 @@ pub fn execute(args: StatusArgs, json: bool) -> Result<(), SpecreError> {
                 }
             };
             match parse_frontmatter(&content) {
-                Some(fm) => match fm.status.as_str() {
-                    "draft" => draft += 1,
-                    "in-development" => in_development += 1,
-                    "stable" => {
+                Some(fm) => match fm.status {
+                    Status::Draft => draft += 1,
+                    Status::InDevelopment => in_development += 1,
+                    Status::Stable => {
                         stable += 1;
                         let reason = match &fm.last_verified {
                             None => Some("no last_verified".to_string()),
@@ -94,8 +95,7 @@ pub fn execute(args: StatusArgs, json: bool) -> Result<(), SpecreError> {
                             });
                         }
                     }
-                    "deprecated" => deprecated += 1,
-                    _ => {}
+                    Status::Deprecated => deprecated += 1,
                 },
                 None => {
                     eprintln!(
