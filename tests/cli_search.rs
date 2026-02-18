@@ -1,5 +1,6 @@
 // @specre 01KHFTCYJN8YJMW2RNHJTAQV49
 // @specre 01KHQBKWZY2D77XP7A50HGTZQ8
+mod common;
 use assert_cmd::cargo::cargo_bin_cmd;
 use assert_fs::TempDir;
 use predicates::prelude::*;
@@ -1158,6 +1159,9 @@ fn search_single_keyword_same_with_or_without_or_flag() {
 #[test]
 fn search_warns_on_unreadable_specre_card() {
     use std::os::unix::fs::PermissionsExt;
+    if common::is_root() {
+        return; // root bypasses file-permission checks
+    }
 
     let tmp = TempDir::new().unwrap();
     write_config(&tmp, "docs/specres", &["src"]);

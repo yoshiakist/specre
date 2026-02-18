@@ -1,4 +1,5 @@
 // @specre 01KHB48EYB9686YYQMYFYQ5R1Z
+mod common;
 use assert_cmd::cargo::cargo_bin_cmd;
 use assert_fs::TempDir;
 use assert_fs::prelude::*;
@@ -665,6 +666,9 @@ fn tag_unsupported_extension_does_not_modify_file() {
 
 #[test]
 fn tag_shows_path_in_io_error() {
+    if common::is_root() {
+        return; // root bypasses file-permission checks
+    }
     let tmp = TempDir::new().unwrap();
     let file = tmp.child("src/readonly.rs");
     file.write_str("fn main() {}\n").unwrap();

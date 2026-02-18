@@ -1072,6 +1072,7 @@ dependencies = [
  "assert_fs",
  "chrono",
  "clap",
+ "libc",
  "predicates",
  "rmcp",
  "schemars",

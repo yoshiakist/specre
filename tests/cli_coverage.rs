@@ -1,4 +1,5 @@
 // @specre 01KHFEA9QVV4A127VCRJY97A68
+mod common;
 use assert_cmd::cargo::cargo_bin_cmd;
 use assert_fs::TempDir;
 use predicates::prelude::*;
@@ -330,6 +331,9 @@ fn coverage_full_no_uncovered_section() {
 #[test]
 fn coverage_warns_on_unreadable_source_file() {
     use std::os::unix::fs::PermissionsExt;
+    if common::is_root() {
+        return; // root bypasses file-permission checks
+    }
 
     let tmp = TempDir::new().unwrap();
     write_config_with_ext(tmp.path(), "docs/specres", &["src"], &["rs"]);

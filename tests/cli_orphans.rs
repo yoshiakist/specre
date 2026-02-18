@@ -1,4 +1,5 @@
 // @specre 01KHB48EES4FR5TFV6ZP2W3MGT
+mod common;
 use assert_cmd::cargo::cargo_bin_cmd;
 use assert_fs::TempDir;
 use predicates::prelude::*;
@@ -420,6 +421,9 @@ fn orphans_target_extensions_hides_dangling_in_non_target_files() {
 #[test]
 fn orphans_warns_on_unreadable_source_file() {
     use std::os::unix::fs::PermissionsExt;
+    if common::is_root() {
+        return; // root bypasses file-permission checks
+    }
 
     let tmp = TempDir::new().unwrap();
     write_config(tmp.path(), "docs/specres", &["src"]);
