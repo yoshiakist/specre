@@ -92,7 +92,10 @@ impl SpecreMcpServer {
         }
     }
 
-    #[tool(name = "new", description = "Create a new specre card from a template, auto-generating a ULID")]
+    #[tool(
+        name = "new",
+        description = "Create a new specre card from a template, auto-generating a ULID"
+    )]
     #[allow(clippy::unused_self)]
     fn new_card(
         &self,
@@ -101,7 +104,10 @@ impl SpecreMcpServer {
         helpers::execute_new(&req)
     }
 
-    #[tool(name = "tag", description = "Insert a @specre marker into a source file at line 1")]
+    #[tool(
+        name = "tag",
+        description = "Insert a @specre marker into a source file at line 1"
+    )]
     #[allow(clippy::unused_self)]
     fn tag_file(
         &self,

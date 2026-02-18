@@ -10,12 +10,12 @@ use crate::config;
 use rmcp::{
     ErrorData as McpError, RoleServer, ServerHandler, ServiceExt,
     model::{
-        AnnotateAble, Implementation, ListResourcesResult, PaginatedRequestParams,
-        ProtocolVersion, RawResource, ReadResourceRequestParams, ReadResourceResult,
-        ResourceContents, ServerCapabilities, ServerInfo,
+        AnnotateAble, Implementation, ListResourcesResult, PaginatedRequestParams, ProtocolVersion,
+        RawResource, ReadResourceRequestParams, ReadResourceResult, ResourceContents,
+        ServerCapabilities, ServerInfo,
     },
-    tool_handler,
     service::RequestContext,
+    tool_handler,
     transport::stdio,
 };
 use std::fs;
@@ -89,22 +89,17 @@ impl ServerHandler for SpecreMcpServer {
     ) -> Result<ReadResourceResult, McpError> {
         let ulid = uri
             .strip_prefix(URI_PREFIX)
-            .ok_or_else(|| {
-                McpError::invalid_params("URI must start with specre:///", None)
-            })?;
+            .ok_or_else(|| McpError::invalid_params("URI must start with specre:///", None))?;
 
         // Find the card whose frontmatter id matches the requested ULID
         let specre_dir_str = to_forward_slash(&self.specre_dir);
         let cards = card::scan_specre_cards(&self.specre_dir, &specre_dir_str);
-        let found = cards
-            .into_iter()
-            .find(|c| c.id == ulid)
-            .ok_or_else(|| {
-                McpError::resource_not_found(
-                    "specre card not found",
-                    Some(serde_json::json!({ "ulid": ulid })),
-                )
-            })?;
+        let found = cards.into_iter().find(|c| c.id == ulid).ok_or_else(|| {
+            McpError::resource_not_found(
+                "specre card not found",
+                Some(serde_json::json!({ "ulid": ulid })),
+            )
+        })?;
 
         let content = fs::read_to_string(&found.path).map_err(|e| {
             McpError::internal_error(
@@ -130,10 +125,7 @@ pub fn execute() -> Result<(), crate::error::SpecreError> {
 async fn run_server() -> Result<(), crate::error::SpecreError> {
     // stdout is reserved for JSON-RPC; all logs go to stderr
     tracing_subscriber::fmt()
-        .with_env_filter(
-            EnvFilter::from_default_env()
-                .add_directive(tracing::Level::INFO.into()),
-        )
+        .with_env_filter(EnvFilter::from_default_env().add_directive(tracing::Level::INFO.into()))
         .with_writer(std::io::stderr)
         .with_ansi(false)
         .init();

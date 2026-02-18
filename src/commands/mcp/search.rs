@@ -1,7 +1,7 @@
 // @specre 01KHQKZ6H8FB46ESFXB03N85AN
 
 use crate::commands::search::hint;
-use crate::commands::search::{scan_cards, SearchableCard};
+use crate::commands::search::{SearchableCard, scan_cards};
 use crate::status::Status;
 use chrono::NaiveDate;
 use rmcp::{ErrorData as McpError, model::CallToolResult, model::Content};
@@ -22,7 +22,9 @@ struct ValidatedFilters {
     verified_after: Option<NaiveDate>,
 }
 
-fn validate_filters(req: &SearchToolRequest) -> Result<Result<ValidatedFilters, CallToolResult>, McpError> {
+fn validate_filters(
+    req: &SearchToolRequest,
+) -> Result<Result<ValidatedFilters, CallToolResult>, McpError> {
     let status: Option<Status> = match &req.status {
         Some(s) => match s.parse::<Status>() {
             Ok(st) => Some(st),
@@ -111,9 +113,7 @@ pub fn execute_search(req: &SearchToolRequest) -> Result<CallToolResult, McpErro
             if total > max_results {
                 let h = hint::build_truncation_hint(&filtered, glossary.as_ref(), &keywords);
                 (true, Vec::new(), serde_json::to_value(&h).ok())
-            } else if total == 0
-                && hint::should_show_zero_hint(&keywords, glossary.as_ref())
-            {
+            } else if total == 0 && hint::should_show_zero_hint(&keywords, glossary.as_ref()) {
                 let h = hint::build_zero_result_hint(&all_cards, glossary.as_ref(), &keywords);
                 (false, Vec::new(), serde_json::to_value(&h).ok())
             } else {
@@ -122,7 +122,11 @@ pub fn execute_search(req: &SearchToolRequest) -> Result<CallToolResult, McpErro
             }
         },
         |limit| {
-            let r = filtered.iter().take(limit).map(|c| card_to_json(c)).collect();
+            let r = filtered
+                .iter()
+                .take(limit)
+                .map(|c| card_to_json(c))
+                .collect();
             (false, r, None)
         },
     );

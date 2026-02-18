@@ -43,40 +43,57 @@ pub fn recv(reader: &mut BufReader<impl std::io::Read>) -> Value {
 
 /// Perform the MCP initialize handshake, return the result.
 pub fn initialize(stdin: &mut impl Write, reader: &mut BufReader<impl std::io::Read>) -> Value {
-    send(stdin, &json!({
-        "jsonrpc": "2.0",
-        "id": 1,
-        "method": "initialize",
-        "params": {
-            "protocolVersion": "2024-11-05",
-            "capabilities": {},
-            "clientInfo": { "name": "test-client", "version": "1.0.0" }
-        }
-    }));
+    send(
+        stdin,
+        &json!({
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2024-11-05",
+                "capabilities": {},
+                "clientInfo": { "name": "test-client", "version": "1.0.0" }
+            }
+        }),
+    );
     let response = recv(reader);
-    send(stdin, &json!({
-        "jsonrpc": "2.0",
-        "method": "notifications/initialized"
-    }));
+    send(
+        stdin,
+        &json!({
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+        }),
+    );
     response
 }
 
 /// Create a temp dir with specre.toml and specre directory.
 pub fn setup_project(specre_dir: &str) -> assert_fs::TempDir {
     let dir = assert_fs::TempDir::new().unwrap();
-    dir.child("specre.toml").write_str(&format!(
-        "specre_dir = \"{specre_dir}\"\nsource_dirs = [\"src\"]\n"
-    )).unwrap();
+    dir.child("specre.toml")
+        .write_str(&format!(
+            "specre_dir = \"{specre_dir}\"\nsource_dirs = [\"src\"]\n"
+        ))
+        .unwrap();
     dir.child(specre_dir).create_dir_all().unwrap();
     dir
 }
 
 /// Create a specre card file in the given directory.
-pub fn create_specre_card(dir: &assert_fs::TempDir, specre_dir: &str, filename: &str, id: &str, name: &str, status: &str) {
+pub fn create_specre_card(
+    dir: &assert_fs::TempDir,
+    specre_dir: &str,
+    filename: &str,
+    id: &str,
+    name: &str,
+    status: &str,
+) {
     let content = format!(
         "---\nid: \"{id}\"\nname: \"{name}\"\nstatus: \"{status}\"\n---\n\n## Functional Overview\n\nTest card.\n"
     );
-    dir.child(format!("{specre_dir}/{filename}")).write_str(&content).unwrap();
+    dir.child(format!("{specre_dir}/{filename}"))
+        .write_str(&content)
+        .unwrap();
 }
 
 /// Close stdin and wait for the server to exit.

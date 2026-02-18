@@ -251,8 +251,7 @@ fn init_shows_path_in_io_error() {
         .assert()
         .failure()
         .stderr(
-            predicate::str::contains("Failed to access")
-                .and(predicate::str::contains("blocker")),
+            predicate::str::contains("Failed to access").and(predicate::str::contains("blocker")),
         );
 }
 

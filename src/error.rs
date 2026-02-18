@@ -10,7 +10,10 @@ pub enum SpecreError {
     /// specre.toml のパースに失敗
     ConfigParse(toml::de::Error),
     /// ファイルシステム操作の失敗（パス付き）
-    Io { path: PathBuf, source: std::io::Error },
+    Io {
+        path: PathBuf,
+        source: std::io::Error,
+    },
     /// JSON シリアライズの失敗
     Serialize(serde_json::Error),
     /// バリデーションエラー（引数の不正など）
@@ -31,7 +34,10 @@ impl std::fmt::Display for SpecreError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::AlreadyInitialized => {
-                write!(f, "specre.toml already exists. This project is already initialized.")
+                write!(
+                    f,
+                    "specre.toml already exists. This project is already initialized."
+                )
             }
             Self::ConfigNotFound => {
                 write!(f, "specre.toml not found. Run 'specre init' first.")
@@ -111,7 +117,10 @@ mod tests {
         let toml_err = toml::from_str::<toml::Value>("invalid [[[").unwrap_err();
         let msg = toml_err.to_string();
         let err = SpecreError::ConfigParse(toml_err);
-        assert_eq!(err.to_string(), format!("Failed to parse specre.toml: {msg}"));
+        assert_eq!(
+            err.to_string(),
+            format!("Failed to parse specre.toml: {msg}")
+        );
     }
 
     #[test]

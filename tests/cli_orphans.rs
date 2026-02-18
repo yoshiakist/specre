@@ -25,7 +25,10 @@ fn write_config_with_ext(
     target_extensions: &[&str],
 ) {
     let dirs_toml: Vec<String> = source_dirs.iter().map(|s| format!("\"{s}\"")).collect();
-    let ext_toml: Vec<String> = target_extensions.iter().map(|s| format!("\"{s}\"")).collect();
+    let ext_toml: Vec<String> = target_extensions
+        .iter()
+        .map(|s| format!("\"{s}\""))
+        .collect();
     let content = format!(
         "specre_dir = \"{specre_dir}\"\nsource_dirs = [{}]\ntarget_extensions = [{}]\n",
         dirs_toml.join(", "),

@@ -1,8 +1,8 @@
 // @specre 01JMBJK7QRVX3N4P5G6H8W9Y0Z
 // @specre 01KHDF9WHR5HFM4RQCF6HS3KCC
 // @specre 01KHG0A2V4YXE918WMJCY7WFE8
-use crate::cli::NewArgs;
 use crate::card::to_forward_slash;
+use crate::cli::NewArgs;
 use crate::config;
 use crate::error::SpecreError;
 use crate::template;

@@ -25,7 +25,10 @@ fn write_config_with_ext(
     target_extensions: &[&str],
 ) {
     let dirs_toml: Vec<String> = source_dirs.iter().map(|s| format!("\"{s}\"")).collect();
-    let ext_toml: Vec<String> = target_extensions.iter().map(|s| format!("\"{s}\"")).collect();
+    let ext_toml: Vec<String> = target_extensions
+        .iter()
+        .map(|s| format!("\"{s}\""))
+        .collect();
     let content = format!(
         "specre_dir = \"{specre_dir}\"\nsource_dirs = [{}]\ntarget_extensions = [{}]\n",
         dirs_toml.join(", "),
@@ -263,7 +266,10 @@ fn coverage_paths_use_forward_slashes() {
         stdout.contains("src/sub/deep.rs"),
         "Paths should use forward slashes"
     );
-    assert!(!stdout.contains('\\'), "Paths should not contain backslashes");
+    assert!(
+        !stdout.contains('\\'),
+        "Paths should not contain backslashes"
+    );
 }
 
 // -- Scenario: specre.toml does not exist --

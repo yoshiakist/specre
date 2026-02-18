@@ -50,17 +50,15 @@ fn write_specre_card(dir: &std::path::Path, rel_path: &str, id: &str, name: &str
 }
 
 fn write_index_json(dir: &std::path::Path, generated_at: &str) {
-    let content = format!(
-        r#"{{"version":1,"generated_at":"{generated_at}","specres":[],"source_refs":[]}}"#
-    );
+    let content =
+        format!(r#"{{"version":1,"generated_at":"{generated_at}","specres":[],"source_refs":[]}}"#);
     let path = dir.join("docs/specres/index.json");
     fs::create_dir_all(path.parent().unwrap()).unwrap();
     fs::write(path, content).unwrap();
 }
 
 fn recent_timestamp() -> String {
-    chrono::Utc::now()
-        .to_rfc3339_opts(chrono::SecondsFormat::Secs, true)
+    chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true)
 }
 
 fn old_timestamp(hours_ago: i64) -> String {
@@ -209,7 +207,10 @@ fn health_check_unhealthy_many_orphans() {
         .output()
         .unwrap();
 
-    assert!(!output.status.success(), "should exit 1 when too many orphans");
+    assert!(
+        !output.status.success(),
+        "should exit 1 when too many orphans"
+    );
 
     let json = parse_json(&output.stdout);
     assert_eq!(json["healthy"], false);
@@ -245,7 +246,10 @@ fn health_check_unhealthy_no_index() {
         .output()
         .unwrap();
 
-    assert!(!output.status.success(), "should exit 1 when index.json missing");
+    assert!(
+        !output.status.success(),
+        "should exit 1 when index.json missing"
+    );
 
     let json = parse_json(&output.stdout);
     assert_eq!(json["healthy"], false);
@@ -322,7 +326,10 @@ fn health_check_custom_thresholds() {
         .output()
         .unwrap();
 
-    assert!(output.status.success(), "should be healthy with permissive thresholds");
+    assert!(
+        output.status.success(),
+        "should be healthy with permissive thresholds"
+    );
 
     let json = parse_json(&output.stdout);
     assert_eq!(json["healthy"], true);

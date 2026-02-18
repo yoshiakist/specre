@@ -86,8 +86,7 @@ pub fn execute(args: InitArgs, json: bool) -> Result<(), SpecreError> {
         language,
         target_extensions: ext,
     };
-    let config_content =
-        toml::to_string(&config).map_err(SpecreError::ConfigSerialize)?;
+    let config_content = toml::to_string(&config).map_err(SpecreError::ConfigSerialize)?;
 
     fs::write(config_path, &config_content).map_err(|e| SpecreError::Io {
         path: config_path.to_path_buf(),

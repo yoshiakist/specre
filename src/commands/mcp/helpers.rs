@@ -154,10 +154,7 @@ pub fn execute_tag(req: &TagToolRequest) -> Result<CallToolResult, McpError> {
     }
 
     // Determine comment syntax from file extension
-    let ext = file_path
-        .extension()
-        .and_then(|e| e.to_str())
-        .unwrap_or("");
+    let ext = file_path.extension().and_then(|e| e.to_str()).unwrap_or("");
     let Some((prefix, suffix)) = comment_syntax(ext) else {
         return Ok(CallToolResult::error(vec![Content::text(format!(
             "unsupported file extension '.{ext}' — comment syntax is unknown"
@@ -275,11 +272,7 @@ fn generate_domain_indexes(
                 .strip_prefix(&domain_prefix)
                 .unwrap_or(&entry.path);
             let lv = entry.last_verified.as_deref().unwrap_or("-");
-            let _ = writeln!(
-                md,
-                "| [{}]({rel}) | {} | {lv} |",
-                entry.name, entry.status
-            );
+            let _ = writeln!(md, "| [{}]({rel}) | {} | {lv} |", entry.name, entry.status);
         }
 
         write_file(&index_path, &md)?;

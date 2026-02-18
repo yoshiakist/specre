@@ -1,11 +1,11 @@
 // @specre 01KHAN6JE712ZAKXPP97854PKJ
 // @specre 01KHG0A2V4YXE918WMJCY7WFE8
-use crate::cli::StatusArgs;
 use crate::card::to_forward_slash;
-use crate::parser::parse_frontmatter;
-use crate::scanner::collect_md_files;
+use crate::cli::StatusArgs;
 use crate::config;
 use crate::error::SpecreError;
+use crate::parser::parse_frontmatter;
+use crate::scanner::collect_md_files;
 use crate::status::Status;
 use chrono::{NaiveDate, Utc};
 use serde::Serialize;
@@ -98,10 +98,7 @@ pub fn execute(args: &StatusArgs, json: bool) -> Result<(), SpecreError> {
                     Status::Deprecated => deprecated += 1,
                 },
                 Err(e) => {
-                    eprintln!(
-                        "Warning: skipping '{}': {e}",
-                        path.display()
-                    );
+                    eprintln!("Warning: skipping '{}': {e}", path.display());
                 }
             }
         });

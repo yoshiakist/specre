@@ -1,9 +1,9 @@
 // @specre 01KHFEA9QVV4A127VCRJY97A68
 // @specre 01KHG0A2V4YXE918WMJCY7WFE8
 use crate::cli::CoverageArgs;
-use crate::scanner::{scan_source_markers, SourceScanResult};
 use crate::config;
 use crate::error::SpecreError;
+use crate::scanner::{SourceScanResult, scan_source_markers};
 use serde::Serialize;
 
 #[derive(Serialize)]
@@ -58,9 +58,7 @@ pub fn compute_coverage(
 pub fn execute(args: CoverageArgs, json: bool) -> Result<(), SpecreError> {
     let config = config::load()?;
 
-    let extensions = args
-        .ext
-        .or(config.target_extensions);
+    let extensions = args.ext.or(config.target_extensions);
 
     let result = compute_coverage(&config.source_dirs, extensions.as_deref());
 
