@@ -1,105 +1,28 @@
 // @specre 01KHJ98T83DPJGMEFH9HAXXAZ1
 // @specre 01KHJ98TFCDTCARMMX1GC5ZHXE
-// @specre 01KHK7MFZJZ12XFPQE4RHCBHQN
+
+pub mod tools;
 
 use crate::card::{self, to_forward_slash};
 use crate::config;
-use crate::{template, ulid};
 use rmcp::{
     ErrorData as McpError, RoleServer, ServerHandler, ServiceExt,
-    handler::server::{router::tool::ToolRouter, wrapper::Parameters},
     model::{
-        AnnotateAble, CallToolResult, Content, Implementation, ListResourcesResult,
-        PaginatedRequestParams, ProtocolVersion, RawResource, ReadResourceRequestParams,
-        ReadResourceResult, ResourceContents, ServerCapabilities, ServerInfo,
+        AnnotateAble, Implementation, ListResourcesResult, PaginatedRequestParams,
+        ProtocolVersion, RawResource, ReadResourceRequestParams, ReadResourceResult,
+        ResourceContents, ServerCapabilities, ServerInfo,
     },
-    schemars, tool, tool_handler, tool_router,
+    tool_handler,
     service::RequestContext,
     transport::stdio,
 };
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use tracing_subscriber::EnvFilter;
 
+pub use tools::SpecreMcpServer;
+
 const URI_PREFIX: &str = "specre:///";
-
-#[derive(Clone)]
-pub struct SpecreMcpServer {
-    specre_dir: PathBuf,
-    tool_router: ToolRouter<Self>,
-}
-
-#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
-struct NewToolRequest {
-    /// Directory where the specre file will be created (e.g., "docs/specres/auth")
-    target_dir: String,
-    /// Specre name describing the behavior (default: "untitled")
-    name: Option<String>,
-}
-
-#[tool_router]
-impl SpecreMcpServer {
-    pub fn new(specre_dir: PathBuf) -> Self {
-        Self {
-            specre_dir,
-            tool_router: Self::tool_router(),
-        }
-    }
-
-    #[tool(name = "new", description = "Create a new specre card from a template, auto-generating a ULID")]
-    #[allow(clippy::unused_self)] // &self required by rmcp #[tool] macro
-    fn new_card(
-        &self,
-        Parameters(req): Parameters<NewToolRequest>,
-    ) -> Result<CallToolResult, McpError> {
-        let name = req.name.unwrap_or_else(|| "untitled".to_string());
-        let target = Path::new(&req.target_dir);
-
-        if target.is_file() {
-            return Ok(CallToolResult::error(vec![Content::text(
-                format!("'{}' is a file, not a directory", target.display()),
-            )]));
-        }
-
-        let file_name = format!("{name}.md");
-        let file_path = target.join(&file_name);
-
-        if file_path.exists() {
-            return Ok(CallToolResult::error(vec![Content::text(
-                format!("'{}' already exists", file_path.display()),
-            )]));
-        }
-
-        if !target.exists() {
-            fs::create_dir_all(target).map_err(|e| {
-                McpError::internal_error(
-                    "failed to create directory",
-                    Some(serde_json::json!({ "error": e.to_string() })),
-                )
-            })?;
-        }
-
-        let language = config::load_language();
-        let id = ulid::generate();
-        let content = template::render(&id, &name, &language);
-
-        fs::write(&file_path, &content).map_err(|e| {
-            McpError::internal_error(
-                "failed to write specre card",
-                Some(serde_json::json!({ "error": e.to_string() })),
-            )
-        })?;
-
-        let result = serde_json::json!({
-            "id": id,
-            "path": to_forward_slash(&file_path).as_ref(),
-        });
-
-        Ok(CallToolResult::success(vec![Content::text(
-            result.to_string(),
-        )]))
-    }
-}
 
 #[tool_handler]
 impl ServerHandler for SpecreMcpServer {

@@ -7,7 +7,7 @@ last_verified: "2026-02-17"
 
 ## Related Files
 
-- `src/commands/mcp.rs`
+- `src/commands/mcp/mod.rs` (server infrastructure)
 - `src/cli.rs`
 - `tests/mcp/server.rs` (Test)
 - `tests/mcp/helpers.rs` (Test helper)

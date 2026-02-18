@@ -7,7 +7,7 @@ last_verified: "2026-02-16"
 
 ## Related Files
 
-- `src/commands/mcp.rs`
+- `src/commands/mcp/mod.rs` (server infrastructure, resource handlers)
 - `src/commands/index.rs` (reused: `collect_md_files`, `parse_frontmatter`)
 - `tests/mcp/resources.rs` (Test)
 - `tests/mcp/helpers.rs` (Test helper)
