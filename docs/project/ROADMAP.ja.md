@@ -21,7 +21,7 @@ AIエージェントが specre をファーストクラスのツールとして�
 - [x] `specre health-check` — specre カードがプロジェクトの全体的な振る舞いを適切に記述しているかどうかを判定する包括的なヘルスチェックができる
 - [x] `specre search <query>` — すべての specre に対する全文検索 + ステータス/ドメインフィルタリングができる
 - [x] すべてのコマンドでAIフレンドリーなフォーマット（`--json`）で出力できる
-- [ ] MCP サーバー — specre の機能を [Model Context Protocol](https://modelcontextprotocol.io/) 経由でリソース、ツール、プロンプトとして公開し、Claude Code、Cursor、VS Code Copilot、その他の MCP 対応 AI ツールとの統合を可能にする
+- [x] MCP サーバー — specre の機能を [Model Context Protocol](https://modelcontextprotocol.io/) 経由でリソース、ツール、プロンプトとして公開し、Claude Code、Cursor、VS Code Copilot、その他の MCP 対応 AI ツールとの統合を可能にする
 
 ### coverage コマンド設計
 
