@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-02-19
+
+### Added
+
+- `specre mcp` — start an MCP server (stdio transport) that exposes all specre cards as resources and provides CLI-equivalent tools for AI agents; enables editors and agent runtimes to consume specre without shell access
+- MCP tools: `new`, `tag`, `index`, `status`, `trace`, `orphans`, `search`, `coverage`, `health-check` — full parity with the CLI; AI agents can now run the entire specre workflow without invoking a subprocess
+- `specre search`: multi-keyword AND/OR query — space-separated terms are ANDed by default; `--or` switches to OR logic, matching any single term
+- `specre search`: glossary-based hint suggestions — when a query returns few results, suggests semantically related terms from `glossary.toml` to guide follow-up queries
+- Cross-platform CI — automated test workflow for Linux (x86\_64), macOS (x86\_64, aarch64), and Windows (x86\_64)
+
+### Fixed
+
+- `specre init`: prevented TOML injection — user-controlled values (project name, specre dir, language) are now properly escaped before being written to `specre.toml`
+- Front-matter parsing: replaced the hand-written YAML parser with `serde_yml` for correctness and safety
+- `specre search`: date filter now validates calendar correctness (e.g. `2026-02-30` is rejected)
+- IO errors previously swallowed with `.ok()?` in `search`, `index`, `orphans`, `trace`, `coverage`, `health-check`, and `mcp` are now surfaced as warnings instead of being silently discarded
+- Permission-based tests are now skipped when running as root, fixing CI failures in privileged container environments
+
+### Changed
+
+- Strict Clippy lints enabled project-wide (`pedantic + nursery + all = deny`) — zero compiler-warning policy enforced in CI
+- Migrated from archived `serde_yaml` to maintained `serde_yml`
+
 ## [0.2.6] - 2026-02-15
 
 ### Added
@@ -80,6 +103,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Bidirectional traceability via `@specre <ULID>` source markers
 - specre card format with YAML front-matter (`id`, `name`, `status`, `last_verified`)
 
+[0.3.0]: https://github.com/yoshiakist/specre/compare/v0.2.6...v0.3.0
 [0.2.6]: https://github.com/yoshiakist/specre/compare/v0.2.5...v0.2.6
 [0.2.5]: https://github.com/yoshiakist/specre/compare/v0.2.4...v0.2.5
 [0.2.4]: https://github.com/yoshiakist/specre/compare/v0.2.3...v0.2.4
