@@ -52,6 +52,10 @@ Notify the user that the checkpoint has been reached (if a notification script i
 
 1. Update the specre card: set `status: "stable"` and `last_verified` to today's date
 2. Run `specre index`
-3. Create a feature branch from `main` with a descriptive name (e.g., `feature/<specre-name>`)
-4. Commit all changes with a descriptive message
-5. Push the branch and create a Pull Request using `gh pr create`
+3. Run the **Pre-PR Quality Gate** (all three must pass before committing):
+   1. `cargo fmt --all` — auto-format all code
+   2. `cargo clippy --all-targets -- -D warnings` — lint all targets (lib, bins, tests, examples, benches)
+   3. `cargo test` — run all tests
+4. Create a feature branch from `main` with a descriptive name (e.g., `feature/<specre-name>`)
+5. Commit all changes with a descriptive message
+6. Push the branch and create a Pull Request using `gh pr create`
