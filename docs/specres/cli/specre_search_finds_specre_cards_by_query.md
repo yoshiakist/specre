@@ -7,7 +7,7 @@ last_verified: "2026-02-18"
 
 ## Related Files
 
-- `src/commands/search.rs`
+- `src/commands/search/mod.rs`
 - `src/cli.rs`
 - `src/commands/mod.rs`
 - `src/config.rs`
