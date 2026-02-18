@@ -1,0 +1,63 @@
+# specre glossary — Project vocabulary for search suggestions
+#
+# Add terms that describe your project's domains, operations, and concepts.
+# `specre search` uses this glossary to suggest query refinements when
+# results are empty or too broad.
+#
+# Customize this list with your project's domain-specific vocabulary:
+#   - Domain nouns: "user", "order", "payment", "notification"
+#   - Operations: "create", "update", "delete", "approve", "reject"
+#   - Technical concepts: "authentication", "authorization", "validation"
+#
+# Avoid terms that appear in nearly every specre card (e.g. "status",
+# "cli", "config") — they add noise to suggestions without narrowing
+# results. Use --status and --domain flags for those axes instead.
+
+terms = [
+  #
+  # COMMANDS — specre subcommand names
+  #
+  "init",
+  "new",
+  "index",
+  "trace",
+  "orphan",
+  "tag",
+  "search",
+  "coverage",
+  "health-check",
+  "mcp",
+  #
+  # OPERATIONS — actions an agent might describe
+  #
+  "create",
+  "scaffold",
+  "generate",
+  "scan",
+  "detect",
+  "insert",
+  "resolve",
+  "verify",
+  "report",
+  #
+  # SPECRE DOMAIN CONCEPTS
+  #
+  "marker",
+  "hint",
+  "front-matter",
+  "lifecycle",
+  "traceability",
+  "bidirectional",
+  "excerpt",
+  "glossary",
+  #
+  # INFRASTRUCTURE
+  #
+  "ulid",
+  "json",
+  "extension",
+  "language",
+  "server",
+  "resource",
+  "stdio",
+]

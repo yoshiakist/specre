@@ -255,3 +255,48 @@ fn init_shows_path_in_io_error() {
                 .and(predicate::str::contains("blocker")),
         );
 }
+
+// -- Scenario: glossary.toml is created by init --
+
+#[test]
+fn init_creates_glossary_toml() {
+    let tmp = TempDir::new().unwrap();
+
+    specre()
+        .args(["init"])
+        .current_dir(tmp.path())
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Created glossary.toml"));
+
+    let glossary_path = tmp.path().join("glossary.toml");
+    assert!(glossary_path.is_file());
+
+    let content = fs::read_to_string(&glossary_path).unwrap();
+    // Should be valid TOML with a terms array
+    let parsed: toml::Value = toml::from_str(&content).expect("glossary.toml must be valid TOML");
+    let terms = parsed["terms"].as_array().unwrap();
+    assert!(!terms.is_empty(), "glossary should have sample terms");
+}
+
+// -- Scenario: glossary.toml already exists — preserved --
+
+#[test]
+fn init_preserves_existing_glossary() {
+    let tmp = TempDir::new().unwrap();
+
+    // Create existing glossary.toml with custom content
+    let glossary_path = tmp.path().join("glossary.toml");
+    fs::write(&glossary_path, "terms = [\"custom\"]\n").unwrap();
+
+    specre()
+        .args(["init"])
+        .current_dir(tmp.path())
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Exists  glossary.toml"));
+
+    // Content should be unchanged
+    let content = fs::read_to_string(&glossary_path).unwrap();
+    assert_eq!(content, "terms = [\"custom\"]\n");
+}

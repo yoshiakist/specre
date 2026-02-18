@@ -1,44 +1,39 @@
 // @specre 01KHFTCYJN8YJMW2RNHJTAQV49
+mod hint;
+
 use crate::card::{extract_domain, to_forward_slash};
 use crate::cli::SearchArgs;
-use crate::parser::parse_frontmatter;
-use crate::scanner::collect_md_files;
 use crate::config;
 use crate::error::SpecreError;
+use crate::parser::parse_frontmatter;
+use crate::scanner::collect_md_files;
 use crate::status::Status;
 use chrono::NaiveDate;
 use serde::Serialize;
-use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
+
 const DEFAULT_MAX_RESULTS: usize = 10;
 const EXCERPT_MAX_CHARS: usize = 200;
 
 #[derive(Serialize)]
-struct SearchOutput {
-    results: Vec<SearchResult>,
+struct SearchOutput<'a> {
+    results: Vec<SearchResult<'a>>,
     total: usize,
     truncated: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
-    hint: Option<Hint>,
+    hint: Option<hint::Hint<'a>>,
 }
 
 #[derive(Serialize)]
-struct SearchResult {
-    id: String,
-    name: String,
+struct SearchResult<'a> {
+    id: &'a str,
+    name: &'a str,
     status: Status,
-    domain: String,
-    path: String,
-    last_verified: Option<String>,
-    excerpt: Option<String>,
-}
-
-#[derive(Serialize)]
-struct Hint {
-    message: String,
-    available_domains: Vec<String>,
-    status_counts: BTreeMap<Status, usize>,
+    domain: &'a str,
+    path: &'a str,
+    last_verified: Option<&'a str>,
+    excerpt: Option<&'a str>,
 }
 
 struct SearchableCard {
@@ -90,11 +85,17 @@ pub fn execute(args: &SearchArgs) -> Result<(), SpecreError> {
         .unwrap_or(DEFAULT_MAX_RESULTS);
 
     let specre_dir = Path::new(&cfg.specre_dir);
-    let cards = scan_cards(specre_dir, &cfg.specre_dir);
+    let all_cards = scan_cards(specre_dir, &cfg.specre_dir);
+    let glossary = hint::load_glossary();
+    let keywords: Vec<&str> = args
+        .query
+        .as_deref()
+        .map(|q| q.split_whitespace().collect())
+        .unwrap_or_default();
 
-    // Apply filters
-    let filtered: Vec<SearchableCard> = cards
-        .into_iter()
+    // Apply filters (use iter() to keep all_cards available for hint computation)
+    let filtered: Vec<&SearchableCard> = all_cards
+        .iter()
         .filter(|card| {
             matches_filters(card, args, status_filter, verified_before, verified_after)
         })
@@ -103,22 +104,32 @@ pub fn execute(args: &SearchArgs) -> Result<(), SpecreError> {
     let total = filtered.len();
 
     // Determine truncation
-    let (truncated, results, hint) = if let Some(limit) = args.limit {
-        // --limit bypasses truncation
-        let results: Vec<SearchResult> = filtered
-            .into_iter()
-            .take(limit)
-            .map(card_to_result)
-            .collect();
-        (false, results, None)
-    } else if total > max_results {
-        // Truncate: return hint instead of results
-        let hint = build_hint(&filtered);
-        (true, Vec::new(), Some(hint))
-    } else {
-        let results: Vec<SearchResult> = filtered.into_iter().map(card_to_result).collect();
-        (false, results, None)
-    };
+    let (truncated, results, hint) = args.limit.map_or_else(
+        || {
+            if total > max_results {
+                let h = hint::build_truncation_hint(&filtered, glossary.as_ref(), &keywords);
+                (true, Vec::new(), Some(h))
+            } else if total == 0
+                && hint::should_show_zero_hint(&keywords, glossary.as_ref())
+            {
+                let h = hint::build_zero_result_hint(&all_cards, glossary.as_ref(), &keywords);
+                (false, Vec::new(), Some(h))
+            } else {
+                let results: Vec<SearchResult<'_>> =
+                    filtered.iter().map(|card| card_to_result(card)).collect();
+                (false, results, None)
+            }
+        },
+        |limit| {
+            // --limit bypasses truncation
+            let results: Vec<SearchResult<'_>> = filtered
+                .iter()
+                .take(limit)
+                .map(|card| card_to_result(card))
+                .collect();
+            (false, results, None)
+        },
+    );
 
     let output = SearchOutput {
         results,
@@ -302,36 +313,14 @@ fn skip_frontmatter(content: &str) -> &str {
     })
 }
 
-fn card_to_result(card: SearchableCard) -> SearchResult {
+fn card_to_result(card: &SearchableCard) -> SearchResult<'_> {
     SearchResult {
-        id: card.id,
-        name: card.name,
+        id: &card.id,
+        name: &card.name,
         status: card.status,
-        domain: card.domain,
-        path: card.path,
-        last_verified: card.last_verified,
-        excerpt: card.excerpt,
-    }
-}
-
-fn build_hint(cards: &[SearchableCard]) -> Hint {
-    let total = cards.len();
-
-    // Collect unique domains (BTreeSet gives sorted + deduplicated without cloning)
-    let domain_set: std::collections::BTreeSet<&str> =
-        cards.iter().map(|c| c.domain.as_str()).collect();
-
-    // Count by status
-    let mut status_counts: BTreeMap<Status, usize> = BTreeMap::new();
-    for card in cards {
-        *status_counts.entry(card.status).or_insert(0) += 1;
-    }
-
-    Hint {
-        message: format!(
-            "Too many results ({total}). Refine your query with --status, --domain, or a more specific search term."
-        ),
-        available_domains: domain_set.into_iter().map(String::from).collect(),
-        status_counts,
+        domain: &card.domain,
+        path: &card.path,
+        last_verified: card.last_verified.as_deref(),
+        excerpt: card.excerpt.as_deref(),
     }
 }

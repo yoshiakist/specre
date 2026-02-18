@@ -1,4 +1,5 @@
 // @specre 01KHFTCYJN8YJMW2RNHJTAQV49
+// @specre 01KHQBKWZY2D77XP7A50HGTZQ8
 use assert_cmd::cargo::cargo_bin_cmd;
 use assert_fs::TempDir;
 use predicates::prelude::*;
@@ -29,6 +30,12 @@ fn write_config_with_search(
         dirs_toml.join(", ")
     );
     fs::write(dir.join("specre.toml"), content).unwrap();
+}
+
+fn write_glossary(dir: &std::path::Path, terms: &[&str]) {
+    let terms_toml: Vec<String> = terms.iter().map(|s| format!("  \"{s}\"")).collect();
+    let content = format!("terms = [\n{},\n]\n", terms_toml.join(",\n"));
+    fs::write(dir.join("glossary.toml"), content).unwrap();
 }
 
 fn write_specre_card_full(
@@ -1194,4 +1201,401 @@ fn search_warns_on_unreadable_specre_card() {
     assert_eq!(json["results"][0]["name"], "good_card");
 
     fs::set_permissions(&bad_card, fs::Permissions::from_mode(0o644)).unwrap();
+}
+
+// -- Scenario: No results with multi-keyword AND — keyword match counts --
+
+#[test]
+fn search_no_results_multi_keyword_shows_keyword_matches() {
+    let tmp = TempDir::new().unwrap();
+    write_config(&tmp, "docs/specres", &["src"]);
+    // No glossary.toml
+
+    // Card with "password" but not "reset"
+    write_specre_card_full(
+        &tmp,
+        "docs/specres/auth/user_can_change_password.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "user_can_change_password",
+        "stable",
+        None,
+        "## Functional Overview\n\nUsers can change their password from settings.\n",
+    );
+    // Card with neither
+    write_specre_card_full(
+        &tmp,
+        "docs/specres/auth/user_can_login.md",
+        "01BBBBBBBBBBBBBBBBBBBBBBBB",
+        "user_can_login",
+        "stable",
+        None,
+        "## Functional Overview\n\nUsers can login with email.\n",
+    );
+
+    let output = specre()
+        .args(["search", "password reset"])
+        .current_dir(&tmp)
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+    let json = parse_json(&output.stdout);
+    assert_eq!(json["total"], 0);
+    assert_eq!(json["truncated"], false);
+
+    // hint should have keyword_matches
+    let hint = &json["hint"];
+    assert!(
+        hint["message"]
+            .as_str()
+            .unwrap()
+            .contains("No results found"),
+    );
+
+    let kw_matches = hint["keyword_matches"].as_array().unwrap();
+    assert_eq!(kw_matches.len(), 2);
+    // Sorted by match_count descending: password=1, reset=0
+    assert_eq!(kw_matches[0]["keyword"], "password");
+    assert_eq!(kw_matches[0]["match_count"], 1);
+    assert_eq!(kw_matches[1]["keyword"], "reset");
+    assert_eq!(kw_matches[1]["match_count"], 0);
+
+    // No suggested_terms (no glossary)
+    assert!(hint.get("suggested_terms").is_none() || hint["suggested_terms"].is_null());
+}
+
+// -- Scenario: No results with glossary — vocabulary suggestions --
+
+#[test]
+fn search_no_results_with_glossary_shows_suggested_terms() {
+    let tmp = TempDir::new().unwrap();
+    write_config(&tmp, "docs/specres", &["src"]);
+    write_glossary(&tmp, &["user", "authentication", "password", "session"]);
+
+    // Cards with "authentication" and "password" but not "login"
+    write_specre_card_full(
+        &tmp,
+        "docs/specres/auth/user_can_authenticate.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "user_can_authenticate",
+        "stable",
+        None,
+        "## Functional Overview\n\nUsers authenticate via authentication service.\n",
+    );
+    write_specre_card_full(
+        &tmp,
+        "docs/specres/auth/user_can_reset_password.md",
+        "01BBBBBBBBBBBBBBBBBBBBBBBB",
+        "user_can_reset_password",
+        "stable",
+        None,
+        "## Functional Overview\n\nUsers can reset their password.\n",
+    );
+
+    let output = specre()
+        .args(["search", "login"])
+        .current_dir(&tmp)
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+    let json = parse_json(&output.stdout);
+    assert_eq!(json["total"], 0);
+
+    let hint = &json["hint"];
+    assert!(hint["message"].as_str().unwrap().contains("No results found"));
+
+    // keyword_matches present
+    let kw_matches = hint["keyword_matches"].as_array().unwrap();
+    assert_eq!(kw_matches[0]["keyword"], "login");
+    assert_eq!(kw_matches[0]["match_count"], 0);
+
+    // suggested_terms present (glossary terms that match cards, excluding "login")
+    let suggested = hint["suggested_terms"].as_array().unwrap();
+    assert!(!suggested.is_empty());
+    // All suggested terms have match_count > 0
+    for term in suggested {
+        assert!(term["match_count"].as_u64().unwrap() > 0);
+    }
+    // "login" should NOT appear in suggested_terms (it's in the query)
+    let term_names: Vec<&str> = suggested.iter().map(|t| t["term"].as_str().unwrap()).collect();
+    assert!(!term_names.contains(&"login"));
+    // "authentication" and "password" should be present
+    assert!(term_names.contains(&"authentication"));
+    assert!(term_names.contains(&"password"));
+}
+
+// -- Scenario: Single keyword, no glossary — no hint (existing behavior) --
+
+#[test]
+fn search_no_results_single_keyword_no_glossary_no_hint() {
+    let tmp = TempDir::new().unwrap();
+    write_config(&tmp, "docs/specres", &["src"]);
+    // No glossary
+
+    write_specre_card(
+        &tmp,
+        "docs/specres/cli/card_a.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "card_a",
+        "stable",
+    );
+
+    let output = specre()
+        .args(["search", "nonexistent_xyz"])
+        .current_dir(&tmp)
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+    let json = parse_json(&output.stdout);
+    assert_eq!(json["total"], 0);
+    // No hint field
+    assert!(json.get("hint").is_none() || json["hint"].is_null());
+}
+
+// -- Scenario: Single keyword with glossary — hint with suggested_terms --
+
+#[test]
+fn search_no_results_single_keyword_with_glossary_shows_hint() {
+    let tmp = TempDir::new().unwrap();
+    write_config(&tmp, "docs/specres", &["src"]);
+    write_glossary(&tmp, &["user", "authentication"]);
+
+    write_specre_card_full(
+        &tmp,
+        "docs/specres/auth/user_can_authenticate.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "user_can_authenticate",
+        "stable",
+        None,
+        "## Functional Overview\n\nAuthentication via user credentials.\n",
+    );
+
+    let output = specre()
+        .args(["search", "login"])
+        .current_dir(&tmp)
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+    let json = parse_json(&output.stdout);
+    assert_eq!(json["total"], 0);
+
+    // Hint should be present (glossary exists)
+    let hint = &json["hint"];
+    assert!(hint["message"].as_str().is_some());
+    assert!(hint["suggested_terms"].as_array().unwrap().len() > 0);
+}
+
+// -- Scenario: Results exceed truncation threshold with glossary --
+
+#[test]
+fn search_truncated_with_glossary_shows_suggested_terms() {
+    let tmp = TempDir::new().unwrap();
+    write_config_with_search(&tmp, "docs/specres", &["src"], 3);
+    write_glossary(&tmp, &["create", "delete", "user", "overview"]);
+
+    // Create 5 cards — exceeds threshold of 3
+    // 2 cards mention "create", 1 mentions "delete", all mention "overview"
+    write_specre_card_full(
+        &tmp,
+        "docs/specres/cli/card_1.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "card_1",
+        "stable",
+        None,
+        "## Functional Overview\n\nCreate user overview.\n",
+    );
+    write_specre_card_full(
+        &tmp,
+        "docs/specres/cli/card_2.md",
+        "01BBBBBBBBBBBBBBBBBBBBBBBB",
+        "card_2",
+        "stable",
+        None,
+        "## Functional Overview\n\nCreate item overview.\n",
+    );
+    write_specre_card_full(
+        &tmp,
+        "docs/specres/cli/card_3.md",
+        "01CCCCCCCCCCCCCCCCCCCCCCCC",
+        "card_3",
+        "stable",
+        None,
+        "## Functional Overview\n\nDelete item overview.\n",
+    );
+    write_specre_card_full(
+        &tmp,
+        "docs/specres/cli/card_4.md",
+        "01DDDDDDDDDDDDDDDDDDDDDD",
+        "card_4",
+        "stable",
+        None,
+        "## Functional Overview\n\nList items overview.\n",
+    );
+    write_specre_card_full(
+        &tmp,
+        "docs/specres/cli/card_5.md",
+        "01EEEEEEEEEEEEEEEEEEEEEE",
+        "card_5",
+        "stable",
+        None,
+        "## Functional Overview\n\nUser profile overview.\n",
+    );
+
+    let output = specre()
+        .args(["search"])
+        .current_dir(&tmp)
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+    let json = parse_json(&output.stdout);
+    assert_eq!(json["total"], 5);
+    assert_eq!(json["truncated"], true);
+
+    let hint = &json["hint"];
+    // Existing fields still present
+    assert!(hint["available_domains"].as_array().is_some());
+    assert!(hint["status_counts"].is_object());
+
+    // suggested_terms present
+    let suggested = hint["suggested_terms"].as_array().unwrap();
+    assert!(!suggested.is_empty());
+
+    // "overview" matches all 5 cards (== total), so it should be EXCLUDED
+    let term_names: Vec<&str> = suggested.iter().map(|t| t["term"].as_str().unwrap()).collect();
+    assert!(
+        !term_names.contains(&"overview"),
+        "Terms matching all cards should be excluded"
+    );
+
+    // "create" and "delete" should be present (match some but not all)
+    assert!(term_names.contains(&"create"));
+    assert!(term_names.contains(&"delete"));
+
+    // Sorted by match_count descending
+    let counts: Vec<u64> = suggested.iter().map(|t| t["match_count"].as_u64().unwrap()).collect();
+    for window in counts.windows(2) {
+        assert!(window[0] >= window[1], "suggested_terms should be sorted descending");
+    }
+}
+
+// -- Scenario: Truncation without glossary — no suggested_terms (unchanged) --
+
+#[test]
+fn search_truncated_without_glossary_no_suggested_terms() {
+    let tmp = TempDir::new().unwrap();
+    write_config_with_search(&tmp, "docs/specres", &["src"], 2);
+    // No glossary
+
+    for i in 0..3 {
+        write_specre_card(
+            &tmp,
+            &format!("docs/specres/cli/card_{i}.md"),
+            &format!("01{:A<24}", i),
+            &format!("card_{i}"),
+            "stable",
+        );
+    }
+
+    let output = specre()
+        .args(["search"])
+        .current_dir(&tmp)
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+    let json = parse_json(&output.stdout);
+    assert_eq!(json["truncated"], true);
+
+    let hint = &json["hint"];
+    assert!(hint["available_domains"].as_array().is_some());
+    assert!(hint["status_counts"].is_object());
+    // No suggested_terms
+    assert!(
+        hint.get("suggested_terms").is_none() || hint["suggested_terms"].is_null(),
+    );
+}
+
+// -- Scenario: Malformed glossary.toml warns and continues --
+
+#[test]
+fn search_glossary_malformed_warns_and_continues() {
+    let tmp = TempDir::new().unwrap();
+    write_config(&tmp, "docs/specres", &["src"]);
+
+    // Write invalid glossary.toml
+    fs::write(tmp.path().join("glossary.toml"), "this is not valid toml [[[").unwrap();
+
+    write_specre_card_full(
+        &tmp,
+        "docs/specres/cli/card_a.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "card_a",
+        "stable",
+        None,
+        "## Functional Overview\n\nA sample card.\n",
+    );
+
+    let output = specre()
+        .args(["search", "sample"])
+        .current_dir(&tmp)
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+
+    // Should warn on stderr
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("Warning: failed to parse glossary.toml"),
+        "Expected glossary warning in stderr, got: {stderr}"
+    );
+
+    // Search still works
+    let json = parse_json(&output.stdout);
+    assert_eq!(json["total"], 1);
+    assert_eq!(json["results"][0]["name"], "card_a");
+}
+
+// -- Scenario: suggested_terms excludes query terms --
+
+#[test]
+fn search_glossary_excludes_query_terms_from_suggestions() {
+    let tmp = TempDir::new().unwrap();
+    write_config(&tmp, "docs/specres", &["src"]);
+    write_glossary(&tmp, &["password", "user", "authentication"]);
+
+    write_specre_card_full(
+        &tmp,
+        "docs/specres/auth/card_a.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "card_a",
+        "stable",
+        None,
+        "## Functional Overview\n\nUser authentication with password.\n",
+    );
+
+    // Search for "password" — it matches, but with glossary + another keyword "xyz" to get 0 results
+    let output = specre()
+        .args(["search", "password xyz"])
+        .current_dir(&tmp)
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+    let json = parse_json(&output.stdout);
+    assert_eq!(json["total"], 0);
+
+    let suggested = json["hint"]["suggested_terms"].as_array().unwrap();
+    let term_names: Vec<&str> = suggested.iter().map(|t| t["term"].as_str().unwrap()).collect();
+    // "password" is in query, should be excluded from suggestions
+    assert!(!term_names.contains(&"password"));
+    // "xyz" is in query, should be excluded (even if not in glossary — doesn't matter)
+    assert!(!term_names.contains(&"xyz"));
+    // Other glossary terms with matches should be present
+    assert!(term_names.contains(&"user"));
+    assert!(term_names.contains(&"authentication"));
 }

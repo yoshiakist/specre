@@ -3,7 +3,7 @@
 | Name | Status | Last Verified |
 |------|--------|---------------|
 | [specre_new_scaffolds_a_new_specre](specre_new_scaffolds_a_new_specre.md) | stable | 2026-02-16 |
-| [specre_init_initializes_project_configuration](specre_init_initializes_project_configuration.md) | stable | 2026-02-17 |
+| [specre_init_initializes_project_configuration](specre_init_initializes_project_configuration.md) | stable | 2026-02-18 |
 | [specre_index_generates_project_index](specre_index_generates_project_index.md) | stable | 2026-02-18 |
 | [specre_status_reports_project_health](specre_status_reports_project_health.md) | stable | 2026-02-17 |
 | [specre_trace_resolves_bidirectional_references](specre_trace_resolves_bidirectional_references.md) | stable | 2026-02-17 |
@@ -17,3 +17,4 @@
 | [specre_search_finds_specre_cards_by_query](specre_search_finds_specre_cards_by_query.md) | stable | 2026-02-18 |
 | [specre_commands_support_json_output](specre_commands_support_json_output.md) | stable | 2026-02-17 |
 | [specre_error_provides_contextual_diagnostics](specre_error_provides_contextual_diagnostics.md) | stable | 2026-02-17 |
+| [specre_search_hints_guide_query_refinement](specre_search_hints_guide_query_refinement.md) | stable | 2026-02-18 |

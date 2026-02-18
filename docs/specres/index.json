@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-02-18T02:28:08Z",
+  "generated_at": "2026-02-18T03:43:59Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -16,7 +16,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_init_initializes_project_configuration.md",
-      "last_verified": "2026-02-17"
+      "last_verified": "2026-02-18"
     },
     {
       "id": "01KHAKAYN5WPTDVR99D5Q5TMJE",
@@ -145,6 +145,14 @@
       "domain": "cli",
       "path": "docs/specres/cli/specre_error_provides_contextual_diagnostics.md",
       "last_verified": "2026-02-17"
+    },
+    {
+      "id": "01KHQBKWZY2D77XP7A50HGTZQ8",
+      "name": "specre_search_hints_guide_query_refinement",
+      "status": "stable",
+      "domain": "cli",
+      "path": "docs/specres/cli/specre_search_hints_guide_query_refinement.md",
+      "last_verified": "2026-02-18"
     }
   ],
   "source_refs": [
@@ -259,8 +267,13 @@
       "line": 2
     },
     {
+      "specre_id": "01KHQBKWZY2D77XP7A50HGTZQ8",
+      "file": "src/commands/search/hint.rs",
+      "line": 1
+    },
+    {
       "specre_id": "01KHFTCYJN8YJMW2RNHJTAQV49",
-      "file": "src/commands/search.rs",
+      "file": "src/commands/search/mod.rs",
       "line": 1
     },
     {
@@ -442,6 +455,11 @@
       "specre_id": "01KHFTCYJN8YJMW2RNHJTAQV49",
       "file": "tests/cli_search.rs",
       "line": 1
+    },
+    {
+      "specre_id": "01KHQBKWZY2D77XP7A50HGTZQ8",
+      "file": "tests/cli_search.rs",
+      "line": 2
     },
     {
       "specre_id": "01KHAN6JE712ZAKXPP97854PKJ",
