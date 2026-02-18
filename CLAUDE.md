@@ -154,6 +154,21 @@ last_verified: "2026-03-01"            # YYYY-MM-DD (required for stable)
 - **ULID:** 26-character identifiers generated via the `ulid` crate. Used as the single key for bidirectional traceability.
 - **Traceability:** Source files reference specres via `// @specre <ULID>` comments. specre cards reference source files in the "Related Files" section.
 
+## Pre-PR Quality Gate
+
+Before creating a Pull Request (or pushing commits intended for PR), **always** run the following checks and fix any issues. These mirror the CI pipeline exactly — if they pass locally, CI will pass.
+
+```bash
+cargo fmt --all                            # Auto-format all code
+cargo clippy --all-targets -- -D warnings  # Lint all targets (lib, bins, tests, examples, benches)
+cargo test                                 # Run all tests
+```
+
+**Order matters:** Run `cargo fmt` first (formatting changes may affect clippy results), then `cargo clippy`, then `cargo test`. All three must pass with zero warnings before committing.
+
+- `cargo clippy --all-targets` ensures clippy checks not only `src/` but also integration tests in `tests/`, examples, and benchmarks. Omitting `--all-targets` can let lint violations in test code slip through.
+- `cargo fmt --all` formats the entire workspace. CI runs `cargo fmt --all -- --check` and will reject unformatted code.
+
 ## Running Tests
 
 ```bash

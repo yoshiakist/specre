@@ -13,8 +13,11 @@ Follow these phases strictly.
 3. Calculate the new version (use $ARGUMENTS if provided, otherwise increment the patch version)
 4. Create a branch: `chore/bump-version-v<NEW_VERSION>`
 5. Update `version` in `Cargo.toml`
-6. Run `cargo build` to update `Cargo.lock`
-7. Commit `Cargo.toml` and `Cargo.lock`
+6. Run the **Pre-PR Quality Gate** (all three must pass before committing):
+   1. `cargo fmt --all` — auto-format all code
+   2. `cargo clippy --all-targets -- -D warnings` — lint all targets (lib, bins, tests, examples, benches)
+   3. `cargo test` — run all tests
+7. Commit `Cargo.toml`, `Cargo.lock`, and any formatting fixes
 8. Push the branch and create a PR using `gh pr create`
 
 ## --- CHECKPOINT: PR merge ---

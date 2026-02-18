@@ -74,6 +74,10 @@ For each affected file:
 ## Phase 4: Finalize & PR
 
 1. Run `specre index`
-2. Commit all remaining changes
-3. Push the branch and create a Pull Request using `gh pr create`
-4. Notify the user that the workflow is complete
+2. Run the **Pre-PR Quality Gate** (all three must pass before committing):
+   1. `cargo fmt --all` — auto-format all code
+   2. `cargo clippy --all-targets -- -D warnings` — lint all targets (lib, bins, tests, examples, benches)
+   3. `cargo test` — run all tests
+3. Commit all remaining changes
+4. Push the branch and create a Pull Request using `gh pr create`
+5. Notify the user that the workflow is complete
