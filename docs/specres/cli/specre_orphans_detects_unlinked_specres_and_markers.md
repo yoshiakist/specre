@@ -2,7 +2,7 @@
 id: "01KHB48EES4FR5TFV6ZP2W3MGT"
 name: "specre_orphans_detects_unlinked_specres_and_markers"
 status: "stable"
-last_verified: "2026-02-17"
+last_verified: "2026-02-18"
 ---
 
 ## Related Files

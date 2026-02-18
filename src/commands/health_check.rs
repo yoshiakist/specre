@@ -1,7 +1,7 @@
 // @specre 01KHFGVXWP100JXYBZTRJGMB9H
-use crate::commands::coverage::coverage_from_scan;
+use crate::commands::coverage::coverage_from_scan_ref;
 use crate::scanner::scan_source_markers;
-use crate::commands::orphans::orphans_from_scan;
+use crate::commands::orphans::orphans_from_scan_ref;
 use crate::config;
 use crate::error::SpecreError;
 use chrono::Utc;
@@ -80,7 +80,7 @@ pub fn execute() -> Result<(), SpecreError> {
     let scan = scan_source_markers(&cfg.source_dirs, cfg.target_extensions.as_deref());
 
     // Coverage
-    let cov = coverage_from_scan(&scan);
+    let cov = coverage_from_scan_ref(&scan);
     let coverage_ratio = if cov.total == 0 {
         0.0
     } else {
@@ -89,7 +89,7 @@ pub fn execute() -> Result<(), SpecreError> {
     };
 
     // Orphans
-    let orphan_result = orphans_from_scan(&cfg.specre_dir, &scan);
+    let orphan_result = orphans_from_scan_ref(&cfg.specre_dir, &scan);
     let orphan_count = orphan_result.orphan_count() + orphan_result.dangling_count();
 
     // Index freshness

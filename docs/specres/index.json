@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-02-18T07:29:59Z",
+  "generated_at": "2026-02-18T09:12:33Z",
   "source_refs": [
     {
       "file": "src/card.rs",
@@ -616,7 +616,7 @@
     {
       "domain": "cli",
       "id": "01KHB48EES4FR5TFV6ZP2W3MGT",
-      "last_verified": "2026-02-17",
+      "last_verified": "2026-02-18",
       "name": "specre_orphans_detects_unlinked_specres_and_markers",
       "path": "docs/specres/cli/specre_orphans_detects_unlinked_specres_and_markers.md",
       "status": "stable"
@@ -648,7 +648,7 @@
     {
       "domain": "cli",
       "id": "01KHFEA9QVV4A127VCRJY97A68",
-      "last_verified": "2026-02-17",
+      "last_verified": "2026-02-18",
       "name": "specre_coverage_reports_source_file_tagging",
       "path": "docs/specres/cli/specre_coverage_reports_source_file_tagging.md",
       "status": "stable"
@@ -664,7 +664,7 @@
     {
       "domain": "cli",
       "id": "01KHFGVXWP100JXYBZTRJGMB9H",
-      "last_verified": "2026-02-17",
+      "last_verified": "2026-02-18",
       "name": "specre_health_check_verifies_ecosystem_trustworthiness",
       "path": "docs/specres/cli/specre_health_check_verifies_ecosystem_trustworthiness.md",
       "status": "stable"
