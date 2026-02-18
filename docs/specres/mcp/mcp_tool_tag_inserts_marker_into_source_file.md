@@ -8,6 +8,7 @@ last_verified: "2026-02-18"
 ## Related Files
 
 - `src/commands/mcp/tools.rs` (tool handler)
+- `src/commands/mcp/helpers.rs` (tool logic)
 - `src/commands/mcp/mod.rs` (server infrastructure)
 - `src/commands/tag.rs` (reused logic: comment syntax detection, marker insertion)
 - `src/ulid.rs` (reused: ULID validation)
