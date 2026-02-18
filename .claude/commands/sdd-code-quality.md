@@ -4,7 +4,16 @@ Follow these phases strictly. This workflow iterates over each affected file, up
 
 ---
 
-## Phase 0: Branch Setup
+## Phase 0: Preflight
+
+### 0.1 MCP Preflight
+
+If specre MCP tools are available, run `health-check` first.
+
+- **healthy = true** → The specre ecosystem is trustworthy. Use `specre search` / `specre trace` for all exploration in subsequent phases.
+- **healthy = false** → Fall back to `grep` / `glob` for code exploration instead of relying on specre tools. Specre cards can still be read as reference, but do not trust coverage or traceability to be complete.
+
+### 0.2 Branch Setup
 
 1. Check the current branch with `git branch --show-current`
 2. If on `main`, create and checkout an appropriate branch (e.g., `chore/code-quality-<short-description>`)

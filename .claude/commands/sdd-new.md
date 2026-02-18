@@ -4,6 +4,13 @@ Follow these phases strictly. There is exactly ONE human checkpoint — after th
 
 ---
 
+## Phase 0: MCP Preflight
+
+If specre MCP tools are available, run `health-check` first.
+
+- **healthy = true** → The specre ecosystem is trustworthy. Proceed to Phase 1 and use `specre search` / `specre trace` for all exploration.
+- **healthy = false** → Fall back to `grep` / `glob` for code exploration instead of relying on specre tools. Specre cards can still be read as reference, but do not trust coverage or traceability to be complete.
+
 ## Phase 1: Analysis
 
 1. Read `README.md` and `docs/project/ROADMAP.md` to understand the project philosophy and where the feature fits in the roadmap

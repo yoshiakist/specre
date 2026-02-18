@@ -95,6 +95,36 @@ specre/
 3. Update tests, then implementation.
 4. Update `last_verified` to today's date.
 
+## MCP Preflight: Health-Check First
+
+When specre MCP tools are available in the agent's tool list, **always run `health-check` before any other specre operation.** This single call determines the exploration strategy for the entire session.
+
+### healthy = true
+
+The specre ecosystem — specification cards, traceability links, index, and coverage — is in a trustworthy state. Leverage it aggressively:
+
+- **Use `specre search`** to locate relevant specre cards. The most effective pattern is an AND query combining a **noun** (the subject) and an **operation** (what it does):
+  - `specre search "trace bidirectional"` — finds the traceability specre card
+  - `specre search "orphan detect"` — finds the orphan detection specre card
+  - `specre search "mcp server"` — finds MCP-related specre cards
+  - Add `--or` only when the AND query is too narrow
+- **Use `specre trace`** to navigate between specre cards, source files, and test files:
+  - `specre trace <ULID>` — from specre card to all linked source/test files
+  - `specre trace <file-path>` — from source file to governing specre card(s)
+- **Trust the specre cards** as the authoritative description of each behavior. Read the card's Scenarios and Related Files before modifying code.
+
+### healthy = false
+
+The specre ecosystem has gaps (low coverage, orphans, or stale index). Do **not** rely on specre tools for navigation — results may be incomplete or misleading. Instead:
+
+- Fall back to `grep` / `glob` for code exploration
+- Read source files and tests directly
+- Treat specre cards as reference material, not as the single source of truth
+
+### Why this matters
+
+A healthy specre ecosystem means every behavior has a specification, every source file is traced, and the index is current. An agent that trusts this ecosystem can find the right files in 1-2 tool calls instead of broad codebase searches. When the ecosystem is unhealthy, that trust is misplaced — and grep is more reliable.
+
 ## specre Card Format
 
 Every specre card follows this structure:

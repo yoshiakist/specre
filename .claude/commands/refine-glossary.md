@@ -4,6 +4,13 @@ The glossary directly controls the quality of `suggested_terms` in search hints.
 
 ---
 
+## Phase 0: MCP Preflight
+
+If specre MCP tools are available, run `health-check` first.
+
+- **healthy = true** → The specre ecosystem is trustworthy. Proceed — `specre search` results in Phase 2 will accurately reflect the card corpus.
+- **healthy = false** → The index or coverage may be stale. Run `specre index` to regenerate, then re-run `health-check`. If still unhealthy, note the gaps but proceed with caution — audit results may be incomplete.
+
 ## Phase 1: Context
 
 1. Read `README.md` — internalize the philosophy, especially "context-window aware" and "one file, one behavior"
