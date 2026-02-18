@@ -1,4 +1,5 @@
 // @specre 01KHFGVXWP100JXYBZTRJGMB9H
+mod common;
 use assert_cmd::cargo::cargo_bin_cmd;
 use assert_fs::TempDir;
 use predicates::prelude::*;
@@ -491,6 +492,9 @@ fn health_check_malformed_index_json() {
 #[test]
 fn health_check_warns_on_unreadable_index_json() {
     use std::os::unix::fs::PermissionsExt;
+    if common::is_root() {
+        return; // root bypasses file-permission checks
+    }
 
     let tmp = TempDir::new().unwrap();
     write_config(tmp.path(), "docs/specres", &["src"]);

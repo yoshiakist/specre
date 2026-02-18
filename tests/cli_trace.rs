@@ -1,4 +1,5 @@
 // @specre 01KHB48DYZDN8GHXPX7MSYJ1NZ
+mod common;
 use assert_cmd::cargo::cargo_bin_cmd;
 use assert_fs::TempDir;
 use predicates::prelude::*;
@@ -581,6 +582,9 @@ fn trace_file_path_ignores_target_extensions() {
 #[test]
 fn trace_ulid_warns_on_unreadable_specre_file() {
     use std::os::unix::fs::PermissionsExt;
+    if common::is_root() {
+        return; // root bypasses file-permission checks
+    }
 
     let tmp = TempDir::new().unwrap();
     write_config(tmp.path(), "docs/specres", &["src"]);
@@ -619,6 +623,9 @@ fn trace_ulid_warns_on_unreadable_specre_file() {
 #[test]
 fn trace_ulid_warns_on_unreadable_source_file() {
     use std::os::unix::fs::PermissionsExt;
+    if common::is_root() {
+        return; // root bypasses file-permission checks
+    }
 
     let tmp = TempDir::new().unwrap();
     write_config(tmp.path(), "docs/specres", &["src"]);

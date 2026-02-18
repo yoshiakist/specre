@@ -1,4 +1,5 @@
 // @specre 01KHAKAYN5WPTDVR99D5Q5TMJE
+mod common;
 use assert_cmd::cargo::cargo_bin_cmd;
 use assert_fs::TempDir;
 use predicates::prelude::*;
@@ -690,6 +691,9 @@ fn index_warns_on_unreadable_source_file() {
 #[test]
 fn index_warns_on_permission_denied_specre_file() {
     use std::os::unix::fs::PermissionsExt;
+    if common::is_root() {
+        return; // root bypasses file-permission checks
+    }
 
     let tmp = TempDir::new().unwrap();
     let specre_dir = tmp.path().join("docs/specres/cli");
@@ -744,6 +748,9 @@ fn index_warns_on_permission_denied_specre_file() {
 #[test]
 fn index_warns_on_unreadable_directory() {
     use std::os::unix::fs::PermissionsExt;
+    if common::is_root() {
+        return; // root bypasses file-permission checks
+    }
 
     let tmp = TempDir::new().unwrap();
     let specre_dir = tmp.path().join("docs/specres");
@@ -798,6 +805,9 @@ fn index_warns_on_unreadable_directory() {
 #[test]
 fn index_warns_on_unreadable_source_file_permission() {
     use std::os::unix::fs::PermissionsExt;
+    if common::is_root() {
+        return; // root bypasses file-permission checks
+    }
 
     let tmp = TempDir::new().unwrap();
     let specre_dir = tmp.path().join("docs/specres/cli");
