@@ -24,6 +24,29 @@ struct InitOutput {
 }
 
 const CONFIG_FILE: &str = "specre.toml";
+const GLOSSARY_FILE: &str = "glossary.toml";
+
+const GLOSSARY_SAMPLE: &str = r#"# specre glossary — Project vocabulary for search suggestions
+#
+# Add terms that describe your project's domains, operations, and concepts.
+# `specre search` uses this glossary to suggest query refinements when
+# results are empty or too broad.
+#
+# Customize this list with your project's domain-specific vocabulary:
+#   - Domain nouns: "user", "order", "payment", "notification"
+#   - Operations: "create", "update", "delete", "approve", "reject"
+#   - Technical concepts: "authentication", "authorization", "validation"
+
+terms = [
+  "user",
+  "system",
+  "create",
+  "update",
+  "delete",
+  "find",
+  "list",
+]
+"#;
 
 /// # Errors
 ///
@@ -71,6 +94,28 @@ pub fn execute(args: InitArgs, json: bool) -> Result<(), SpecreError> {
         source: e,
     })?;
 
+    if !json {
+        println!("Created {CONFIG_FILE}");
+    }
+
+    // Write glossary.toml (only if it doesn't already exist)
+    let glossary_path = Path::new(GLOSSARY_FILE);
+    let glossary_already_existed = glossary_path.exists();
+
+    if !glossary_already_existed {
+        fs::write(glossary_path, GLOSSARY_SAMPLE).map_err(|e| SpecreError::Io {
+            path: glossary_path.to_path_buf(),
+            source: e,
+        })?;
+    }
+    if !json {
+        if glossary_already_existed {
+            println!("Exists  {GLOSSARY_FILE}");
+        } else {
+            println!("Created {GLOSSARY_FILE}");
+        }
+    }
+
     if json {
         let output = InitOutput {
             specre_dir,
@@ -78,8 +123,6 @@ pub fn execute(args: InitArgs, json: bool) -> Result<(), SpecreError> {
         };
         let json_str = serde_json::to_string_pretty(&output)?;
         println!("{json_str}");
-    } else {
-        println!("Created {CONFIG_FILE}");
     }
 
     Ok(())

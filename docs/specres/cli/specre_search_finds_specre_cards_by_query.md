@@ -15,13 +15,11 @@ last_verified: "2026-02-18"
 
 ## Functional Overview
 
-`specre search` discovers specre cards by free-text query and structured filters. The free-text query is split on whitespace into keywords, and each keyword performs a case-insensitive substring match against the entire content of each specre card (front-matter and Markdown body). By default, all keywords must match (AND logic). The `--or` flag switches to OR logic, where any keyword matching is sufficient. A single keyword behaves identically under both modes. Structured filters (`--status`, `--domain`, `--verified-before`, `--verified-after`) narrow results by metadata and are always combined with the text query via AND. All parameters are optional; omitting the text query returns all cards matching the filters. Output is JSON with an `excerpt` field (the first 200 characters of the card's first prose paragraph) so that agents can decide whether to read the full card. When the number of matching results exceeds a configurable threshold, the CLI omits the individual results and instead returns the total count with a `hint` object containing available domains and per-status counts, prompting the caller to refine the query. The `--limit` flag overrides this behavior by explicitly requesting up to N results.
+`specre search` discovers specre cards by free-text query and structured filters. The free-text query is split on whitespace into keywords, and each keyword performs a case-insensitive substring match against the entire content of each specre card (front-matter and Markdown body). By default, all keywords must match (AND logic). The `--or` flag switches to OR logic, where any keyword matching is sufficient. A single keyword behaves identically under both modes. Structured filters (`--status`, `--domain`, `--verified-before`, `--verified-after`) narrow results by metadata and are always combined with the text query via AND. All parameters are optional; omitting the text query returns all cards matching the filters. Output is JSON with an `excerpt` field (the first 200 characters of the card's first prose paragraph) so that agents can decide whether to read the full card. When the number of matching results exceeds a configurable threshold, the CLI provides a `hint` instead of individual results (see `specre_search_hints_guide_query_refinement` for the hint specification). The `--limit` flag overrides this behavior by explicitly requesting up to N results.
 
 ## Design Intent
 
 `search` is the discovery entry point — "find a specre I don't yet know exists." It complements `trace` (navigate from a known ULID or file) and `orphans` (quality audit). In an MCP-enabled workflow, an agent runs `health-check` first, then `search` to locate relevant specre cards before reading them in full. The API is designed so that a single tool call with a natural-language query is the common case, while structured filters serve as optional refinements.
-
-Search results are consumed as LLM input tokens by coding agents. Returning too many results wastes context window capacity and degrades reasoning quality. The truncation threshold acts as a guardrail: when results exceed it, the CLI withholds individual entries and instead provides metadata (total count, available domains, per-status breakdown) that guides the agent toward a more precise follow-up query. This keeps the agent's context budget focused on the specre cards that actually matter.
 
 ## Key Members
 
@@ -129,56 +127,12 @@ Search results are consumed as LLM input tokens by coding agents. Returning too 
 2. CLI returns all specres in the project
 3. CLI exits with exit code 0
 
-### Results exceed truncation threshold
-
-1. `specre.toml` has `[search] max_results = 10` (default)
-2. User runs `specre search "specre"` in a project with 15 matching specres across domains `auth` and `cli`
-3. CLI outputs JSON with `results` empty and a `hint` object:
-   ```json
-   {
-     "results": [],
-     "total": 15,
-     "truncated": true,
-     "hint": {
-       "message": "Too many results (15). Refine your query with --status, --domain, or a more specific search term.",
-       "available_domains": ["auth", "cli"],
-       "status_counts": { "draft": 3, "in-development": 2, "stable": 9, "deprecated": 1 }
-     }
-   }
-   ```
-4. CLI exits with exit code 0
-
-### Results within truncation threshold
-
-1. `specre.toml` has `[search] max_results = 10`
-2. User runs `specre search "password"` and 3 specres match
-3. CLI outputs JSON with all 3 results in `results` array, `"truncated": false`, no `hint` field
-4. CLI exits with exit code 0
-
 ### --limit overrides truncation threshold
 
 1. `specre.toml` has `[search] max_results = 10`
 2. User runs `specre search "specre" --limit 5` and 15 specres match
 3. CLI returns the first 5 results (by sort order: domain, then name), `"total": 15`, `"truncated": false`
 4. CLI exits with exit code 0
-
-### Default truncation threshold
-
-1. `specre.toml` does not have a `[search]` section
-2. The default `max_results` is 10
-3. Behavior is the same as if `[search] max_results = 10` were specified
-
-### No results found
-
-1. User runs `specre search "nonexistent_term_xyz"`
-2. CLI outputs:
-   ```json
-   {
-     "results": [],
-     "total": 0
-   }
-   ```
-3. CLI exits with exit code 0 (no match is not an error)
 
 ### Excerpt extraction
 
