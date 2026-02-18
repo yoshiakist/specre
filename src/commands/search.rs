@@ -18,48 +18,48 @@ const SUGGESTED_TERMS_LIMIT: usize = 10;
 const GLOSSARY_FILE: &str = "glossary.toml";
 
 #[derive(Serialize)]
-struct SearchOutput {
-    results: Vec<SearchResult>,
+struct SearchOutput<'a> {
+    results: Vec<SearchResult<'a>>,
     total: usize,
     truncated: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
-    hint: Option<Hint>,
+    hint: Option<Hint<'a>>,
 }
 
 #[derive(Serialize)]
-struct SearchResult {
-    id: String,
-    name: String,
+struct SearchResult<'a> {
+    id: &'a str,
+    name: &'a str,
     status: Status,
-    domain: String,
-    path: String,
-    last_verified: Option<String>,
-    excerpt: Option<String>,
+    domain: &'a str,
+    path: &'a str,
+    last_verified: Option<&'a str>,
+    excerpt: Option<&'a str>,
 }
 
 #[derive(Serialize)]
-struct KeywordMatch {
-    keyword: String,
+struct KeywordMatch<'a> {
+    keyword: &'a str,
     match_count: usize,
 }
 
 #[derive(Serialize)]
-struct SuggestedTerm {
-    term: String,
+struct SuggestedTerm<'a> {
+    term: &'a str,
     match_count: usize,
 }
 
 #[derive(Serialize)]
-struct Hint {
+struct Hint<'a> {
     message: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    available_domains: Option<Vec<String>>,
+    available_domains: Option<Vec<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     status_counts: Option<BTreeMap<Status, usize>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    keyword_matches: Option<Vec<KeywordMatch>>,
+    keyword_matches: Option<Vec<KeywordMatch<'a>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    suggested_terms: Option<Vec<SuggestedTerm>>,
+    suggested_terms: Option<Vec<SuggestedTerm<'a>>>,
 }
 
 #[derive(Deserialize)]
@@ -135,26 +135,30 @@ pub fn execute(args: &SearchArgs) -> Result<(), SpecreError> {
     let total = filtered.len();
 
     // Determine truncation
-    let (truncated, results, hint) = if let Some(limit) = args.limit {
-        // --limit bypasses truncation
-        let results: Vec<SearchResult> = filtered
-            .iter()
-            .take(limit)
-            .map(|card| card_to_result(card))
-            .collect();
-        (false, results, None)
-    } else if total > max_results {
-        // Truncate: return hint instead of results
-        let hint = build_truncation_hint(&filtered, &glossary, &keywords);
-        (true, Vec::new(), Some(hint))
-    } else if total == 0 && should_show_zero_hint(&keywords, &glossary) {
-        let hint = build_zero_result_hint(&all_cards, &glossary, &keywords);
-        (false, Vec::new(), Some(hint))
-    } else {
-        let results: Vec<SearchResult> =
-            filtered.iter().map(|card| card_to_result(card)).collect();
-        (false, results, None)
-    };
+    let (truncated, results, hint) = args.limit.map_or_else(
+        || {
+            if total > max_results {
+                let hint = build_truncation_hint(&filtered, glossary.as_ref(), &keywords);
+                (true, Vec::new(), Some(hint))
+            } else if total == 0 && should_show_zero_hint(&keywords, glossary.as_ref()) {
+                let hint = build_zero_result_hint(&all_cards, glossary.as_ref(), &keywords);
+                (false, Vec::new(), Some(hint))
+            } else {
+                let results: Vec<SearchResult<'_>> =
+                    filtered.iter().map(|card| card_to_result(card)).collect();
+                (false, results, None)
+            }
+        },
+        |limit| {
+            // --limit bypasses truncation
+            let results: Vec<SearchResult<'_>> = filtered
+                .iter()
+                .take(limit)
+                .map(|card| card_to_result(card))
+                .collect();
+            (false, results, None)
+        },
+    );
 
     let output = SearchOutput {
         results,
@@ -338,15 +342,15 @@ fn skip_frontmatter(content: &str) -> &str {
     })
 }
 
-fn card_to_result(card: &SearchableCard) -> SearchResult {
+fn card_to_result(card: &SearchableCard) -> SearchResult<'_> {
     SearchResult {
-        id: card.id.clone(),
-        name: card.name.clone(),
+        id: &card.id,
+        name: &card.name,
         status: card.status,
-        domain: card.domain.clone(),
-        path: card.path.clone(),
-        last_verified: card.last_verified.clone(),
-        excerpt: card.excerpt.clone(),
+        domain: &card.domain,
+        path: &card.path,
+        last_verified: card.last_verified.as_deref(),
+        excerpt: card.excerpt.as_deref(),
     }
 }
 
@@ -371,15 +375,15 @@ fn load_glossary() -> Option<Vec<String>> {
     }
 }
 
-fn should_show_zero_hint(keywords: &[&str], glossary: &Option<Vec<String>>) -> bool {
+const fn should_show_zero_hint(keywords: &[&str], glossary: Option<&Vec<String>>) -> bool {
     !keywords.is_empty() && (glossary.is_some() || keywords.len() >= 2)
 }
 
-fn build_truncation_hint(
-    cards: &[&SearchableCard],
-    glossary: &Option<Vec<String>>,
+fn build_truncation_hint<'a>(
+    cards: &[&'a SearchableCard],
+    glossary: Option<&'a Vec<String>>,
     keywords: &[&str],
-) -> Hint {
+) -> Hint<'a> {
     let total = cards.len();
 
     let domain_set: std::collections::BTreeSet<&str> =
@@ -390,7 +394,7 @@ fn build_truncation_hint(
         *status_counts.entry(card.status).or_insert(0) += 1;
     }
 
-    let suggested_terms = glossary.as_ref().and_then(|terms| {
+    let suggested_terms = glossary.and_then(|terms| {
         let contents: Vec<&str> = cards.iter().map(|c| c.content.as_str()).collect();
         let result = compute_suggested_terms(terms, keywords, &contents, true);
         if result.is_empty() { None } else { Some(result) }
@@ -400,21 +404,21 @@ fn build_truncation_hint(
         message: format!(
             "Too many results ({total}). Refine your query with --status, --domain, or a more specific search term."
         ),
-        available_domains: Some(domain_set.into_iter().map(String::from).collect()),
+        available_domains: Some(domain_set.into_iter().collect()),
         status_counts: Some(status_counts),
         keyword_matches: None,
         suggested_terms,
     }
 }
 
-fn build_zero_result_hint(
+fn build_zero_result_hint<'a>(
     all_cards: &[SearchableCard],
-    glossary: &Option<Vec<String>>,
-    keywords: &[&str],
-) -> Hint {
+    glossary: Option<&'a Vec<String>>,
+    keywords: &[&'a str],
+) -> Hint<'a> {
     let keyword_matches = compute_keyword_matches(keywords, all_cards);
 
-    let suggested_terms = glossary.as_ref().and_then(|terms| {
+    let suggested_terms = glossary.and_then(|terms| {
         let contents: Vec<&str> = all_cards.iter().map(|c| c.content.as_str()).collect();
         let result = compute_suggested_terms(terms, keywords, &contents, false);
         if result.is_empty() { None } else { Some(result) }
@@ -436,13 +440,13 @@ fn build_zero_result_hint(
     }
 }
 
-fn compute_keyword_matches(
-    keywords: &[&str],
+fn compute_keyword_matches<'a>(
+    keywords: &[&'a str],
     all_cards: &[SearchableCard],
-) -> Vec<KeywordMatch> {
+) -> Vec<KeywordMatch<'a>> {
     let lowered: Vec<String> = all_cards.iter().map(|c| c.content.to_lowercase()).collect();
 
-    let mut matches: Vec<KeywordMatch> = keywords
+    let mut matches: Vec<KeywordMatch<'a>> = keywords
         .iter()
         .map(|kw| {
             let kw_lower = kw.to_lowercase();
@@ -451,7 +455,7 @@ fn compute_keyword_matches(
                 .filter(|c| c.contains(&kw_lower))
                 .count();
             KeywordMatch {
-                keyword: (*kw).to_string(),
+                keyword: kw,
                 match_count: count,
             }
         })
@@ -461,17 +465,17 @@ fn compute_keyword_matches(
     matches
 }
 
-fn compute_suggested_terms(
-    glossary_terms: &[String],
+fn compute_suggested_terms<'a>(
+    glossary_terms: &'a [String],
     keywords: &[&str],
     contents: &[&str],
     exclude_total_match: bool,
-) -> Vec<SuggestedTerm> {
+) -> Vec<SuggestedTerm<'a>> {
     let total = contents.len();
     let keywords_lower: Vec<String> = keywords.iter().map(|k| k.to_lowercase()).collect();
     let lowered: Vec<String> = contents.iter().map(|c| c.to_lowercase()).collect();
 
-    let mut terms: Vec<SuggestedTerm> = glossary_terms
+    let mut terms: Vec<SuggestedTerm<'a>> = glossary_terms
         .iter()
         .filter(|t| !keywords_lower.contains(&t.to_lowercase()))
         .map(|t| {
@@ -481,7 +485,7 @@ fn compute_suggested_terms(
                 .filter(|c| c.contains(&term_lower))
                 .count();
             SuggestedTerm {
-                term: t.clone(),
+                term: t.as_str(),
                 match_count: count,
             }
         })
