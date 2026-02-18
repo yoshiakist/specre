@@ -11,6 +11,7 @@ last_verified: "2026-02-15"
 - `src/cli.rs`
 - `src/commands/mod.rs`
 - `tests/cli_dispatch.rs` (Test)
+- `tests/common/mod.rs` (Test helper)
 
 ## Functional Overview
 

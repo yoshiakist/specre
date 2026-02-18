@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-02-18T09:12:33Z",
+  "generated_at": "2026-02-18T23:31:03Z",
   "source_refs": [
     {
       "file": "src/card.rs",
@@ -405,6 +405,11 @@
       "file": "tests/cli_trace.rs",
       "line": 1,
       "specre_id": "01KHB48DYZDN8GHXPX7MSYJ1NZ"
+    },
+    {
+      "file": "tests/common/mod.rs",
+      "line": 1,
+      "specre_id": "01KHFFCX8BCDAYP8YHG0J65H0E"
     },
     {
       "file": "tests/mcp/helpers.rs",
