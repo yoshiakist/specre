@@ -21,7 +21,7 @@ Enable AI agents to utilize specre as a first-class tool.
 - [x] `specre health-check` — Comprehensive health check to determine whether specre cards adequately describe the project's overall behavior
 - [x] `specre search <query>` — Full-text + status/domain filtering across all specres, with JSON output for agent consumption
 - [x] Agent-friendly output formats across all commands (`--json`)
-- [ ] MCP server — Expose specre capabilities as Resources, Tools, and Prompts via the [Model Context Protocol](https://modelcontextprotocol.io/), enabling integration with Claude Code, Cursor, VS Code Copilot, and other MCP-compatible AI tools
+- [x] MCP server — Expose specre capabilities as Resources, Tools, and Prompts via the [Model Context Protocol](https://modelcontextprotocol.io/), enabling integration with Claude Code, Cursor, VS Code Copilot, and other MCP-compatible AI tools
 
 ### Coverage command design
 
