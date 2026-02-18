@@ -1,3 +1,4 @@
+// @specre 01KHFFCX8BCDAYP8YHG0J65H0E
 /// Returns `true` when the process runs as root (effective UID 0).
 ///
 /// Root bypasses POSIX file-permission checks, making permission-based
