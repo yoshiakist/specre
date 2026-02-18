@@ -47,7 +47,7 @@ fn mcp_tool_index_with_cards() {
     assert_eq!(payload["index_file"], "docs/specres/index.json");
     assert_eq!(payload["specre_count"], 2);
     assert_eq!(payload["source_ref_count"], 1);
-    assert!(payload["index_md_files"].as_array().unwrap().len() >= 1);
+    assert!(!payload["index_md_files"].as_array().unwrap().is_empty());
 
     // Verify index.json was actually created
     let index_path = dir.path().join("docs/specres/index.json");

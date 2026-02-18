@@ -19,7 +19,7 @@ fn call_health_check(stdin: &mut impl std::io::Write, reader: &mut BufReader<imp
     recv(reader)
 }
 
-/// Helper: create a fresh index.json with a recent generated_at timestamp.
+/// Helper: create a fresh index.json with a recent `generated_at` timestamp.
 fn create_fresh_index(dir: &assert_fs::TempDir, specre_dir: &str) {
     let now = chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
     let index = serde_json::json!({

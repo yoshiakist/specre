@@ -6,7 +6,7 @@ use serde_json::{Value, json};
 use std::io::BufReader;
 
 /// Helper: call the `status` tool and return the response.
-fn call_status(stdin: &mut impl std::io::Write, reader: &mut BufReader<impl std::io::Read>, id: u64, args: Value) -> Value {
+fn call_status(stdin: &mut impl std::io::Write, reader: &mut BufReader<impl std::io::Read>, id: u64, args: &Value) -> Value {
     send(stdin, &json!({
         "jsonrpc": "2.0",
         "id": id,
@@ -35,7 +35,7 @@ fn mcp_tool_status_mixed() {
     let mut reader = BufReader::new(child.stdout.take().unwrap());
     initialize(&mut stdin, &mut reader);
 
-    let response = call_status(&mut stdin, &mut reader, 2, json!({}));
+    let response = call_status(&mut stdin, &mut reader, 2, &json!({}));
 
     assert_eq!(response["id"], 2);
     let result = &response["result"];
@@ -74,7 +74,7 @@ fn mcp_tool_status_custom_threshold() {
     initialize(&mut stdin, &mut reader);
 
     // With default threshold (30 days), card is not stale
-    let response = call_status(&mut stdin, &mut reader, 2, json!({}));
+    let response = call_status(&mut stdin, &mut reader, 2, &json!({}));
     let payload: Value = serde_json::from_str(response["result"]["content"][0]["text"].as_str().unwrap()).unwrap();
     assert!(payload["stale"].as_array().unwrap().is_empty(), "should not be stale with default threshold");
 
@@ -95,7 +95,7 @@ fn mcp_tool_status_empty() {
     let mut reader = BufReader::new(child.stdout.take().unwrap());
     initialize(&mut stdin, &mut reader);
 
-    let response = call_status(&mut stdin, &mut reader, 2, json!({}));
+    let response = call_status(&mut stdin, &mut reader, 2, &json!({}));
 
     let payload: Value = serde_json::from_str(response["result"]["content"][0]["text"].as_str().unwrap()).unwrap();
     assert_eq!(payload["summary"]["total"], 0);

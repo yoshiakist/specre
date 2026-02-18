@@ -49,10 +49,7 @@ fn write_specre_card_full(
 ) {
     let path = dir.join(rel_path);
     fs::create_dir_all(path.parent().unwrap()).unwrap();
-    let lv = match last_verified {
-        Some(d) => format!("last_verified: \"{d}\"\n"),
-        None => String::new(),
-    };
+    let lv = last_verified.map_or_else(String::new, |d| format!("last_verified: \"{d}\"\n"));
     let content = format!(
         "---\nid: \"{id}\"\nname: \"{name}\"\nstatus: \"{status}\"\n{lv}---\n\n{body}"
     );
@@ -489,7 +486,7 @@ fn search_truncated_when_exceeds_threshold() {
     assert_eq!(json["truncated"], true);
     assert!(json["results"].as_array().unwrap().is_empty());
     // hint should be present
-    assert!(json["hint"]["message"].as_str().unwrap().contains("5"));
+    assert!(json["hint"]["message"].as_str().unwrap().contains('5'));
     let domains = json["hint"]["available_domains"].as_array().unwrap();
     let domain_strs: Vec<&str> = domains.iter().map(|d| d.as_str().unwrap()).collect();
     assert!(domain_strs.contains(&"auth"));
@@ -1385,7 +1382,7 @@ fn search_no_results_single_keyword_with_glossary_shows_hint() {
     // Hint should be present (glossary exists)
     let hint = &json["hint"];
     assert!(hint["message"].as_str().is_some());
-    assert!(hint["suggested_terms"].as_array().unwrap().len() > 0);
+    assert!(!hint["suggested_terms"].as_array().unwrap().is_empty());
 }
 
 // -- Scenario: Results exceed truncation threshold with glossary --
@@ -1494,7 +1491,7 @@ fn search_truncated_without_glossary_no_suggested_terms() {
         write_specre_card(
             &tmp,
             &format!("docs/specres/cli/card_{i}.md"),
-            &format!("01{:A<24}", i),
+            &format!("01{i:A<24}"),
             &format!("card_{i}"),
             "stable",
         );

@@ -2,13 +2,14 @@
 use assert_cmd::cargo::cargo_bin_cmd;
 use assert_fs::TempDir;
 use predicates::prelude::*;
+use std::fmt::Write;
 use std::fs;
 
 fn specre() -> assert_cmd::Command {
     cargo_bin_cmd!("specre")
 }
 
-/// Helper: create specre.toml with given specre_dir and source_dirs
+/// Helper: create `specre.toml` with given `specre_dir` and `source_dirs`
 fn write_config(dir: &std::path::Path, specre_dir: &str, source_dirs: &[&str]) {
     let dirs_toml: Vec<String> = source_dirs.iter().map(|s| format!("\"{s}\"")).collect();
     let content = format!(
@@ -18,7 +19,7 @@ fn write_config(dir: &std::path::Path, specre_dir: &str, source_dirs: &[&str]) {
     fs::write(dir.join("specre.toml"), content).unwrap();
 }
 
-/// Helper: create specre.toml with target_extensions
+/// Helper: create `specre.toml` with `target_extensions`
 fn write_config_with_ext(
     dir: &std::path::Path,
     specre_dir: &str,
@@ -48,7 +49,7 @@ fn write_specre(
     fs::create_dir_all(path.parent().unwrap()).unwrap();
     let mut fm = format!("---\nid: \"{id}\"\nname: \"{name}\"\nstatus: \"{status}\"\n");
     if let Some(lv) = last_verified {
-        fm.push_str(&format!("last_verified: \"{lv}\"\n"));
+        let _ = writeln!(fm, "last_verified: \"{lv}\"");
     }
     fm.push_str("---\n\n## Related Files\n\n-\n");
     fs::write(path, fm).unwrap();
@@ -517,7 +518,7 @@ fn index_ignores_markers_inside_string_literals() {
         &[
             "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA",
             r#"    write_source(tmp.path(), "src/a.rs", "// @specre 01BBBBBBBBBBBBBBBBBBBBBBBB\n");"#,
-            r#"    let s = '// @specre 01CCCCCCCCCCCCCCCCCCCCCCCC';"#,
+            r"    let s = '// @specre 01CCCCCCCCCCCCCCCCCCCCCCCC';",
             "",
         ]
         .join("\n"),

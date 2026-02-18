@@ -6,7 +6,7 @@ use serde_json::{Value, json};
 use std::io::BufReader;
 
 /// Helper: call the `tag` tool and return the response.
-fn call_tag(stdin: &mut impl std::io::Write, reader: &mut BufReader<impl std::io::Read>, id: u64, args: Value) -> Value {
+fn call_tag(stdin: &mut impl std::io::Write, reader: &mut BufReader<impl std::io::Read>, id: u64, args: &Value) -> Value {
     send(stdin, &json!({
         "jsonrpc": "2.0",
         "id": id,
@@ -34,7 +34,7 @@ fn mcp_tool_tag_inserts_marker() {
     let mut reader = BufReader::new(child.stdout.take().unwrap());
     initialize(&mut stdin, &mut reader);
 
-    let response = call_tag(&mut stdin, &mut reader, 2, json!({
+    let response = call_tag(&mut stdin, &mut reader, 2, &json!({
         "ulid": "01HZYPMZRK8F9R2DGBGGMM2N8T",
         "file": "src/example.rs"
     }));
@@ -78,7 +78,7 @@ fn mcp_tool_tag_returns_existing_marker() {
     let mut reader = BufReader::new(child.stdout.take().unwrap());
     initialize(&mut stdin, &mut reader);
 
-    let response = call_tag(&mut stdin, &mut reader, 2, json!({
+    let response = call_tag(&mut stdin, &mut reader, 2, &json!({
         "ulid": "01HZYPMZRK8F9R2DGBGGMM2N8T",
         "file": "src/example.rs"
     }));
@@ -113,7 +113,7 @@ fn mcp_tool_tag_errors_on_invalid_ulid() {
     let mut reader = BufReader::new(child.stdout.take().unwrap());
     initialize(&mut stdin, &mut reader);
 
-    let response = call_tag(&mut stdin, &mut reader, 2, json!({
+    let response = call_tag(&mut stdin, &mut reader, 2, &json!({
         "ulid": "abc123",
         "file": "src/example.rs"
     }));
@@ -144,7 +144,7 @@ fn mcp_tool_tag_errors_on_missing_file() {
     let mut reader = BufReader::new(child.stdout.take().unwrap());
     initialize(&mut stdin, &mut reader);
 
-    let response = call_tag(&mut stdin, &mut reader, 2, json!({
+    let response = call_tag(&mut stdin, &mut reader, 2, &json!({
         "ulid": "01HZYPMZRK8F9R2DGBGGMM2N8T",
         "file": "src/nonexistent.rs"
     }));
@@ -172,7 +172,7 @@ fn mcp_tool_tag_errors_on_directory() {
     let mut reader = BufReader::new(child.stdout.take().unwrap());
     initialize(&mut stdin, &mut reader);
 
-    let response = call_tag(&mut stdin, &mut reader, 2, json!({
+    let response = call_tag(&mut stdin, &mut reader, 2, &json!({
         "ulid": "01HZYPMZRK8F9R2DGBGGMM2N8T",
         "file": "src"
     }));
@@ -201,7 +201,7 @@ fn mcp_tool_tag_errors_on_unsupported_extension() {
     let mut reader = BufReader::new(child.stdout.take().unwrap());
     initialize(&mut stdin, &mut reader);
 
-    let response = call_tag(&mut stdin, &mut reader, 2, json!({
+    let response = call_tag(&mut stdin, &mut reader, 2, &json!({
         "ulid": "01HZYPMZRK8F9R2DGBGGMM2N8T",
         "file": "data/config.xyz"
     }));
