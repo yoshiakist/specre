@@ -21,9 +21,21 @@ pub struct CoverageResult {
     pub uncovered: Vec<String>,
 }
 
-/// Derives a [`CoverageResult`] from a pre-computed [`SourceScanResult`].
+/// Derives a [`CoverageResult`] by consuming a [`SourceScanResult`], avoiding clones.
 #[must_use]
-pub fn coverage_from_scan(scan: &SourceScanResult) -> CoverageResult {
+pub fn coverage_from_scan(scan: SourceScanResult) -> CoverageResult {
+    CoverageResult {
+        total: scan.total,
+        tagged: scan.tagged,
+        uncovered: scan.uncovered,
+    }
+}
+
+/// Derives a [`CoverageResult`] by borrowing a [`SourceScanResult`].
+///
+/// Use this when the scan is shared with other consumers (e.g., `health-check`).
+#[must_use]
+pub fn coverage_from_scan_ref(scan: &SourceScanResult) -> CoverageResult {
     CoverageResult {
         total: scan.total,
         tagged: scan.tagged,
@@ -37,7 +49,7 @@ pub fn compute_coverage(
     target_extensions: Option<&[String]>,
 ) -> CoverageResult {
     let scan = scan_source_markers(source_dirs, target_extensions);
-    coverage_from_scan(&scan)
+    coverage_from_scan(scan)
 }
 
 /// # Errors

@@ -35,9 +35,54 @@ impl OrphanResult {
     }
 }
 
-/// Derives an [`OrphanResult`] from a pre-computed [`SourceScanResult`].
+/// Derives an [`OrphanResult`] by consuming a [`SourceScanResult`], avoiding clones.
 #[must_use]
-pub fn orphans_from_scan(specre_dir: &str, scan: &SourceScanResult) -> OrphanResult {
+pub fn orphans_from_scan(specre_dir: &str, scan: SourceScanResult) -> OrphanResult {
+    let specre_dir_path = Path::new(specre_dir);
+    let cards = card::scan_specre_cards(specre_dir_path, specre_dir);
+
+    let SourceScanResult {
+        marker_ulids,
+        all_markers,
+        ..
+    } = scan;
+
+    // Find dangling markers (markers with no matching specre)
+    // Scope specre_ids borrow so cards can be consumed below
+    let mut dangling: Vec<DanglingMarkerDetail> = {
+        let specre_ids: HashSet<&str> = cards.iter().map(|c| c.id.as_str()).collect();
+        all_markers
+            .into_iter()
+            .filter(|m| !specre_ids.contains(m.ulid.as_str()))
+            .map(|m| DanglingMarkerDetail {
+                file: m.file,
+                line: m.line,
+                ulid: m.ulid,
+            })
+            .collect()
+    };
+    dangling.sort_by(|a, b| a.file.cmp(&b.file).then(a.line.cmp(&b.line)));
+
+    // Find orphan specres (non-deprecated specres with no source markers)
+    // into_iter() moves c.path instead of cloning
+    let mut orphan_paths: Vec<String> = cards
+        .into_iter()
+        .filter(|c| c.status != Status::Deprecated && !marker_ulids.contains(c.id.as_str()))
+        .map(|c| c.path)
+        .collect();
+    orphan_paths.sort();
+
+    OrphanResult {
+        orphan_specres: orphan_paths,
+        dangling_markers: dangling,
+    }
+}
+
+/// Derives an [`OrphanResult`] by borrowing a [`SourceScanResult`].
+///
+/// Use this when the scan is shared with other consumers (e.g., `health-check`).
+#[must_use]
+pub fn orphans_from_scan_ref(specre_dir: &str, scan: &SourceScanResult) -> OrphanResult {
     let specre_dir_path = Path::new(specre_dir);
     let cards = card::scan_specre_cards(specre_dir_path, specre_dir);
 
@@ -79,7 +124,7 @@ pub fn compute_orphans(
     target_extensions: Option<&[String]>,
 ) -> OrphanResult {
     let scan = scan_source_markers(source_dirs, target_extensions);
-    orphans_from_scan(specre_dir, &scan)
+    orphans_from_scan(specre_dir, scan)
 }
 
 /// # Errors

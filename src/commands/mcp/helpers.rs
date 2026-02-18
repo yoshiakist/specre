@@ -8,8 +8,8 @@
 // @specre 01KHQKZ6ZHSZX3GR2D7DS23XTE
 
 use crate::card::{self, to_forward_slash};
-use crate::commands::coverage::coverage_from_scan;
-use crate::commands::orphans::{compute_orphans, orphans_from_scan};
+use crate::commands::coverage::coverage_from_scan_ref;
+use crate::commands::orphans::{compute_orphans, orphans_from_scan_ref};
 use crate::commands::tag::comment_syntax;
 use crate::parser::{extract_marker_ulid, parse_frontmatter};
 use crate::scanner::{collect_md_files, scan_source_markers};
@@ -525,14 +525,14 @@ pub fn execute_health_check() -> Result<CallToolResult, McpError> {
     // Single scan for both coverage and orphans
     let scan = scan_source_markers(&cfg.source_dirs, cfg.target_extensions.as_deref());
 
-    let cov = coverage_from_scan(&scan);
+    let cov = coverage_from_scan_ref(&scan);
     let coverage_ratio = if cov.total == 0 {
         0.0
     } else {
         ((cov.tagged as f64 / cov.total as f64) * 100.0).round() / 100.0
     };
 
-    let orphan_result = orphans_from_scan(&cfg.specre_dir, &scan);
+    let orphan_result = orphans_from_scan_ref(&cfg.specre_dir, &scan);
     let orphan_count = orphan_result.orphan_count() + orphan_result.dangling_count();
 
     let index_age_hours = get_index_age_hours(&cfg.specre_dir);
