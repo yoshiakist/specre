@@ -3,13 +3,14 @@ use assert_cmd::cargo::cargo_bin_cmd;
 use assert_fs::TempDir;
 use chrono::{Days, Utc};
 use predicates::prelude::*;
+use std::fmt::Write;
 use std::fs;
 
 fn specre() -> assert_cmd::Command {
     cargo_bin_cmd!("specre")
 }
 
-/// Helper: create specre.toml with given specre_dir
+/// Helper: create `specre.toml` with given `specre_dir`
 fn write_config(dir: &std::path::Path, specre_dir: &str) {
     let content = format!("specre_dir = \"{specre_dir}\"\nsource_dirs = [\"src\"]\n");
     fs::write(dir.join("specre.toml"), content).unwrap();
@@ -28,7 +29,7 @@ fn write_specre(
     fs::create_dir_all(path.parent().unwrap()).unwrap();
     let mut fm = format!("---\nid: \"{id}\"\nname: \"{name}\"\nstatus: \"{status}\"\n");
     if let Some(lv) = last_verified {
-        fm.push_str(&format!("last_verified: \"{lv}\"\n"));
+        let _ = writeln!(fm, "last_verified: \"{lv}\"");
     }
     fm.push_str("---\n\n## Related Files\n\n-\n");
     fs::write(path, fm).unwrap();

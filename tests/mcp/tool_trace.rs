@@ -6,7 +6,7 @@ use serde_json::{Value, json};
 use std::io::BufReader;
 
 /// Helper: call the `trace` tool and return the response.
-fn call_trace(stdin: &mut impl std::io::Write, reader: &mut BufReader<impl std::io::Read>, id: u64, args: Value) -> Value {
+fn call_trace(stdin: &mut impl std::io::Write, reader: &mut BufReader<impl std::io::Read>, id: u64, args: &Value) -> Value {
     send(stdin, &json!({
         "jsonrpc": "2.0",
         "id": id,
@@ -35,7 +35,7 @@ fn mcp_tool_trace_by_ulid_found() {
     let mut reader = BufReader::new(child.stdout.take().unwrap());
     initialize(&mut stdin, &mut reader);
 
-    let response = call_trace(&mut stdin, &mut reader, 2, json!({
+    let response = call_trace(&mut stdin, &mut reader, 2, &json!({
         "query": "01AAAAAAAAAAAAAAAAAAAAAAAA"
     }));
 
@@ -66,7 +66,7 @@ fn mcp_tool_trace_by_ulid_not_found() {
     let mut reader = BufReader::new(child.stdout.take().unwrap());
     initialize(&mut stdin, &mut reader);
 
-    let response = call_trace(&mut stdin, &mut reader, 2, json!({
+    let response = call_trace(&mut stdin, &mut reader, 2, &json!({
         "query": "01ZZZZZZZZZZZZZZZZZZZZZZZZ"
     }));
 
@@ -97,7 +97,7 @@ fn mcp_tool_trace_by_file_found() {
     let mut reader = BufReader::new(child.stdout.take().unwrap());
     initialize(&mut stdin, &mut reader);
 
-    let response = call_trace(&mut stdin, &mut reader, 2, json!({
+    let response = call_trace(&mut stdin, &mut reader, 2, &json!({
         "query": "src/main.rs"
     }));
 
@@ -128,7 +128,7 @@ fn mcp_tool_trace_file_not_found() {
     let mut reader = BufReader::new(child.stdout.take().unwrap());
     initialize(&mut stdin, &mut reader);
 
-    let response = call_trace(&mut stdin, &mut reader, 2, json!({
+    let response = call_trace(&mut stdin, &mut reader, 2, &json!({
         "query": "src/nonexistent.rs"
     }));
 

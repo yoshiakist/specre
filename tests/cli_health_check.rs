@@ -509,6 +509,7 @@ fn health_check_warns_on_unreadable_index_json() {
     );
 
     // Create index.json but make it unreadable
+    write_index_json(tmp.path(), &recent_timestamp());
     let index_path = tmp.path().join("docs/specres/index.json");
     write_index_json(tmp.path(), &recent_timestamp());
     fs::set_permissions(&index_path, fs::Permissions::from_mode(0o000)).unwrap();

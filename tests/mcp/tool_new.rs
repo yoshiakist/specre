@@ -6,7 +6,7 @@ use serde_json::{Value, json};
 use std::io::BufReader;
 
 /// Helper: call the `new` tool and return the response.
-fn call_new(stdin: &mut impl std::io::Write, reader: &mut BufReader<impl std::io::Read>, id: u64, args: Value) -> Value {
+fn call_new(stdin: &mut impl std::io::Write, reader: &mut BufReader<impl std::io::Read>, id: u64, args: &Value) -> Value {
     send(stdin, &json!({
         "jsonrpc": "2.0",
         "id": id,
@@ -31,7 +31,7 @@ fn mcp_tool_new_creates_card_with_name() {
     let mut reader = BufReader::new(child.stdout.take().unwrap());
     initialize(&mut stdin, &mut reader);
 
-    let response = call_new(&mut stdin, &mut reader, 2, json!({
+    let response = call_new(&mut stdin, &mut reader, 2, &json!({
         "target_dir": "docs/specres/auth",
         "name": "user_can_sign_up"
     }));
@@ -71,7 +71,7 @@ fn mcp_tool_new_defaults_to_untitled() {
     let mut reader = BufReader::new(child.stdout.take().unwrap());
     initialize(&mut stdin, &mut reader);
 
-    let response = call_new(&mut stdin, &mut reader, 2, json!({
+    let response = call_new(&mut stdin, &mut reader, 2, &json!({
         "target_dir": "docs/specres/misc"
     }));
 
@@ -102,7 +102,7 @@ fn mcp_tool_new_creates_directory_recursively() {
     let mut reader = BufReader::new(child.stdout.take().unwrap());
     initialize(&mut stdin, &mut reader);
 
-    let response = call_new(&mut stdin, &mut reader, 2, json!({
+    let response = call_new(&mut stdin, &mut reader, 2, &json!({
         "target_dir": "docs/specres/new_domain/sub",
         "name": "some_behavior"
     }));
@@ -131,7 +131,7 @@ fn mcp_tool_new_errors_when_file_exists() {
     let mut reader = BufReader::new(child.stdout.take().unwrap());
     initialize(&mut stdin, &mut reader);
 
-    let response = call_new(&mut stdin, &mut reader, 2, json!({
+    let response = call_new(&mut stdin, &mut reader, 2, &json!({
         "target_dir": "docs/specres/domain",
         "name": "existing"
     }));
@@ -159,7 +159,7 @@ fn mcp_tool_new_errors_when_target_is_file() {
     let mut reader = BufReader::new(child.stdout.take().unwrap());
     initialize(&mut stdin, &mut reader);
 
-    let response = call_new(&mut stdin, &mut reader, 2, json!({
+    let response = call_new(&mut stdin, &mut reader, 2, &json!({
         "target_dir": "docs/specres/not_a_dir",
         "name": "some_behavior"
     }));

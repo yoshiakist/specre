@@ -686,7 +686,16 @@ fn tag_shows_path_in_io_error() {
         );
 
     // Restore permissions for cleanup
-    let mut perms = fs::metadata(path).unwrap().permissions();
-    perms.set_readonly(false);
-    fs::set_permissions(path, perms).unwrap();
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(path, fs::Permissions::from_mode(0o644)).unwrap();
+    }
+    #[cfg(not(unix))]
+    {
+        let mut perms = fs::metadata(path).unwrap().permissions();
+        #[allow(clippy::permissions_set_readonly_false)]
+        perms.set_readonly(false);
+        fs::set_permissions(path, perms).unwrap();
+    }
 }

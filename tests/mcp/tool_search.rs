@@ -6,7 +6,7 @@ use serde_json::{Value, json};
 use std::io::BufReader;
 
 /// Helper: call the `search` tool and return the response.
-fn call_search(stdin: &mut impl std::io::Write, reader: &mut BufReader<impl std::io::Read>, id: u64, args: Value) -> Value {
+fn call_search(stdin: &mut impl std::io::Write, reader: &mut BufReader<impl std::io::Read>, id: u64, args: &Value) -> Value {
     send(stdin, &json!({
         "jsonrpc": "2.0",
         "id": id,
@@ -34,7 +34,7 @@ fn mcp_tool_search_by_keyword() {
     let mut reader = BufReader::new(child.stdout.take().unwrap());
     initialize(&mut stdin, &mut reader);
 
-    let response = call_search(&mut stdin, &mut reader, 2, json!({
+    let response = call_search(&mut stdin, &mut reader, 2, &json!({
         "query": "card_a"
     }));
 
@@ -67,7 +67,7 @@ fn mcp_tool_search_by_status() {
     let mut reader = BufReader::new(child.stdout.take().unwrap());
     initialize(&mut stdin, &mut reader);
 
-    let response = call_search(&mut stdin, &mut reader, 2, json!({
+    let response = call_search(&mut stdin, &mut reader, 2, &json!({
         "status": "draft"
     }));
 
@@ -95,7 +95,7 @@ fn mcp_tool_search_by_domain() {
     let mut reader = BufReader::new(child.stdout.take().unwrap());
     initialize(&mut stdin, &mut reader);
 
-    let response = call_search(&mut stdin, &mut reader, 2, json!({
+    let response = call_search(&mut stdin, &mut reader, 2, &json!({
         "domain": "auth"
     }));
 
@@ -121,7 +121,7 @@ fn mcp_tool_search_no_results() {
     let mut reader = BufReader::new(child.stdout.take().unwrap());
     initialize(&mut stdin, &mut reader);
 
-    let response = call_search(&mut stdin, &mut reader, 2, json!({
+    let response = call_search(&mut stdin, &mut reader, 2, &json!({
         "query": "nonexistent_keyword"
     }));
 
@@ -149,7 +149,7 @@ fn mcp_tool_search_with_limit() {
     let mut reader = BufReader::new(child.stdout.take().unwrap());
     initialize(&mut stdin, &mut reader);
 
-    let response = call_search(&mut stdin, &mut reader, 2, json!({
+    let response = call_search(&mut stdin, &mut reader, 2, &json!({
         "limit": 1
     }));
 
@@ -185,7 +185,7 @@ fn mcp_tool_search_truncation_with_hint() {
     initialize(&mut stdin, &mut reader);
 
     // Search with no limit — 3 results exceed max_results=2
-    let response = call_search(&mut stdin, &mut reader, 2, json!({}));
+    let response = call_search(&mut stdin, &mut reader, 2, &json!({}));
 
     let payload: Value = serde_json::from_str(response["result"]["content"][0]["text"].as_str().unwrap()).unwrap();
     assert_eq!(payload["total"], 3);
@@ -223,7 +223,7 @@ fn mcp_tool_search_limit_bypasses_truncation() {
     initialize(&mut stdin, &mut reader);
 
     // Explicit limit bypasses truncation — returns results even though total > max_results
-    let response = call_search(&mut stdin, &mut reader, 2, json!({
+    let response = call_search(&mut stdin, &mut reader, 2, &json!({
         "limit": 2
     }));
 
@@ -250,7 +250,7 @@ fn mcp_tool_search_invalid_status() {
     let mut reader = BufReader::new(child.stdout.take().unwrap());
     initialize(&mut stdin, &mut reader);
 
-    let response = call_search(&mut stdin, &mut reader, 2, json!({
+    let response = call_search(&mut stdin, &mut reader, 2, &json!({
         "status": "invalid_status"
     }));
 

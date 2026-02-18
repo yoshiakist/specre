@@ -154,7 +154,7 @@ mod tests {
 
     #[test]
     fn tokio_runtime_display() {
-        let inner = std::io::Error::new(std::io::ErrorKind::Other, "cannot create runtime");
+        let inner = std::io::Error::other("cannot create runtime");
         let err = SpecreError::TokioRuntime(inner);
         assert_eq!(
             err.to_string(),
@@ -196,7 +196,7 @@ mod tests {
 
     #[test]
     fn io_source_returns_some() {
-        let io_err = std::io::Error::new(std::io::ErrorKind::Other, "oops");
+        let io_err = std::io::Error::other("oops");
         let err = SpecreError::Io {
             path: PathBuf::from("x"),
             source: io_err,
@@ -219,7 +219,7 @@ mod tests {
 
     #[test]
     fn tokio_runtime_source_returns_some() {
-        let inner = std::io::Error::new(std::io::ErrorKind::Other, "err");
+        let inner = std::io::Error::other("err");
         let err = SpecreError::TokioRuntime(inner);
         assert!(err.source().is_some());
     }
