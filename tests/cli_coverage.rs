@@ -332,7 +332,7 @@ fn coverage_warns_on_unreadable_source_file() {
     use std::os::unix::fs::PermissionsExt;
 
     let tmp = TempDir::new().unwrap();
-    write_config(tmp.path(), "docs/specres", &["src"], &["rs"]);
+    write_config_with_ext(tmp.path(), "docs/specres", &["src"], &["rs"]);
 
     let src_dir = tmp.path().join("src");
     fs::create_dir_all(&src_dir).unwrap();
