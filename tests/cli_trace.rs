@@ -25,7 +25,10 @@ fn write_config_with_ext(
     target_extensions: &[&str],
 ) {
     let dirs_toml: Vec<String> = source_dirs.iter().map(|s| format!("\"{s}\"")).collect();
-    let ext_toml: Vec<String> = target_extensions.iter().map(|s| format!("\"{s}\"")).collect();
+    let ext_toml: Vec<String> = target_extensions
+        .iter()
+        .map(|s| format!("\"{s}\""))
+        .collect();
     let content = format!(
         "specre_dir = \"{specre_dir}\"\nsource_dirs = [{}]\ntarget_extensions = [{}]\n",
         dirs_toml.join(", "),
@@ -590,7 +593,13 @@ fn trace_ulid_warns_on_unreadable_specre_file() {
     write_config(tmp.path(), "docs/specres", &["src"]);
 
     // Create a readable specre card
-    write_specre(tmp.path(), "docs/specres/cli/good.md", "01AAAAAAAAAAAAAAAAAAAAAAAA", "good", "draft");
+    write_specre(
+        tmp.path(),
+        "docs/specres/cli/good.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "good",
+        "draft",
+    );
 
     // Create an unreadable specre card
     let bad_card = tmp.path().join("docs/specres/cli/bad.md");
@@ -630,8 +639,18 @@ fn trace_ulid_warns_on_unreadable_source_file() {
     let tmp = TempDir::new().unwrap();
     write_config(tmp.path(), "docs/specres", &["src"]);
 
-    write_specre(tmp.path(), "docs/specres/cli/spec_a.md", "01AAAAAAAAAAAAAAAAAAAAAAAA", "spec_a", "draft");
-    write_source(tmp.path(), "src/good.rs", "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n");
+    write_specre(
+        tmp.path(),
+        "docs/specres/cli/spec_a.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "spec_a",
+        "draft",
+    );
+    write_source(
+        tmp.path(),
+        "src/good.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n",
+    );
 
     let bad_file = tmp.path().join("src/bad.rs");
     fs::write(&bad_file, "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n").unwrap();

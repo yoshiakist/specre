@@ -1,21 +1,28 @@
 // @specre 01KHQKZ5M6N304YYJNW8VDKT4W
 
-use assert_fs::prelude::*;
 use super::helpers::*;
+use assert_fs::prelude::*;
 use serde_json::{Value, json};
 use std::io::BufReader;
 
 /// Helper: call the `index` tool and return the response.
-fn call_index(stdin: &mut impl std::io::Write, reader: &mut BufReader<impl std::io::Read>, id: u64) -> Value {
-    send(stdin, &json!({
-        "jsonrpc": "2.0",
-        "id": id,
-        "method": "tools/call",
-        "params": {
-            "name": "index",
-            "arguments": {}
-        }
-    }));
+fn call_index(
+    stdin: &mut impl std::io::Write,
+    reader: &mut BufReader<impl std::io::Read>,
+    id: u64,
+) -> Value {
+    send(
+        stdin,
+        &json!({
+            "jsonrpc": "2.0",
+            "id": id,
+            "method": "tools/call",
+            "params": {
+                "name": "index",
+                "arguments": {}
+            }
+        }),
+    );
     recv(reader)
 }
 
@@ -26,11 +33,27 @@ fn call_index(stdin: &mut impl std::io::Write, reader: &mut BufReader<impl std::
 #[test]
 fn mcp_tool_index_with_cards() {
     let dir = setup_project("docs/specres");
-    create_specre_card(&dir, "docs/specres", "cli/card_a.md", "01AAAAAAAAAAAAAAAAAAAAAAAA", "card_a", "stable");
-    create_specre_card(&dir, "docs/specres", "cli/card_b.md", "01BBBBBBBBBBBBBBBBBBBBBBBB", "card_b", "draft");
+    create_specre_card(
+        &dir,
+        "docs/specres",
+        "cli/card_a.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "card_a",
+        "stable",
+    );
+    create_specre_card(
+        &dir,
+        "docs/specres",
+        "cli/card_b.md",
+        "01BBBBBBBBBBBBBBBBBBBBBBBB",
+        "card_b",
+        "draft",
+    );
     // Create a source file with a marker
     dir.child("src").create_dir_all().unwrap();
-    dir.child("src/main.rs").write_str("// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nfn main() {}\n").unwrap();
+    dir.child("src/main.rs")
+        .write_str("// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nfn main() {}\n")
+        .unwrap();
 
     let mut child = spawn_mcp(dir.path());
     let mut stdin = child.stdin.take().unwrap();
@@ -41,9 +64,13 @@ fn mcp_tool_index_with_cards() {
 
     assert_eq!(response["id"], 2);
     let result = &response["result"];
-    assert!(!result["isError"].as_bool().unwrap_or(false), "expected success");
+    assert!(
+        !result["isError"].as_bool().unwrap_or(false),
+        "expected success"
+    );
 
-    let payload: Value = serde_json::from_str(result["content"][0]["text"].as_str().unwrap()).unwrap();
+    let payload: Value =
+        serde_json::from_str(result["content"][0]["text"].as_str().unwrap()).unwrap();
     assert_eq!(payload["index_file"], "docs/specres/index.json");
     assert_eq!(payload["specre_count"], 2);
     assert_eq!(payload["source_ref_count"], 1);
@@ -52,7 +79,8 @@ fn mcp_tool_index_with_cards() {
     // Verify index.json was actually created
     let index_path = dir.path().join("docs/specres/index.json");
     assert!(index_path.exists(), "index.json should exist");
-    let index_content: Value = serde_json::from_str(&std::fs::read_to_string(&index_path).unwrap()).unwrap();
+    let index_content: Value =
+        serde_json::from_str(&std::fs::read_to_string(&index_path).unwrap()).unwrap();
     assert_eq!(index_content["version"], 1);
     assert_eq!(index_content["specres"].as_array().unwrap().len(), 2);
 
@@ -82,7 +110,8 @@ fn mcp_tool_index_empty() {
     let result = &response["result"];
     assert!(!result["isError"].as_bool().unwrap_or(false));
 
-    let payload: Value = serde_json::from_str(result["content"][0]["text"].as_str().unwrap()).unwrap();
+    let payload: Value =
+        serde_json::from_str(result["content"][0]["text"].as_str().unwrap()).unwrap();
     assert_eq!(payload["specre_count"], 0);
     assert_eq!(payload["source_ref_count"], 0);
 

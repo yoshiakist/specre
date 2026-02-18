@@ -1,9 +1,9 @@
 // @specre 01KHFGVXWP100JXYBZTRJGMB9H
 use crate::commands::coverage::coverage_from_scan_ref;
-use crate::scanner::scan_source_markers;
 use crate::commands::orphans::orphans_from_scan_ref;
 use crate::config;
 use crate::error::SpecreError;
+use crate::scanner::scan_source_markers;
 use chrono::Utc;
 use serde::Serialize;
 use std::fs;
@@ -30,20 +30,14 @@ fn get_index_age_hours(specre_dir: &str) -> Option<f64> {
         Ok(c) => c,
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => return None,
         Err(e) => {
-            eprintln!(
-                "Warning: failed to read '{}': {e}",
-                index_path.display()
-            );
+            eprintln!("Warning: failed to read '{}': {e}", index_path.display());
             return None;
         }
     };
     let parsed: serde_json::Value = match serde_json::from_str(&content) {
         Ok(v) => v,
         Err(e) => {
-            eprintln!(
-                "Warning: failed to parse '{}': {e}",
-                index_path.display()
-            );
+            eprintln!("Warning: failed to parse '{}': {e}", index_path.display());
             return None;
         }
     };

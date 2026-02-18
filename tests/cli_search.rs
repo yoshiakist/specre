@@ -51,9 +51,8 @@ fn write_specre_card_full(
     let path = dir.join(rel_path);
     fs::create_dir_all(path.parent().unwrap()).unwrap();
     let lv = last_verified.map_or_else(String::new, |d| format!("last_verified: \"{d}\"\n"));
-    let content = format!(
-        "---\nid: \"{id}\"\nname: \"{name}\"\nstatus: \"{status}\"\n{lv}---\n\n{body}"
-    );
+    let content =
+        format!("---\nid: \"{id}\"\nname: \"{name}\"\nstatus: \"{status}\"\n{lv}---\n\n{body}");
     fs::write(path, content).unwrap();
 }
 
@@ -111,12 +110,19 @@ fn search_free_text_matches_body() {
     assert_eq!(json["results"][0]["name"], "user_can_reset_password");
     assert_eq!(json["results"][0]["domain"], "auth");
     assert_eq!(json["results"][0]["status"], "stable");
-    assert!(json["results"][0]["path"]
-        .as_str()
-        .unwrap()
-        .contains("auth/user_can_reset_password.md"));
+    assert!(
+        json["results"][0]["path"]
+            .as_str()
+            .unwrap()
+            .contains("auth/user_can_reset_password.md")
+    );
     assert_eq!(json["results"][0]["last_verified"], "2026-03-01");
-    assert!(json["results"][0]["excerpt"].as_str().unwrap().contains("password"));
+    assert!(
+        json["results"][0]["excerpt"]
+            .as_str()
+            .unwrap()
+            .contains("password")
+    );
 }
 
 // -- Scenario: Free-text query matches front-matter name --
@@ -386,7 +392,14 @@ fn search_combined_query_and_filters() {
     );
 
     let output = specre()
-        .args(["search", "validation", "--status", "stable", "--domain", "auth"])
+        .args([
+            "search",
+            "validation",
+            "--status",
+            "stable",
+            "--domain",
+            "auth",
+        ])
         .current_dir(&tmp)
         .output()
         .unwrap();
@@ -954,7 +967,9 @@ fn search_limit_zero_error() {
         .current_dir(&tmp)
         .assert()
         .failure()
-        .stderr(predicate::str::contains("--limit must be a positive integer"));
+        .stderr(predicate::str::contains(
+            "--limit must be a positive integer",
+        ));
 }
 
 // -- Scenario: Excerpt with multiline prose paragraph --
@@ -1304,7 +1319,12 @@ fn search_no_results_with_glossary_shows_suggested_terms() {
     assert_eq!(json["total"], 0);
 
     let hint = &json["hint"];
-    assert!(hint["message"].as_str().unwrap().contains("No results found"));
+    assert!(
+        hint["message"]
+            .as_str()
+            .unwrap()
+            .contains("No results found")
+    );
 
     // keyword_matches present
     let kw_matches = hint["keyword_matches"].as_array().unwrap();
@@ -1319,7 +1339,10 @@ fn search_no_results_with_glossary_shows_suggested_terms() {
         assert!(term["match_count"].as_u64().unwrap() > 0);
     }
     // "login" should NOT appear in suggested_terms (it's in the query)
-    let term_names: Vec<&str> = suggested.iter().map(|t| t["term"].as_str().unwrap()).collect();
+    let term_names: Vec<&str> = suggested
+        .iter()
+        .map(|t| t["term"].as_str().unwrap())
+        .collect();
     assert!(!term_names.contains(&"login"));
     // "authentication" and "password" should be present
     assert!(term_names.contains(&"authentication"));
@@ -1466,7 +1489,10 @@ fn search_truncated_with_glossary_shows_suggested_terms() {
     assert!(!suggested.is_empty());
 
     // "overview" matches all 5 cards (== total), so it should be EXCLUDED
-    let term_names: Vec<&str> = suggested.iter().map(|t| t["term"].as_str().unwrap()).collect();
+    let term_names: Vec<&str> = suggested
+        .iter()
+        .map(|t| t["term"].as_str().unwrap())
+        .collect();
     assert!(
         !term_names.contains(&"overview"),
         "Terms matching all cards should be excluded"
@@ -1477,9 +1503,15 @@ fn search_truncated_with_glossary_shows_suggested_terms() {
     assert!(term_names.contains(&"delete"));
 
     // Sorted by match_count descending
-    let counts: Vec<u64> = suggested.iter().map(|t| t["match_count"].as_u64().unwrap()).collect();
+    let counts: Vec<u64> = suggested
+        .iter()
+        .map(|t| t["match_count"].as_u64().unwrap())
+        .collect();
     for window in counts.windows(2) {
-        assert!(window[0] >= window[1], "suggested_terms should be sorted descending");
+        assert!(
+            window[0] >= window[1],
+            "suggested_terms should be sorted descending"
+        );
     }
 }
 
@@ -1515,9 +1547,7 @@ fn search_truncated_without_glossary_no_suggested_terms() {
     assert!(hint["available_domains"].as_array().is_some());
     assert!(hint["status_counts"].is_object());
     // No suggested_terms
-    assert!(
-        hint.get("suggested_terms").is_none() || hint["suggested_terms"].is_null(),
-    );
+    assert!(hint.get("suggested_terms").is_none() || hint["suggested_terms"].is_null(),);
 }
 
 // -- Scenario: Malformed glossary.toml warns and continues --
@@ -1528,7 +1558,11 @@ fn search_glossary_malformed_warns_and_continues() {
     write_config(&tmp, "docs/specres", &["src"]);
 
     // Write invalid glossary.toml
-    fs::write(tmp.path().join("glossary.toml"), "this is not valid toml [[[").unwrap();
+    fs::write(
+        tmp.path().join("glossary.toml"),
+        "this is not valid toml [[[",
+    )
+    .unwrap();
 
     write_specre_card_full(
         &tmp,
@@ -1591,7 +1625,10 @@ fn search_glossary_excludes_query_terms_from_suggestions() {
     assert_eq!(json["total"], 0);
 
     let suggested = json["hint"]["suggested_terms"].as_array().unwrap();
-    let term_names: Vec<&str> = suggested.iter().map(|t| t["term"].as_str().unwrap()).collect();
+    let term_names: Vec<&str> = suggested
+        .iter()
+        .map(|t| t["term"].as_str().unwrap())
+        .collect();
     // "password" is in query, should be excluded from suggestions
     assert!(!term_names.contains(&"password"));
     // "xyz" is in query, should be excluded (even if not in glossary — doesn't matter)

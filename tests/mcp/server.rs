@@ -21,8 +21,14 @@ fn mcp_initialize_returns_capabilities() {
     assert_eq!(response["id"], 1);
     let result = &response["result"];
     assert_eq!(result["protocolVersion"], "2024-11-05");
-    assert!(result["capabilities"]["resources"].is_object(), "resources capability missing");
-    assert!(result["capabilities"]["tools"].is_object(), "tools capability missing");
+    assert!(
+        result["capabilities"]["resources"].is_object(),
+        "resources capability missing"
+    );
+    assert!(
+        result["capabilities"]["tools"].is_object(),
+        "tools capability missing"
+    );
     assert_eq!(result["serverInfo"]["name"], "specre");
 
     drop(reader);
@@ -63,5 +69,8 @@ fn mcp_errors_without_config() {
 
     assert!(!output.status.success());
     let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(stderr.contains("specre.toml"), "stderr should mention specre.toml: {stderr}");
+    assert!(
+        stderr.contains("specre.toml"),
+        "stderr should mention specre.toml: {stderr}"
+    );
 }

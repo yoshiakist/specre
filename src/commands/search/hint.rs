@@ -82,7 +82,11 @@ pub fn build_truncation_hint<'a>(
     let suggested_terms = glossary.and_then(|terms| {
         let contents: Vec<&str> = cards.iter().map(|c| c.content.as_str()).collect();
         let result = compute_suggested_terms(terms, keywords, &contents, true);
-        if result.is_empty() { None } else { Some(result) }
+        if result.is_empty() {
+            None
+        } else {
+            Some(result)
+        }
     });
 
     Hint {
@@ -106,7 +110,11 @@ pub fn build_zero_result_hint<'a>(
     let suggested_terms = glossary.and_then(|terms| {
         let contents: Vec<&str> = all_cards.iter().map(|c| c.content.as_str()).collect();
         let result = compute_suggested_terms(terms, keywords, &contents, false);
-        if result.is_empty() { None } else { Some(result) }
+        if result.is_empty() {
+            None
+        } else {
+            Some(result)
+        }
     });
 
     let message = if glossary.is_some() {
@@ -135,10 +143,7 @@ fn compute_keyword_matches<'a>(
         .iter()
         .map(|kw| {
             let kw_lower = kw.to_lowercase();
-            let count = lowered
-                .iter()
-                .filter(|c| c.contains(&kw_lower))
-                .count();
+            let count = lowered.iter().filter(|c| c.contains(&kw_lower)).count();
             KeywordMatch {
                 keyword: kw,
                 match_count: count,
@@ -165,10 +170,7 @@ fn compute_suggested_terms<'a>(
         .filter(|t| !keywords_lower.contains(&t.to_lowercase()))
         .map(|t| {
             let term_lower = t.to_lowercase();
-            let count = lowered
-                .iter()
-                .filter(|c| c.contains(&term_lower))
-                .count();
+            let count = lowered.iter().filter(|c| c.contains(&term_lower)).count();
             SuggestedTerm {
                 term: t.as_str(),
                 match_count: count,

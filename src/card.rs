@@ -88,10 +88,7 @@ pub fn scan_specre_cards(specre_dir: &Path, specre_dir_str: &str) -> Vec<SpecreC
                 });
             }
             Err(e) => {
-                eprintln!(
-                    "Warning: skipping '{}': {e}",
-                    path.display()
-                );
+                eprintln!("Warning: skipping '{}': {e}", path.display());
             }
         }
     });

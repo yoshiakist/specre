@@ -267,7 +267,12 @@ fn orphans_json_with_orphans() {
     let json = parse_json(&assert);
     let orphan_specres = json["orphan_specres"].as_array().unwrap();
     assert_eq!(orphan_specres.len(), 1);
-    assert!(orphan_specres[0].as_str().unwrap().contains("orphan_spec.md"));
+    assert!(
+        orphan_specres[0]
+            .as_str()
+            .unwrap()
+            .contains("orphan_spec.md")
+    );
 
     let dangling = json["dangling_markers"].as_array().unwrap();
     assert_eq!(dangling.len(), 1);
@@ -400,12 +405,7 @@ fn tag_json_outputs_structured_json() {
     write_source_no_marker(tmp.path(), "src/main.rs");
 
     let assert = specre()
-        .args([
-            "tag",
-            "--json",
-            "01AAAAAAAAAAAAAAAAAAAAAAAA",
-            "src/main.rs",
-        ])
+        .args(["tag", "--json", "01AAAAAAAAAAAAAAAAAAAAAAAA", "src/main.rs"])
         .current_dir(tmp.path())
         .assert()
         .success();

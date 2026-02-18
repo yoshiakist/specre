@@ -53,10 +53,7 @@ pub struct SearchableCard {
 pub fn execute(args: &SearchArgs) -> Result<(), SpecreError> {
     // Validate inputs
     let status_filter: Option<Status> = match &args.status {
-        Some(s) => Some(
-            s.parse::<Status>()
-                .map_err(SpecreError::InvalidArgument)?,
-        ),
+        Some(s) => Some(s.parse::<Status>().map_err(SpecreError::InvalidArgument)?),
         None => None,
     };
     let verified_before: Option<NaiveDate> = args
@@ -64,11 +61,8 @@ pub fn execute(args: &SearchArgs) -> Result<(), SpecreError> {
         .as_deref()
         .map(parse_date)
         .transpose()?;
-    let verified_after: Option<NaiveDate> = args
-        .verified_after
-        .as_deref()
-        .map(parse_date)
-        .transpose()?;
+    let verified_after: Option<NaiveDate> =
+        args.verified_after.as_deref().map(parse_date).transpose()?;
     if let Some(limit) = args.limit
         && limit == 0
     {
@@ -96,9 +90,7 @@ pub fn execute(args: &SearchArgs) -> Result<(), SpecreError> {
     // Apply filters (use iter() to keep all_cards available for hint computation)
     let filtered: Vec<&SearchableCard> = all_cards
         .iter()
-        .filter(|card| {
-            matches_filters(card, args, status_filter, verified_before, verified_after)
-        })
+        .filter(|card| matches_filters(card, args, status_filter, verified_before, verified_after))
         .collect();
 
     let total = filtered.len();
@@ -109,9 +101,7 @@ pub fn execute(args: &SearchArgs) -> Result<(), SpecreError> {
             if total > max_results {
                 let h = hint::build_truncation_hint(&filtered, glossary.as_ref(), &keywords);
                 (true, Vec::new(), Some(h))
-            } else if total == 0
-                && hint::should_show_zero_hint(&keywords, glossary.as_ref())
-            {
+            } else if total == 0 && hint::should_show_zero_hint(&keywords, glossary.as_ref()) {
                 let h = hint::build_zero_result_hint(&all_cards, glossary.as_ref(), &keywords);
                 (false, Vec::new(), Some(h))
             } else {
@@ -230,10 +220,7 @@ pub fn scan_cards(dir: &Path, specre_dir_str: &str) -> Vec<SearchableCard> {
         let fm = match parse_frontmatter(&content) {
             Ok(fm) => fm,
             Err(e) => {
-                eprintln!(
-                    "Warning: skipping '{}': {e}",
-                    path.display()
-                );
+                eprintln!("Warning: skipping '{}': {e}", path.display());
                 return;
             }
         };

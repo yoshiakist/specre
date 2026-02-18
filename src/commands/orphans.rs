@@ -1,9 +1,9 @@
 // @specre 01KHB48EES4FR5TFV6ZP2W3MGT
 // @specre 01KHG0A2V4YXE918WMJCY7WFE8
 use crate::card;
-use crate::scanner::{scan_source_markers, SourceScanResult};
 use crate::config;
 use crate::error::SpecreError;
+use crate::scanner::{SourceScanResult, scan_source_markers};
 use crate::status::Status;
 use serde::Serialize;
 use std::collections::HashSet;

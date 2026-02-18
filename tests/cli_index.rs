@@ -28,7 +28,10 @@ fn write_config_with_ext(
     target_extensions: &[&str],
 ) {
     let dirs_toml: Vec<String> = source_dirs.iter().map(|s| format!("\"{s}\"")).collect();
-    let ext_toml: Vec<String> = target_extensions.iter().map(|s| format!("\"{s}\"")).collect();
+    let ext_toml: Vec<String> = target_extensions
+        .iter()
+        .map(|s| format!("\"{s}\""))
+        .collect();
     let content = format!(
         "specre_dir = \"{specre_dir}\"\nsource_dirs = [{}]\ntarget_extensions = [{}]\n",
         dirs_toml.join(", "),
@@ -83,7 +86,9 @@ fn index_generates_index_json() {
         .current_dir(tmp.path())
         .assert()
         .success()
-        .stdout(predicate::str::contains("Generated docs/specres/index.json"));
+        .stdout(predicate::str::contains(
+            "Generated docs/specres/index.json",
+        ));
 
     assert!(tmp.path().join("docs/specres/index.json").is_file());
 }
@@ -670,7 +675,11 @@ fn index_warns_on_unreadable_source_file() {
     // (reading a directory as a file causes an IO error)
     let src_dir = tmp.path().join("src");
     fs::create_dir_all(&src_dir).unwrap();
-    fs::write(src_dir.join("good.rs"), "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAAA\n").unwrap();
+    fs::write(
+        src_dir.join("good.rs"),
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAAA\n",
+    )
+    .unwrap();
 
     write_config(tmp.path(), "docs/specres", &["src"]);
 
@@ -820,7 +829,11 @@ fn index_warns_on_unreadable_source_file_permission() {
 
     let src_dir = tmp.path().join("src");
     fs::create_dir_all(&src_dir).unwrap();
-    fs::write(src_dir.join("good.rs"), "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAAA\n").unwrap();
+    fs::write(
+        src_dir.join("good.rs"),
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAAA\n",
+    )
+    .unwrap();
 
     let bad_file = src_dir.join("bad.rs");
     fs::write(&bad_file, "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAAA\n").unwrap();
