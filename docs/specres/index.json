@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-02-18T05:50:01Z",
+  "generated_at": "2026-02-18T06:17:58Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -136,7 +136,7 @@
       "status": "stable",
       "domain": "mcp",
       "path": "docs/specres/mcp/mcp_tool_new_creates_specre_card.md",
-      "last_verified": "2026-02-16"
+      "last_verified": "2026-02-18"
     },
     {
       "id": "01KHMEB8WF7BFZASE8SQHF5PR2",
@@ -286,6 +286,46 @@
       "line": 3
     },
     {
+      "specre_id": "01KHK7MFZJZ12XFPQE4RHCBHQN",
+      "file": "src/commands/mcp/helpers.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHQJG96BS5STGSENPNDHEH1H",
+      "file": "src/commands/mcp/helpers.rs",
+      "line": 2
+    },
+    {
+      "specre_id": "01KHQKZ5M6N304YYJNW8VDKT4W",
+      "file": "src/commands/mcp/helpers.rs",
+      "line": 3
+    },
+    {
+      "specre_id": "01KHQKZ5VKTHSD483ZWK0RYPR9",
+      "file": "src/commands/mcp/helpers.rs",
+      "line": 4
+    },
+    {
+      "specre_id": "01KHQKZ633JHVDK0WADPPVP3CM",
+      "file": "src/commands/mcp/helpers.rs",
+      "line": 5
+    },
+    {
+      "specre_id": "01KHQKZ6AAMY6Y6AQB3VDVSF6Z",
+      "file": "src/commands/mcp/helpers.rs",
+      "line": 6
+    },
+    {
+      "specre_id": "01KHQKZ6RE7Z3WEDZ54ZKHM6BM",
+      "file": "src/commands/mcp/helpers.rs",
+      "line": 7
+    },
+    {
+      "specre_id": "01KHQKZ6ZHSZX3GR2D7DS23XTE",
+      "file": "src/commands/mcp/helpers.rs",
+      "line": 8
+    },
+    {
       "specre_id": "01KHJ98T83DPJGMEFH9HAXXAZ1",
       "file": "src/commands/mcp/mod.rs",
       "line": 1
@@ -294,6 +334,11 @@
       "specre_id": "01KHJ98TFCDTCARMMX1GC5ZHXE",
       "file": "src/commands/mcp/mod.rs",
       "line": 2
+    },
+    {
+      "specre_id": "01KHQKZ6H8FB46ESFXB03N85AN",
+      "file": "src/commands/mcp/search.rs",
+      "line": 1
     },
     {
       "specre_id": "01KHK7MFZJZ12XFPQE4RHCBHQN",
@@ -594,6 +639,46 @@
       "specre_id": "01KHK7MFZJZ12XFPQE4RHCBHQN",
       "file": "tests/mcp/helpers.rs",
       "line": 3
+    },
+    {
+      "specre_id": "01KHQJG96BS5STGSENPNDHEH1H",
+      "file": "tests/mcp/helpers.rs",
+      "line": 4
+    },
+    {
+      "specre_id": "01KHQKZ5M6N304YYJNW8VDKT4W",
+      "file": "tests/mcp/helpers.rs",
+      "line": 5
+    },
+    {
+      "specre_id": "01KHQKZ5VKTHSD483ZWK0RYPR9",
+      "file": "tests/mcp/helpers.rs",
+      "line": 6
+    },
+    {
+      "specre_id": "01KHQKZ633JHVDK0WADPPVP3CM",
+      "file": "tests/mcp/helpers.rs",
+      "line": 7
+    },
+    {
+      "specre_id": "01KHQKZ6AAMY6Y6AQB3VDVSF6Z",
+      "file": "tests/mcp/helpers.rs",
+      "line": 8
+    },
+    {
+      "specre_id": "01KHQKZ6H8FB46ESFXB03N85AN",
+      "file": "tests/mcp/helpers.rs",
+      "line": 9
+    },
+    {
+      "specre_id": "01KHQKZ6RE7Z3WEDZ54ZKHM6BM",
+      "file": "tests/mcp/helpers.rs",
+      "line": 10
+    },
+    {
+      "specre_id": "01KHQKZ6ZHSZX3GR2D7DS23XTE",
+      "file": "tests/mcp/helpers.rs",
+      "line": 11
     },
     {
       "specre_id": "01KHJ98T83DPJGMEFH9HAXXAZ1",

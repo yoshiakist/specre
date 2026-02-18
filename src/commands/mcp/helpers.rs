@@ -1,3 +1,12 @@
+// @specre 01KHK7MFZJZ12XFPQE4RHCBHQN
+// @specre 01KHQJG96BS5STGSENPNDHEH1H
+// @specre 01KHQKZ5M6N304YYJNW8VDKT4W
+// @specre 01KHQKZ5VKTHSD483ZWK0RYPR9
+// @specre 01KHQKZ633JHVDK0WADPPVP3CM
+// @specre 01KHQKZ6AAMY6Y6AQB3VDVSF6Z
+// @specre 01KHQKZ6RE7Z3WEDZ54ZKHM6BM
+// @specre 01KHQKZ6ZHSZX3GR2D7DS23XTE
+
 use crate::card::{self, to_forward_slash};
 use crate::commands::coverage::coverage_from_scan;
 use crate::commands::orphans::{compute_orphans, orphans_from_scan};

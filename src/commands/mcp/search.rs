@@ -1,3 +1,5 @@
+// @specre 01KHQKZ6H8FB46ESFXB03N85AN
+
 use crate::card::{extract_domain, to_forward_slash};
 use crate::parser::parse_frontmatter;
 use crate::scanner::collect_md_files;
