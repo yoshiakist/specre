@@ -7,9 +7,13 @@ Follow these phases strictly. There is exactly ONE human checkpoint — after th
 ## Phase 1: Analysis
 
 1. Read `README.md` and `docs/project/ROADMAP.md` to understand the project philosophy and where the feature fits in the roadmap
-2. Read existing specre cards in `docs/specres/` for reference on format and style
-3. Read relevant existing code (commands, tests, config) to understand patterns
-4. Identify the specre name (subject + predicate, e.g. `specre_status_reports_project_health`)
+2. Use `specre search` to find existing specre cards related to the new feature, to understand adjacent behavior and avoid duplication:
+   - `specre search "<keyword>"` — find specre cards in the same area (multi-keyword AND by default)
+   - `specre search "<keyword>" --or` — broaden the search when exploring related concepts
+   - `specre search --domain <domain>` — browse all cards in the target domain
+3. For relevant existing source files, run `specre trace <file-path>` to understand which specre cards already govern them. This helps determine whether the new feature should extend an existing specre or create a new one
+4. Read relevant existing code (commands, tests, config) to understand patterns
+5. Identify the specre name (subject + predicate, e.g. `specre_status_reports_project_health`)
 
 ## Phase 2: Specre Creation
 

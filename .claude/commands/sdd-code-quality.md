@@ -12,7 +12,14 @@ Follow these phases strictly. This workflow iterates over each affected file, up
 ## Phase 1: Identify Violations
 
 1. Search the codebase for code that violates the described code quality issue
-2. Collect all affected files into a list
+2. Use `specre search` to locate related specre cards and understand the intended behavior around the violation:
+   - `specre search "<keyword>"` — find specre cards related to the affected area (multi-keyword AND by default)
+   - `specre search "<keyword>" --or` — broaden the search when the initial query is too narrow
+   - `specre search --domain <domain>` — narrow by domain when the affected area is known
+3. For each affected file, run `specre trace <file-path>` to check whether it is already linked to a specre card. This reveals:
+   - Which specre cards govern the file's behavior (helps assess impact of the fix)
+   - Whether the file is untracked (may need a specre card or `@specre` tag)
+4. Collect all affected files into a list, along with their associated specre card ULIDs
 
 ## Phase 2: Fix Loop (repeat for each affected file)
 
@@ -20,7 +27,8 @@ For each affected file:
 
 ### 2.1 Trace the specre card
 - Find the `@specre <ULID>` marker in the file (may be at the top, above a class/function, or at the end)
-- Run `specre trace <ULID>` to locate the corresponding specre card
+- Run `specre trace <ULID>` to locate the corresponding specre card and all other source files referencing it
+- If the file has no `@specre` marker, use `specre search` with relevant keywords to find the governing specre card
 
 ### 2.2 Update the specre card (if needed)
 - Review the specre card against the code quality concern
