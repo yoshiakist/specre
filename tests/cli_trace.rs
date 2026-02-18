@@ -586,7 +586,7 @@ fn trace_ulid_warns_on_unreadable_specre_file() {
     write_config(tmp.path(), "docs/specres", &["src"]);
 
     // Create a readable specre card
-    write_specre(tmp.path(), "docs/specres/cli/good.md", "01AAAAAAAAAAAAAAAAAAAAAAAA", "good");
+    write_specre(tmp.path(), "docs/specres/cli/good.md", "01AAAAAAAAAAAAAAAAAAAAAAAA", "good", "draft");
 
     // Create an unreadable specre card
     let bad_card = tmp.path().join("docs/specres/cli/bad.md");
@@ -623,7 +623,7 @@ fn trace_ulid_warns_on_unreadable_source_file() {
     let tmp = TempDir::new().unwrap();
     write_config(tmp.path(), "docs/specres", &["src"]);
 
-    write_specre(tmp.path(), "docs/specres/cli/spec_a.md", "01AAAAAAAAAAAAAAAAAAAAAAAA", "spec_a");
+    write_specre(tmp.path(), "docs/specres/cli/spec_a.md", "01AAAAAAAAAAAAAAAAAAAAAAAA", "spec_a", "draft");
     write_source(tmp.path(), "src/good.rs", "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n");
 
     let bad_file = tmp.path().join("src/bad.rs");
