@@ -73,6 +73,10 @@ pub struct SearchArgs {
     #[arg(long)]
     pub verified_after: Option<String>,
 
+    /// Use OR logic for multi-keyword queries (default is AND)
+    #[arg(long)]
+    pub or: bool,
+
     /// Return at most N results, bypassing the truncation threshold
     #[arg(long)]
     pub limit: Option<usize>,

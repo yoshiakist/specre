@@ -7,10 +7,14 @@ Follow these phases strictly. There is exactly ONE human checkpoint — after th
 ## Phase 1: Analysis
 
 1. Read `README.md` and `docs/project/ROADMAP.md` to understand the project philosophy and roadmap context
-2. Read the existing specre cards in `docs/specres/` to identify which specre(s) are affected by the change
-3. Read the related source files and test files listed in the specre card's "Related Files" section
-4. Understand the current behavior by reading the scenarios and comparing with the implementation
-5. Identify the gap between the current behavior and the requested change
+2. Use `specre search` to locate the specre cards affected by the change:
+   - `specre search "<keyword>"` — find specre cards related to the change (multi-keyword AND by default)
+   - `specre search "<keyword>" --or` — broaden the search when the initial query is too narrow
+   - `specre search --domain <domain>` — narrow by domain when the affected area is known
+3. For each candidate source file, run `specre trace <file-path>` to discover which specre cards govern it, and vice versa — run `specre trace <ULID>` to find all source files linked to a specre card
+4. Read the related source files and test files listed in the specre card's "Related Files" section
+5. Understand the current behavior by reading the scenarios and comparing with the implementation
+6. Identify the gap between the current behavior and the requested change
 
 ## Phase 2: Specre Update
 

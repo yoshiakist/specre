@@ -981,6 +981,173 @@ fn search_excerpt_joins_multiline_paragraph() {
     assert_eq!(excerpt, "First line of overview. Second line of overview.");
 }
 
+// -- Scenario: Multi-keyword AND search (default) --
+
+#[test]
+fn search_multi_keyword_and() {
+    let tmp = TempDir::new().unwrap();
+    write_config(&tmp, "docs/specres", &["src"]);
+
+    // Card A: contains both "password" and "reset"
+    write_specre_card_full(
+        &tmp,
+        "docs/specres/auth/user_can_reset_password.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "user_can_reset_password",
+        "stable",
+        None,
+        "## Functional Overview\n\nUsers can reset their password via email.\n",
+    );
+    // Card B: contains "password" but not "reset"
+    write_specre_card_full(
+        &tmp,
+        "docs/specres/auth/user_can_change_password.md",
+        "01BBBBBBBBBBBBBBBBBBBBBBBB",
+        "user_can_change_password",
+        "stable",
+        None,
+        "## Functional Overview\n\nUsers can change their password from settings.\n",
+    );
+    // Card C: contains "reset" but not "password"
+    write_specre_card_full(
+        &tmp,
+        "docs/specres/auth/user_can_reset_session.md",
+        "01CCCCCCCCCCCCCCCCCCCCCCCC",
+        "user_can_reset_session",
+        "stable",
+        None,
+        "## Functional Overview\n\nUsers can reset their active session.\n",
+    );
+
+    let output = specre()
+        .args(["search", "password reset"])
+        .current_dir(&tmp)
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+    let json = parse_json(&output.stdout);
+    assert_eq!(json["total"], 1);
+    assert_eq!(json["results"][0]["name"], "user_can_reset_password");
+}
+
+// -- Scenario: Multi-keyword OR search --
+
+#[test]
+fn search_multi_keyword_or() {
+    let tmp = TempDir::new().unwrap();
+    write_config(&tmp, "docs/specres", &["src"]);
+
+    // Card A: contains both "password" and "reset"
+    write_specre_card_full(
+        &tmp,
+        "docs/specres/auth/user_can_reset_password.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "user_can_reset_password",
+        "stable",
+        None,
+        "## Functional Overview\n\nUsers can reset their password via email.\n",
+    );
+    // Card B: contains "password" but not "reset"
+    write_specre_card_full(
+        &tmp,
+        "docs/specres/auth/user_can_change_password.md",
+        "01BBBBBBBBBBBBBBBBBBBBBBBB",
+        "user_can_change_password",
+        "stable",
+        None,
+        "## Functional Overview\n\nUsers can change their password from settings.\n",
+    );
+    // Card C: contains "reset" but not "password"
+    write_specre_card_full(
+        &tmp,
+        "docs/specres/auth/user_can_reset_session.md",
+        "01CCCCCCCCCCCCCCCCCCCCCCCC",
+        "user_can_reset_session",
+        "stable",
+        None,
+        "## Functional Overview\n\nUsers can reset their active session.\n",
+    );
+    // Card D: contains neither "password" nor "reset"
+    write_specre_card_full(
+        &tmp,
+        "docs/specres/auth/user_can_login.md",
+        "01DDDDDDDDDDDDDDDDDDDDDD",
+        "user_can_login",
+        "stable",
+        None,
+        "## Functional Overview\n\nUsers can login with email.\n",
+    );
+
+    let output = specre()
+        .args(["search", "password reset", "--or"])
+        .current_dir(&tmp)
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+    let json = parse_json(&output.stdout);
+    assert_eq!(json["total"], 3);
+    let names: Vec<&str> = json["results"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|r| r["name"].as_str().unwrap())
+        .collect();
+    assert!(names.contains(&"user_can_reset_password"));
+    assert!(names.contains(&"user_can_change_password"));
+    assert!(names.contains(&"user_can_reset_session"));
+    assert!(!names.contains(&"user_can_login"));
+}
+
+// -- Scenario: Single keyword behaves identically with and without --or --
+
+#[test]
+fn search_single_keyword_same_with_or_without_or_flag() {
+    let tmp = TempDir::new().unwrap();
+    write_config(&tmp, "docs/specres", &["src"]);
+
+    write_specre_card_full(
+        &tmp,
+        "docs/specres/auth/user_can_reset_password.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "user_can_reset_password",
+        "stable",
+        None,
+        "## Functional Overview\n\nUsers can reset their password.\n",
+    );
+    write_specre_card_full(
+        &tmp,
+        "docs/specres/auth/user_can_login.md",
+        "01BBBBBBBBBBBBBBBBBBBBBBBB",
+        "user_can_login",
+        "stable",
+        None,
+        "## Functional Overview\n\nUsers can login with email.\n",
+    );
+
+    let output_and = specre()
+        .args(["search", "password"])
+        .current_dir(&tmp)
+        .output()
+        .unwrap();
+    let output_or = specre()
+        .args(["search", "password", "--or"])
+        .current_dir(&tmp)
+        .output()
+        .unwrap();
+
+    assert!(output_and.status.success());
+    assert!(output_or.status.success());
+
+    let json_and = parse_json(&output_and.stdout);
+    let json_or = parse_json(&output_or.stdout);
+    assert_eq!(json_and["total"], json_or["total"]);
+    assert_eq!(json_and["total"], 1);
+    assert_eq!(json_and["results"][0]["name"], "user_can_reset_password");
+    assert_eq!(json_or["results"][0]["name"], "user_can_reset_password");
+}
+
 // -- Failures / Exceptions: IO error warns and skips --
 
 #[cfg(unix)]
