@@ -10,7 +10,7 @@ const SUGGESTED_TERMS_LIMIT: usize = 10;
 const GLOSSARY_FILE: &str = "glossary.toml";
 
 #[derive(Serialize)]
-pub(super) struct Hint<'a> {
+pub struct Hint<'a> {
     message: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     available_domains: Option<Vec<&'a str>>,
@@ -39,7 +39,7 @@ struct Glossary {
     terms: Vec<String>,
 }
 
-pub(super) fn load_glossary() -> Option<Vec<String>> {
+pub fn load_glossary() -> Option<Vec<String>> {
     let path = Path::new(GLOSSARY_FILE);
     if !path.exists() {
         return None;
@@ -60,11 +60,11 @@ pub(super) fn load_glossary() -> Option<Vec<String>> {
     }
 }
 
-pub(super) const fn should_show_zero_hint(keywords: &[&str], glossary: Option<&Vec<String>>) -> bool {
+pub const fn should_show_zero_hint(keywords: &[&str], glossary: Option<&Vec<String>>) -> bool {
     !keywords.is_empty() && (glossary.is_some() || keywords.len() >= 2)
 }
 
-pub(super) fn build_truncation_hint<'a>(
+pub fn build_truncation_hint<'a>(
     cards: &[&'a SearchableCard],
     glossary: Option<&'a Vec<String>>,
     keywords: &[&str],
@@ -96,7 +96,7 @@ pub(super) fn build_truncation_hint<'a>(
     }
 }
 
-pub(super) fn build_zero_result_hint<'a>(
+pub fn build_zero_result_hint<'a>(
     all_cards: &[SearchableCard],
     glossary: Option<&'a Vec<String>>,
     keywords: &[&'a str],

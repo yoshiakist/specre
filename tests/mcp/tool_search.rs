@@ -1,5 +1,6 @@
 // @specre 01KHQKZ6H8FB46ESFXB03N85AN
 
+use assert_fs::prelude::*;
 use super::helpers::*;
 use serde_json::{Value, json};
 use std::io::BufReader;
@@ -155,7 +156,82 @@ fn mcp_tool_search_with_limit() {
     let payload: Value = serde_json::from_str(response["result"]["content"][0]["text"].as_str().unwrap()).unwrap();
     assert_eq!(payload["total"], 3);
     assert_eq!(payload["results"].as_array().unwrap().len(), 1);
-    assert!(payload["truncated"].as_bool().unwrap());
+    // --limit bypasses truncation (matches CLI behavior)
+    assert!(!payload["truncated"].as_bool().unwrap());
+
+    drop(reader);
+    shutdown(stdin, child);
+}
+
+// ============================================================
+// mcp_tool_search — Scenario: Truncation with hint
+// ============================================================
+
+#[test]
+fn mcp_tool_search_truncation_with_hint() {
+    let dir = assert_fs::TempDir::new().unwrap();
+    // Configure max_results = 2 so we can trigger truncation with just 3 cards
+    dir.child("specre.toml").write_str(
+        "specre_dir = \"docs/specres\"\nsource_dirs = [\"src\"]\n\n[search]\nmax_results = 2\n"
+    ).unwrap();
+    dir.child("docs/specres").create_dir_all().unwrap();
+    create_specre_card(&dir, "docs/specres", "cli/card_a.md", "01AAAAAAAAAAAAAAAAAAAAAAAA", "card_a", "stable");
+    create_specre_card(&dir, "docs/specres", "cli/card_b.md", "01BBBBBBBBBBBBBBBBBBBBBBBB", "card_b", "draft");
+    create_specre_card(&dir, "docs/specres", "auth/card_c.md", "01CCCCCCCCCCCCCCCCCCCCCCCC", "card_c", "stable");
+
+    let mut child = spawn_mcp(dir.path());
+    let mut stdin = child.stdin.take().unwrap();
+    let mut reader = BufReader::new(child.stdout.take().unwrap());
+    initialize(&mut stdin, &mut reader);
+
+    // Search with no limit — 3 results exceed max_results=2
+    let response = call_search(&mut stdin, &mut reader, 2, json!({}));
+
+    let payload: Value = serde_json::from_str(response["result"]["content"][0]["text"].as_str().unwrap()).unwrap();
+    assert_eq!(payload["total"], 3);
+    assert!(payload["truncated"].as_bool().unwrap(), "expected truncated: true");
+    assert!(payload["results"].as_array().unwrap().is_empty(), "results should be empty when truncated");
+    // Hint should be present with available_domains and status_counts
+    let hint = &payload["hint"];
+    assert!(hint.is_object(), "expected hint object");
+    assert!(hint["message"].as_str().unwrap().contains("Too many results"));
+    assert!(hint["available_domains"].is_array());
+    assert!(hint["status_counts"].is_object());
+
+    drop(reader);
+    shutdown(stdin, child);
+}
+
+// ============================================================
+// mcp_tool_search — Scenario: Limit bypasses truncation
+// ============================================================
+
+#[test]
+fn mcp_tool_search_limit_bypasses_truncation() {
+    let dir = assert_fs::TempDir::new().unwrap();
+    dir.child("specre.toml").write_str(
+        "specre_dir = \"docs/specres\"\nsource_dirs = [\"src\"]\n\n[search]\nmax_results = 2\n"
+    ).unwrap();
+    dir.child("docs/specres").create_dir_all().unwrap();
+    create_specre_card(&dir, "docs/specres", "cli/card_a.md", "01AAAAAAAAAAAAAAAAAAAAAAAA", "card_a", "stable");
+    create_specre_card(&dir, "docs/specres", "cli/card_b.md", "01BBBBBBBBBBBBBBBBBBBBBBBB", "card_b", "draft");
+    create_specre_card(&dir, "docs/specres", "auth/card_c.md", "01CCCCCCCCCCCCCCCCCCCCCCCC", "card_c", "stable");
+
+    let mut child = spawn_mcp(dir.path());
+    let mut stdin = child.stdin.take().unwrap();
+    let mut reader = BufReader::new(child.stdout.take().unwrap());
+    initialize(&mut stdin, &mut reader);
+
+    // Explicit limit bypasses truncation — returns results even though total > max_results
+    let response = call_search(&mut stdin, &mut reader, 2, json!({
+        "limit": 2
+    }));
+
+    let payload: Value = serde_json::from_str(response["result"]["content"][0]["text"].as_str().unwrap()).unwrap();
+    assert_eq!(payload["total"], 3);
+    assert_eq!(payload["results"].as_array().unwrap().len(), 2);
+    assert!(!payload["truncated"].as_bool().unwrap(), "limit bypasses truncation");
+    assert!(payload["hint"].is_null(), "no hint when limit is used");
 
     drop(reader);
     shutdown(stdin, child);

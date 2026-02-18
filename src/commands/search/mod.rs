@@ -1,5 +1,5 @@
 // @specre 01KHFTCYJN8YJMW2RNHJTAQV49
-mod hint;
+pub mod hint;
 
 use crate::card::{extract_domain, to_forward_slash};
 use crate::cli::SearchArgs;
@@ -36,15 +36,15 @@ struct SearchResult<'a> {
     excerpt: Option<&'a str>,
 }
 
-struct SearchableCard {
-    id: String,
-    name: String,
-    status: Status,
-    domain: String,
-    path: String,
-    last_verified: Option<String>,
-    content: String,
-    excerpt: Option<String>,
+pub struct SearchableCard {
+    pub id: String,
+    pub name: String,
+    pub status: Status,
+    pub domain: String,
+    pub path: String,
+    pub last_verified: Option<String>,
+    pub content: String,
+    pub excerpt: Option<String>,
 }
 
 /// # Errors
@@ -213,7 +213,7 @@ fn parse_date(date: &str) -> Result<NaiveDate, SpecreError> {
     })
 }
 
-fn scan_cards(dir: &Path, specre_dir_str: &str) -> Vec<SearchableCard> {
+pub fn scan_cards(dir: &Path, specre_dir_str: &str) -> Vec<SearchableCard> {
     let mut cards = Vec::new();
     if !dir.exists() {
         return cards;
@@ -258,7 +258,7 @@ fn scan_cards(dir: &Path, specre_dir_str: &str) -> Vec<SearchableCard> {
     cards
 }
 
-fn extract_excerpt(content: &str) -> Option<String> {
+pub fn extract_excerpt(content: &str) -> Option<String> {
     // Skip front-matter
     let body = skip_frontmatter(content);
 

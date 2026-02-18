@@ -1,58 +1,40 @@
 // @specre 01KHQKZ6H8FB46ESFXB03N85AN
 
-use crate::card::{extract_domain, to_forward_slash};
-use crate::parser::parse_frontmatter;
-use crate::scanner::collect_md_files;
+use crate::commands::search::hint;
+use crate::commands::search::{scan_cards, SearchableCard};
 use crate::status::Status;
 use chrono::NaiveDate;
 use rmcp::{ErrorData as McpError, model::CallToolResult, model::Content};
-use std::fs;
 use std::path::Path;
 
 use super::helpers::{load_config, parse_date_filter};
 use super::tools::SearchToolRequest;
 
+const DEFAULT_MAX_RESULTS: usize = 10;
+
 // ---------------------------------------------------------------------------
-// Searchable card
+// Validated filters extracted from the request
 // ---------------------------------------------------------------------------
 
-pub struct SearchableCard {
-    pub id: String,
-    pub name: String,
-    pub status: Status,
-    pub domain: String,
-    pub path: String,
-    pub last_verified: Option<String>,
-    pub content: String,
-    pub excerpt: Option<String>,
+struct ValidatedFilters {
+    status: Option<Status>,
+    verified_before: Option<NaiveDate>,
+    verified_after: Option<NaiveDate>,
 }
 
-// ---------------------------------------------------------------------------
-// Tool: search
-// ---------------------------------------------------------------------------
-
-pub fn execute_search(req: &SearchToolRequest) -> Result<CallToolResult, McpError> {
-    let cfg = load_config()?;
-
-    // Validate status filter
-    let status_filter: Option<Status> = match &req.status {
-        Some(s) => {
-            let parsed = s.parse::<Status>().map_err(|msg| {
-                McpError::invalid_params(msg, None)
-            });
-            match parsed {
-                Ok(st) => Some(st),
-                Err(_) => {
-                    return Ok(CallToolResult::error(vec![Content::text(format!(
-                        "invalid status filter: '{s}'. Expected: draft, in-development, stable, deprecated"
-                    ))]));
-                }
+fn validate_filters(req: &SearchToolRequest) -> Result<Result<ValidatedFilters, CallToolResult>, McpError> {
+    let status: Option<Status> = match &req.status {
+        Some(s) => match s.parse::<Status>() {
+            Ok(st) => Some(st),
+            Err(_) => {
+                return Ok(Err(CallToolResult::error(vec![Content::text(format!(
+                    "invalid status filter: '{s}'. Expected: draft, in-development, stable, deprecated"
+                ))])));
             }
-        }
+        },
         None => None,
     };
 
-    // Parse date filters
     let verified_before = req
         .verified_before
         .as_deref()
@@ -67,56 +49,92 @@ pub fn execute_search(req: &SearchToolRequest) -> Result<CallToolResult, McpErro
     if let Some(limit) = req.limit
         && limit == 0
     {
-        return Ok(CallToolResult::error(vec![Content::text(
+        return Ok(Err(CallToolResult::error(vec![Content::text(
             "limit must be a positive integer",
-        )]));
+        )])));
     }
+
+    Ok(Ok(ValidatedFilters {
+        status,
+        verified_before,
+        verified_after,
+    }))
+}
+
+// ---------------------------------------------------------------------------
+// Tool: search
+// ---------------------------------------------------------------------------
+
+pub fn execute_search(req: &SearchToolRequest) -> Result<CallToolResult, McpError> {
+    let cfg = load_config()?;
+
+    let filters = match validate_filters(req)? {
+        Ok(f) => f,
+        Err(err_result) => return Ok(err_result),
+    };
 
     let specre_dir = Path::new(&cfg.specre_dir);
     let or_mode = req.or.unwrap_or(false);
+    let max_results = cfg
+        .search
+        .as_ref()
+        .and_then(|s| s.max_results)
+        .unwrap_or(DEFAULT_MAX_RESULTS);
 
-    // Scan cards with full content for text search
-    let all_cards = scan_searchable_cards(specre_dir, &cfg.specre_dir);
+    let all_cards = scan_cards(specre_dir, &cfg.specre_dir);
+    let glossary = hint::load_glossary();
+    let keywords: Vec<&str> = req
+        .query
+        .as_deref()
+        .map(|q| q.split_whitespace().collect())
+        .unwrap_or_default();
 
-    // Apply filters
     let filtered: Vec<&SearchableCard> = all_cards
         .iter()
         .filter(|c| {
             matches_search_filters(
                 c,
                 req.query.as_deref(),
-                status_filter,
+                filters.status,
                 req.domain.as_deref(),
-                verified_before,
-                verified_after,
+                filters.verified_before,
+                filters.verified_after,
                 or_mode,
             )
         })
         .collect();
 
     let total = filtered.len();
-    let results: Vec<serde_json::Value> = filtered
-        .iter()
-        .take(req.limit.unwrap_or(usize::MAX))
-        .map(|c| {
-            serde_json::json!({
-                "id": c.id,
-                "name": c.name,
-                "status": c.status,
-                "domain": c.domain,
-                "path": c.path,
-                "last_verified": c.last_verified,
-                "excerpt": c.excerpt,
-            })
-        })
-        .collect();
 
-    let truncated = req.limit.is_some_and(|l| total > l);
-    let result = serde_json::json!({
+    let (truncated, results, hint_value) = req.limit.map_or_else(
+        || {
+            if total > max_results {
+                let h = hint::build_truncation_hint(&filtered, glossary.as_ref(), &keywords);
+                (true, Vec::new(), serde_json::to_value(&h).ok())
+            } else if total == 0
+                && hint::should_show_zero_hint(&keywords, glossary.as_ref())
+            {
+                let h = hint::build_zero_result_hint(&all_cards, glossary.as_ref(), &keywords);
+                (false, Vec::new(), serde_json::to_value(&h).ok())
+            } else {
+                let r = filtered.iter().map(|c| card_to_json(c)).collect();
+                (false, r, None)
+            }
+        },
+        |limit| {
+            let r = filtered.iter().take(limit).map(|c| card_to_json(c)).collect();
+            (false, r, None)
+        },
+    );
+
+    let mut result = serde_json::json!({
         "results": results,
         "total": total,
         "truncated": truncated,
     });
+    if let Some(h) = hint_value {
+        result["hint"] = h;
+    }
 
     Ok(CallToolResult::success(vec![Content::text(
         result.to_string(),
@@ -124,86 +142,19 @@ pub fn execute_search(req: &SearchToolRequest) -> Result<CallToolResult, McpErro
 }
 
 // ---------------------------------------------------------------------------
-// Scanning & filtering
+// Helpers
 // ---------------------------------------------------------------------------
 
-fn scan_searchable_cards(dir: &Path, specre_dir_str: &str) -> Vec<SearchableCard> {
-    let mut cards = Vec::new();
-    if !dir.exists() {
-        return cards;
-    }
-    collect_md_files(dir, &mut |path| {
-        let Ok(content) = fs::read_to_string(path) else {
-            return;
-        };
-        let Ok(fm) = parse_frontmatter(&content) else {
-            return;
-        };
-        let rel_path = to_forward_slash(path);
-        let domain = extract_domain(&rel_path, specre_dir_str).to_owned();
-        let excerpt = extract_excerpt(&content);
-
-        cards.push(SearchableCard {
-            id: fm.id,
-            name: fm.name,
-            status: fm.status,
-            domain,
-            path: rel_path.into_owned(),
-            last_verified: fm.last_verified,
-            content,
-            excerpt,
-        });
-    });
-    cards.sort_by(|a, b| a.domain.cmp(&b.domain).then(a.name.cmp(&b.name)));
-    cards
-}
-
-fn extract_excerpt(content: &str) -> Option<String> {
-    const EXCERPT_MAX_CHARS: usize = 200;
-
-    // Skip front-matter
-    let body = {
-        let trimmed = content.trim_start_matches('\u{feff}');
-        trimmed.strip_prefix("---").map_or(trimmed, |after_first| {
-            after_first.find("\n---").map_or(trimmed, |end| {
-                let rest = &after_first[end + 4..];
-                rest.strip_prefix('\n').unwrap_or(rest)
-            })
-        })
-    };
-
-    let mut lines = Vec::new();
-    let mut in_para = false;
-    for line in body.lines() {
-        let t = line.trim();
-        if t.is_empty() {
-            if in_para {
-                break;
-            }
-            continue;
-        }
-        if t.starts_with("##") || t.starts_with("- ") {
-            if in_para {
-                break;
-            }
-            continue;
-        }
-        in_para = true;
-        lines.push(t);
-    }
-
-    if lines.is_empty() {
-        return None;
-    }
-
-    let joined = lines.join(" ");
-    let char_count = joined.chars().count();
-    if char_count > EXCERPT_MAX_CHARS {
-        let truncated: String = joined.chars().take(EXCERPT_MAX_CHARS).collect();
-        Some(format!("{truncated}\u{2026}"))
-    } else {
-        Some(joined)
-    }
+fn card_to_json(card: &SearchableCard) -> serde_json::Value {
+    serde_json::json!({
+        "id": card.id,
+        "name": card.name,
+        "status": card.status,
+        "domain": card.domain,
+        "path": card.path,
+        "last_verified": card.last_verified,
+        "excerpt": card.excerpt,
+    })
 }
 
 #[allow(clippy::fn_params_excessive_bools)]
