@@ -1,6 +1,6 @@
 [package]
 name = "specre"
-version = "0.2.6"
+version = "0.3.0"
 edition = "2024"
 description = "Atomic, living specification cards for AI-agent-friendly development"
 license = "MIT"
