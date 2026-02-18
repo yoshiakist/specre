@@ -15,7 +15,7 @@ struct TagOutput {
     line: usize,
 }
 
-fn comment_syntax(ext: &str) -> Option<(&'static str, &'static str)> {
+pub fn comment_syntax(ext: &str) -> Option<(&'static str, &'static str)> {
     match ext {
         // // style — C-family, JVM, modern languages, shaders
         "rs" | "js" | "ts" | "jsx" | "tsx" | "java" | "c" | "cpp" | "h" | "hpp" | "cs" | "go"

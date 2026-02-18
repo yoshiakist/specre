@@ -7,14 +7,14 @@ last_verified: "2026-02-16"
 
 ## Related Files
 
-- `src/commands/mcp.rs`
+- `src/commands/mcp/tools.rs` (tool handler)
+- `src/commands/mcp/mod.rs` (server infrastructure)
 - `src/commands/new.rs` (reused logic: directory creation, file writing)
 - `src/template.rs` (reused: template rendering)
 - `src/ulid.rs` (reused: ULID generation)
 - `src/config.rs` (reused: language config)
 - `tests/mcp/tool_new.rs` (Test)
 - `tests/mcp/helpers.rs` (Test helper)
-- `tests/common/mcp.rs` (Test helper)
 
 ## Functional Overview
 

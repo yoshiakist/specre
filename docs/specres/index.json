@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-02-18T03:43:59Z",
+  "generated_at": "2026-02-18T05:20:50Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -153,6 +153,14 @@
       "domain": "cli",
       "path": "docs/specres/cli/specre_search_hints_guide_query_refinement.md",
       "last_verified": "2026-02-18"
+    },
+    {
+      "id": "01KHQJG96BS5STGSENPNDHEH1H",
+      "name": "mcp_tool_tag_inserts_marker_into_source_file",
+      "status": "stable",
+      "domain": "mcp",
+      "path": "docs/specres/mcp/mcp_tool_tag_inserts_marker_into_source_file.md",
+      "last_verified": "2026-02-18"
     }
   ],
   "source_refs": [
@@ -223,18 +231,23 @@
     },
     {
       "specre_id": "01KHJ98T83DPJGMEFH9HAXXAZ1",
-      "file": "src/commands/mcp.rs",
+      "file": "src/commands/mcp/mod.rs",
       "line": 1
     },
     {
       "specre_id": "01KHJ98TFCDTCARMMX1GC5ZHXE",
-      "file": "src/commands/mcp.rs",
+      "file": "src/commands/mcp/mod.rs",
       "line": 2
     },
     {
       "specre_id": "01KHK7MFZJZ12XFPQE4RHCBHQN",
-      "file": "src/commands/mcp.rs",
-      "line": 3
+      "file": "src/commands/mcp/tools.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHQJG96BS5STGSENPNDHEH1H",
+      "file": "src/commands/mcp/tools.rs",
+      "line": 2
     },
     {
       "specre_id": "01KHFFCX8BCDAYP8YHG0J65H0E",
@@ -507,6 +520,11 @@
       "line": 3
     },
     {
+      "specre_id": "01KHQJG96BS5STGSENPNDHEH1H",
+      "file": "tests/mcp/main.rs",
+      "line": 4
+    },
+    {
       "specre_id": "01KHJ98TFCDTCARMMX1GC5ZHXE",
       "file": "tests/mcp/resources.rs",
       "line": 1
@@ -519,6 +537,11 @@
     {
       "specre_id": "01KHK7MFZJZ12XFPQE4RHCBHQN",
       "file": "tests/mcp/tool_new.rs",
+      "line": 1
+    },
+    {
+      "specre_id": "01KHQJG96BS5STGSENPNDHEH1H",
+      "file": "tests/mcp/tool_tag.rs",
       "line": 1
     }
   ]
