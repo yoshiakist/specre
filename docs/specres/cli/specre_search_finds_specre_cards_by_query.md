@@ -15,7 +15,7 @@ last_verified: "2026-02-18"
 
 ## Functional Overview
 
-`specre search` discovers specre cards by free-text query and structured filters. The free-text query performs a case-insensitive substring match against the entire content of each specre card (front-matter and Markdown body). Structured filters (`--status`, `--domain`, `--verified-before`, `--verified-after`) narrow results by metadata. All parameters are optional; omitting the text query returns all cards matching the filters. Output is JSON with an `excerpt` field (the first 200 characters of the card's first prose paragraph) so that agents can decide whether to read the full card. When the number of matching results exceeds a configurable threshold, the CLI omits the individual results and instead returns the total count with a `hint` object containing available domains and per-status counts, prompting the caller to refine the query. The `--limit` flag overrides this behavior by explicitly requesting up to N results.
+`specre search` discovers specre cards by free-text query and structured filters. The free-text query is split on whitespace into keywords, and each keyword performs a case-insensitive substring match against the entire content of each specre card (front-matter and Markdown body). By default, all keywords must match (AND logic). The `--or` flag switches to OR logic, where any keyword matching is sufficient. A single keyword behaves identically under both modes. Structured filters (`--status`, `--domain`, `--verified-before`, `--verified-after`) narrow results by metadata and are always combined with the text query via AND. All parameters are optional; omitting the text query returns all cards matching the filters. Output is JSON with an `excerpt` field (the first 200 characters of the card's first prose paragraph) so that agents can decide whether to read the full card. When the number of matching results exceeds a configurable threshold, the CLI omits the individual results and instead returns the total count with a `hint` object containing available domains and per-status counts, prompting the caller to refine the query. The `--limit` flag overrides this behavior by explicitly requesting up to N results.
 
 ## Design Intent
 
@@ -25,20 +25,21 @@ Search results are consumed as LLM input tokens by coding agents. Returning too 
 
 ## Key Members
 
-- `query: Option<String>` — free-text substring to match against card content (positional, optional)
+- `query: Option<String>` — free-text query to match against card content (positional, optional). Split on whitespace into keywords; each keyword is matched as a case-insensitive substring
 - `--status <status>` — filter by status (`draft`, `in-development`, `stable`, `deprecated`)
 - `--domain <domain>` — filter by domain (top-level directory under `specre_dir`)
 - `--verified-before <YYYY-MM-DD>` — include only specres whose `last_verified` is before this date. Specres without `last_verified` are included (they have never been verified, so they are "before" any date)
 - `--verified-after <YYYY-MM-DD>` — include only specres whose `last_verified` is on or after this date. Specres without `last_verified` are excluded
+- `--or` — use OR logic for multi-keyword queries (default is AND). When set, a card matches if it contains any one of the keywords
 - `--limit <N>` — return at most N results, bypassing the truncation threshold. When specified, results are never truncated regardless of count
 
 ## Scenarios
 
-### Free-text query matches card content
+### Free-text query matches card content (single keyword)
 
 1. Project has multiple specre cards, one of which contains "password" in its Functional Overview
 2. User runs `specre search "password"`
-3. CLI reads all specre cards under `specre_dir`, performs case-insensitive substring matching against each card's full content
+3. CLI reads all specre cards under `specre_dir`, splits the query on whitespace into keywords (here: one keyword "password"), and performs case-insensitive substring matching against each card's full content
 4. CLI outputs JSON to stdout:
    ```json
    {
@@ -63,6 +64,32 @@ Search results are consumed as LLM input tokens by coding agents. Returning too 
 1. User runs `specre search "orphans"`
 2. CLI matches the specre whose `name` contains "orphans"
 3. CLI outputs JSON with that specre in the results array
+
+### Multi-keyword AND search (default)
+
+1. Project has three specre cards:
+   - Card A contains "password" and "reset" in its content
+   - Card B contains "password" but not "reset"
+   - Card C contains "reset" but not "password"
+2. User runs `specre search "password reset"`
+3. CLI splits the query on whitespace into keywords: ["password", "reset"]
+4. CLI applies AND logic (default): a card matches only if it contains ALL keywords as case-insensitive substrings
+5. CLI returns only Card A (the only card containing both "password" and "reset")
+6. CLI exits with exit code 0
+
+### Multi-keyword OR search
+
+1. Same project as above (three cards with various combinations of "password" and "reset")
+2. User runs `specre search "password reset" --or`
+3. CLI splits the query on whitespace into keywords: ["password", "reset"]
+4. CLI applies OR logic: a card matches if it contains ANY keyword as a case-insensitive substring
+5. CLI returns Card A, Card B, and Card C (all three contain at least one keyword)
+6. CLI exits with exit code 0
+
+### Single keyword behaves identically with and without --or
+
+1. User runs `specre search "password"` and `specre search "password" --or`
+2. Both produce identical results — a single keyword is trivially AND and OR
 
 ### Filter by status only (no text query)
 

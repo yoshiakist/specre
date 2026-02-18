@@ -96,48 +96,7 @@ pub fn execute(args: &SearchArgs) -> Result<(), SpecreError> {
     let filtered: Vec<SearchableCard> = cards
         .into_iter()
         .filter(|card| {
-            // Text query filter
-            if let Some(ref q) = args.query {
-                let q_lower = q.to_lowercase();
-                if !card.content.to_lowercase().contains(&q_lower) {
-                    return false;
-                }
-            }
-            // Status filter
-            if let Some(s) = status_filter
-                && card.status != s
-            {
-                return false;
-            }
-            // Domain filter
-            if let Some(ref d) = args.domain
-                && card.domain != *d
-            {
-                return false;
-            }
-            // verified-before filter
-            if let Some(before) = verified_before
-                && let Some(lv) = &card.last_verified
-                && let Ok(lv_date) = NaiveDate::parse_from_str(lv, "%Y-%m-%d")
-                && lv_date >= before
-            {
-                return false;
-            }
-            // verified-after filter
-            if let Some(after) = verified_after {
-                match &card.last_verified {
-                    Some(lv) => match NaiveDate::parse_from_str(lv, "%Y-%m-%d") {
-                        Ok(lv_date) => {
-                            if lv_date < after {
-                                return false;
-                            }
-                        }
-                        Err(_) => return false,
-                    },
-                    None => return false,
-                }
-            }
-            true
+            matches_filters(card, args, status_filter, verified_before, verified_after)
         })
         .collect();
 
@@ -172,6 +131,69 @@ pub fn execute(args: &SearchArgs) -> Result<(), SpecreError> {
     println!("{json}");
 
     Ok(())
+}
+
+fn matches_filters(
+    card: &SearchableCard,
+    args: &SearchArgs,
+    status_filter: Option<Status>,
+    verified_before: Option<NaiveDate>,
+    verified_after: Option<NaiveDate>,
+) -> bool {
+    // Text query filter (multi-keyword: AND by default, OR with --or)
+    if let Some(ref q) = args.query {
+        let content_lower = card.content.to_lowercase();
+        let keywords: Vec<&str> = q.split_whitespace().collect();
+        if !keywords.is_empty() {
+            let matched = if args.or {
+                keywords
+                    .iter()
+                    .any(|kw| content_lower.contains(&kw.to_lowercase()))
+            } else {
+                keywords
+                    .iter()
+                    .all(|kw| content_lower.contains(&kw.to_lowercase()))
+            };
+            if !matched {
+                return false;
+            }
+        }
+    }
+    // Status filter
+    if let Some(s) = status_filter
+        && card.status != s
+    {
+        return false;
+    }
+    // Domain filter
+    if let Some(ref d) = args.domain
+        && card.domain != *d
+    {
+        return false;
+    }
+    // verified-before filter
+    if let Some(before) = verified_before
+        && let Some(lv) = &card.last_verified
+        && let Ok(lv_date) = NaiveDate::parse_from_str(lv, "%Y-%m-%d")
+        && lv_date >= before
+    {
+        return false;
+    }
+    // verified-after filter
+    if let Some(after) = verified_after {
+        match &card.last_verified {
+            Some(lv) => match NaiveDate::parse_from_str(lv, "%Y-%m-%d") {
+                Ok(lv_date) => {
+                    if lv_date < after {
+                        return false;
+                    }
+                }
+                Err(_) => return false,
+            },
+            None => return false,
+        }
+    }
+    true
 }
 
 fn parse_date(date: &str) -> Result<NaiveDate, SpecreError> {
