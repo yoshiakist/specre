@@ -1,6 +1,8 @@
 // @specre 01KHJ98T83DPJGMEFH9HAXXAZ1
 // @specre 01KHJ98TFCDTCARMMX1GC5ZHXE
 
+mod helpers;
+mod search;
 pub mod tools;
 
 use crate::card::{self, to_forward_slash};

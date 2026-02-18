@@ -8,6 +8,7 @@ last_verified: "2026-02-18"
 ## Related Files
 
 - `src/commands/mcp/tools.rs` (tool handler)
+- `src/commands/mcp/helpers.rs` (tool logic)
 - `src/commands/coverage.rs` (reused logic: `compute_coverage`)
 - `tests/mcp/tool_coverage.rs` (Test)
 - `tests/mcp/helpers.rs` (Test helper)

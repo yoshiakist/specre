@@ -8,6 +8,7 @@ last_verified: "2026-02-18"
 ## Related Files
 
 - `src/commands/mcp/tools.rs` (tool handler)
+- `src/commands/mcp/helpers.rs` (tool logic)
 - `src/commands/health_check.rs` (reused logic)
 - `src/commands/coverage.rs` (reused: `coverage_from_scan`)
 - `src/commands/orphans.rs` (reused: `orphans_from_scan`)

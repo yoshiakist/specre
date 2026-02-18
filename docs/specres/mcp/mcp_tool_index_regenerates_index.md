@@ -8,6 +8,7 @@ last_verified: "2026-02-18"
 ## Related Files
 
 - `src/commands/mcp/tools.rs` (tool handler)
+- `src/commands/mcp/helpers.rs` (tool logic)
 - `src/commands/index.rs` (reused logic: index generation)
 - `tests/mcp/tool_index.rs` (Test)
 - `tests/mcp/helpers.rs` (Test helper)

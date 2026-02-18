@@ -8,6 +8,7 @@ last_verified: "2026-02-18"
 ## Related Files
 
 - `src/commands/mcp/tools.rs` (tool handler)
+- `src/commands/mcp/helpers.rs` (tool logic)
 - `src/commands/orphans.rs` (reused logic: `compute_orphans`)
 - `tests/mcp/tool_orphans.rs` (Test)
 - `tests/mcp/helpers.rs` (Test helper)
