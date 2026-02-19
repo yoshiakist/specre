@@ -28,54 +28,11 @@ specre は、仕様を書くコストを限りなくゼロに近づけること�
 
 *Specificatio credibilis crescere potest.* が本プロジェクトのクレドです。
 
-## クイックスタート
+## はじめる
 
-### ビルド済みバイナリのインストール
+**[specre を始める](docs/guides/START-SPECRE.ja.md)** — インストールからプロジェクト初期化、MCP サーバ設定、AI ワークフローコマンドの導入、最初の `/specre-whats-next` 実行までを案内するステップバイステップガイドです。ここから始めてください。
 
-```bash
-# Linux / macOS
-curl --proto '=https' --tlsv1.2 -LsSf https://github.com/yoshiakist/specre/releases/latest/download/specre-installer.sh | sh
-
-# Windows (PowerShell)
-powershell -ExecutionPolicy ByPass -c "irm https://github.com/yoshiakist/specre/releases/latest/download/specre-installer.ps1 | iex"
-```
-
-### Cargo 経由のインストール（Rust ユーザー向け）
-
-```bash
-cargo install specre
-```
-
-[crates.io](https://crates.io/crates/specre) から `specre` CLI をインストールします。Rust 1.85+ が必要です。
-
-### Git サブモジュールとして
-
-```bash
-git submodule add git@github.com:yoshiakist/specre.git specre
-```
-
-### 既存コードベースへの specre 導入
-
-既にコードとテストが存在するプロジェクトに specre を導入する場合は、**[導入戦略ガイド](docs/guides/adoption-strategy.ja.md)** を参照してください。テストランドスケープの評価と適切な戦略の選択（テスト由来の抽出、コード振る舞い分析、トップダウンドメイン分解）について説明しています。
-
-### 最初の specre を書く
-
-プロジェクトの specres ディレクトリ配下に Markdown ファイルを作成します。ディレクトリ構成は自由なので、ドメイン、モジュール、機能領域など、プロジェクトに合った体系で整理可能です：
-
-```
-docs/specres/
-  auth/
-    signup/
-      user_can_sign_up_with_email.md
-      system_sends_verification_email_on_signup.md
-    password/
-      user_can_reset_password.md
-  cart/
-    user_can_add_item_to_cart.md
-    cart_total_reflects_quantity_changes.md
-```
-
-ドメイン内のサブディレクトリは任意です。関連する振る舞いをグループ化するのに有用な場合に使い、1階層で十分な場合はフラットに保ちましょう。
+既にコードとテストが存在するプロジェクトに specre を導入する場合は、**[導入戦略ガイド](docs/guides/adoption-strategy.ja.md)** も参照してください。
 
 ## specre カードフォーマット
 
