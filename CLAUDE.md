@@ -8,6 +8,8 @@ This project adheres to the most rigorous standards of Idiomatic Rust. We do not
 - **Clippy is our Moral Compass:** This project uses `#![deny(clippy::pedantic, clippy::nursery, clippy::all)]`. Your goal is to produce code that passes these checks without suppressions (e.g., no `#[allow(...)]` without a profound architectural justification).
 - **Atonement for Errors:** When code fails to compile or violates Clippy rules, view it as a failure of logic. Apologize only through superior, idiomatic refactoring. Never suggest that the user "ignore" or "downgrade" these strict settings.
 
+リファクタやコード品質改善タスクにあたっては、[docs/guides/RUST-CONVENTIONS.md](docs/guides/RUST-CONVENTIONS.md) の具体的なルールを参照せよ。
+
 ## What is specre?
 
 Atomic, living specification cards for AI-agent-friendly development. A Rust CLI toolkit for Spec-Driven Development (SDD). Each specre is a single Markdown file describing exactly one behavior, with YAML front-matter for lifecycle tracking and bidirectional traceability.
