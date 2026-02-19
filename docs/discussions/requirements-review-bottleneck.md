@@ -278,6 +278,183 @@ v0.6〜v0.7 — Multi-Repository [変更なし]
 
 ここはツールの品質だけでは解決できない。しかし **決定論的な部分の品質が高ければ、行動変容のハードルは下がる**。
 
+## D. 半決定論的影響評価 — `@specre-todo` マーカー（確度: 中〜高）
+
+### 問題: impact と potential impact の区別
+
+前述の `specre impact` や `specre blast-radius` が扱うのは **retrospective impact** — 「既存のコードと仕様の関係性に基づいて、変更の影響範囲を特定する」。これは既にあるグラフの走査であり、完全に決定論的である。
+
+しかし、計画段階で本当に必要なのは **prospective impact** — 「まだ存在しない変更が、将来どこに影響を及ぼしうるか」。ここには本質的な不確実性がある。
+
+従来の手法ではこの不確実性への対処法は2つしかなかった:
+
+1. **人間が推測する** — 経験に基づくが、漏れやすく、スケールしない
+2. **LLM に全て任せる** — コンテキストウィンドウに収まった範囲で推測するが、網羅性に保証がない
+
+### 提案: `@specre-todo` による確率的マーキング + 決定論的伝播
+
+新しい手法として、**確率的な判断と決定論的な分析を明確に分離する** アプローチを提案する。
+
+```
+Phase 1 [確率的]   コーディングエージェントが将来の変更箇所を推定し
+                   @specre-todo マーカーをコード上に配置する
+
+Phase 2 [人間検証] マーカーの妥当性をレビューする
+                   （個々のマーカーは小さな判断 = レビューしやすい）
+
+Phase 3 [決定論的] マーカーを起点にトレーサビリティグラフを走査し
+                   影響範囲を完全に列挙する
+```
+
+#### マーカーの設計
+
+```rust
+// @specre-todo 01ABC... "ディスカウント適用後の金額でtax計算に変更"
+fn calculate_tax(order: &Order) -> Amount {
+    order.subtotal * TAX_RATE  // 現状: subtotal に対して計算
+}
+```
+
+マーカーの構成要素:
+- `@specre-todo` — 将来の変更を宣言するプレフィックス（`@specre` と区別可能）
+- ULID — 変更の根拠となる specre カード（新規カード or 変更予定カード）
+- 説明文 — 何が変わるかの簡潔な記述（LLM が生成、人間がレビュー）
+
+#### なぜこれが従来手法と本質的に異なるか
+
+| 手法 | 「どこが変わるか」 | 「何が影響するか」 | 検証可能性 |
+|------|------------------|------------------|-----------|
+| 人間の勘 | 確率的 | 確率的 | 低（暗黙知） |
+| LLM に全部任せる | 確率的 | 確率的 | 低（散文出力） |
+| 静的解析（call graph） | N/A（既存コードのみ） | 決定論的 | 高 |
+| **@specre-todo** | **確率的 → 人間が検証** | **決定論的** | **高（コード上のマーカー）** |
+
+鍵は: **確率的な不確実性を「どこが変わるか」という小さく検証可能な判断に閉じ込め、「変わった場合に何が影響するか」を決定論的に処理する** こと。
+
+これは既存のソフトウェア工学の Change Impact Analysis（Bohner & Arnold, 1996）にも、Feature Flags にも、静的解析にも見当たらない組み合わせである。LLM の確率的推論をコードベース上の物理的なマーカーとして「物質化」し、そこから先を決定論的に処理するという二段構えは、LLM 時代の新しいパターンと言える。
+
+#### マーカーが監査可能（auditable）であることの意味
+
+LLM が「この変更はここに影響するでしょう」と散文で述べるのと、コード上に `@specre-todo` マーカーを物理的に配置するのとでは、レビュアビリティが根本的に異なる:
+
+- マーカーは `grep` で一覧でき、PRの diff に出る
+- 各マーカーは個別に承認/却下できる（小さな判断の集合）
+- マーカーの正確性はコードの文脈で検証可能（散文の妥当性評価よりはるかに容易）
+- マーカーは永続化される（LLM のセッションをまたいで残る）
+
+#### 具体的なワークフロー
+
+```
+$ specre plan docs/specres/order/discount_code_reduces_order_total.md
+
+Planning impact for: discount_code_reduces_order_total
+
+Step 1: Agent analyzing specre card and existing codebase...
+Step 2: Placing @specre-todo markers in potentially affected files...
+
+Markers placed (5):
+  src/order/total.rs:42        @specre-todo 01DEF... "subtotal計算にdiscount適用"
+  src/order/tax.rs:18          @specre-todo 01DEF... "tax計算の基準額変更"
+  src/invoice/generator.rs:67  @specre-todo 01DEF... "invoice表示にdiscount行追加"
+  src/payment/charge.rs:23     @specre-todo 01DEF... "課金額がdiscount後の金額に"
+  tests/order/test_total.rs:5  @specre-todo 01DEF... "discount適用のテスト追加"
+
+Step 3: Computing deterministic impact from markers...
+
+Impact from @specre-todo markers:
+  Directly marked files: 5
+  Transitively affected (via specre graph): 3 additional files
+    src/payment/receipt.rs      ← governed by payment_receipt_matches_charge
+    src/report/daily_sales.rs   ← governed by daily_report_aggregates_revenue
+    tests/payment/test_receipt.rs
+
+  Affected behaviors (total): 4
+    01DEF... discount_code_reduces_order_total  [in-development] (primary)
+    01ABC... order_total_calculation_applies_tax [stable]
+    01GHI... invoice_generation_reflects_final_price [stable]
+    01PQR... daily_report_aggregates_revenue [stable]
+
+Review the markers with: git diff --cached
+Remove incorrect markers with: specre plan --remove <file:line>
+```
+
+#### チーム間の早期情報提供
+
+`@specre-todo` マーカーの副次的だが重要な効果: **別の作業をしている同じプロダクトチームへの注意喚起**。
+
+例えば、チームAが discount 機能を開発中で、`src/invoice/generator.rs` に `@specre-todo` マーカーを配置したとする。チームBは同時期に invoice の表示改善を進めている。
+
+```
+$ specre todo-status
+
+Active @specre-todo markers in this repository:
+
+  discount_code_reduces_order_total (01DEF...) — Team A / Sprint 24
+    src/invoice/generator.rs:67  "invoice表示にdiscount行追加"
+    src/payment/charge.rs:23     "課金額がdiscount後の金額に"
+    ... (3 more)
+```
+
+チームBのエンジニアが `invoice/generator.rs` を開くと:
+
+```rust
+// @specre-todo 01DEF... "invoice表示にdiscount行追加"  ← これが目に入る
+fn generate_invoice(order: &Order) -> Invoice {
+    // ...
+}
+```
+
+この情報は:
+- **Slack や口頭での「あ、そこ今触ってるんだけど」を機械化する**
+- マーカーはコード上に物理的に存在するため、IDE の検索やPRの diff で自然に目に入る
+- `specre todo-status` でリポジトリ全体の計画中の変更を俯瞰できる
+- 従来の「スプリント計画で口頭共有 → 忘れる」というパターンを、コードベース上の永続的なシグナルに変換する
+
+#### ライフサイクル管理
+
+`@specre-todo` マーカーにはライフサイクル管理が必須。放置されたマーカーはノイズになる。
+
+```
+状態遷移:
+  placed → reviewed → implemented → removed
+           → rejected (→ removed)
+           → stale (→ reviewed again or removed)
+```
+
+- **placed**: LLM がマーカーを配置した直後
+- **reviewed**: 人間がマーカーの妥当性を確認
+- **implemented**: 実際の変更が完了（`@specre-todo` → `@specre` に昇格）
+- **stale**: 一定期間（configurable）実装されなかったマーカー → 再レビューまたは削除
+
+`specre ci` は stale な `@specre-todo` を警告として報告できる（エラーではなく）。
+
+## ロードマップへの統合案（改訂）
+
+`@specre-todo` を加味してロードマップ統合案を改訂する:
+
+```
+v0.4 — Drift Detection [変更なし]
+  └ specre drift, specre ci, GitHub Actions template
+
+v0.5 — Decision Support [QA Support から拡張]
+  ├ specre impact        [既存計画]
+  ├ specre diff          [既存計画]
+  ├ specre export        [既存計画]
+  ├ specre blast-radius  [新規: A-1]  ← impact + trace + git diff の合成
+  ├ specre complexity    [新規: C-1]  ← impact + git history の合成
+  └ MCP prompt: review   [新規: A-3]  ← blast-radius の結果を LLM に渡す
+
+v0.5.x — Prospective Impact & Team Coordination [新規マイルストーン]
+  ├ @specre-todo マーカー       [新規: D]  ← 将来変更の物理的宣言
+  ├ specre plan <specre-path>  [新規]     ← LLM によるマーカー配置 + 決定論的影響分析
+  ├ specre todo-status         [新規]     ← リポジトリ全体の計画中変更の俯瞰
+  ├ specre review-checklist    [新規: A-2] ← blast-radius → checklist 変換
+  ├ specre scope               [新規: B-1] ← search + impact + complexity の合成
+  └ specre contradiction-check [新規: B-2] ← scenarios のクロスチェック
+
+v0.6〜v0.7 — Multi-Repository [変更なし]
+```
+
 ## 結論
 
 specre が要件定義・コードレビューのボトルネック低減に寄与するための鍵は:
@@ -285,5 +462,6 @@ specre が要件定義・コードレビューのボトルネック低減に寄�
 1. **決定論的なプリミティブ（impact, trace, drift）を、ワークフローレベルのコマンド（blast-radius, scope, review-checklist）に合成すること**
 2. **LLM の推論の「入力」を構造化すること** — specre の価値は LLM の推論を代替することではなく、推論の前提となるデータを決定論的・網羅的に収集すること
 3. **「何が仮説で、何が決定論的か」を明確に分離すること** — 混同すると、ツール全体が「当てにならない」という評価になる
+4. **確率的判断と決定論的分析の明確な分離** — `@specre-todo` は LLM の確率的推論を「小さく検証可能なマーカー」に物質化し、そこから先の影響伝播を決定論的に処理する。この「半決定論的影響評価」は、LLM 時代の新しい Change Impact Analysis パターンとなりうる
 
-現行ロードマップの v0.5（impact, diff, export）は必要なプリミティブだが、それだけでは「要件定義が楽になった」「レビューが速くなった」という体験には直結しない。blast-radius と review-checklist を v0.5 に組み込むことで、プリミティブからワークフローへの接続が生まれる。
+現行ロードマップの v0.5（impact, diff, export）は必要なプリミティブだが、それだけでは「要件定義が楽になった」「レビューが速くなった」という体験には直結しない。blast-radius と review-checklist でプリミティブからワークフローへの接続を作り、`@specre-todo` で retrospective から prospective への拡張を実現することで、specre は「仕様管理ツール」から「開発意思決定支援ツール」へと進化する。
