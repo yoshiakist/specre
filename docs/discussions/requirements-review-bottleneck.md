@@ -428,6 +428,121 @@ fn generate_invoice(order: &Order) -> Invoice {
 
 `specre ci` は stale な `@specre-todo` を警告として報告できる（エラーではなく）。
 
+### D-1.5. マーカー密度による責務集中の早期検出
+
+#### 問題: 技術的負債は実装後にしか検出できない
+
+従来のコード品質メトリクス（循環的複雑度、行数、結合度）は全て **実装が完了した後** にしか測定できない。ファイルが肥大化し、if 分岐が増え、責務が混在してから「ここは負債だ」と気づく。そして気づいた時には、リファクタリングのコストが既に高い。
+
+#### 観察: マーカー密度は計画段階のアーキテクチャ品質指標になる
+
+`@specre-todo` マーカーを使って将来の変更を計画すると、1つのファイルに複数のマーカーが集中することがある。これは「複数の振る舞いがこのファイルに依存している（or 依存することになる）」ことを **定量的に** 示す。
+
+```
+src/order/total.rs:
+  // @specre 01AAA...     ← 既存: 注文合計の計算
+  // @specre 01BBB...     ← 既存: 税込み計算
+  // @specre 01CCC...     ← 既存: 送料の加算
+  // @specre-todo 01DDD... ← 計画: ディスカウント適用
+  // @specre-todo 01EEE... ← 計画: ポイント利用による減額
+  // @specre-todo 01FFF... ← 計画: クーポン併用ロジック
+  // @specre-todo 01GGG... ← 計画: サブスクリプション割引
+```
+
+ちょっと慣れた人がこれを見れば、即座に嗅覚が働く:
+
+- 「7つの振る舞いが1ファイルに集中している — 責務過多の兆候」
+- 「振る舞いを追加する前に、まず構造を分割すべきでは？」
+- 「ここにさらに条件分岐を足すと、if/match の入れ子が深くなって筋が悪い」
+
+#### CI による自動検出
+
+この嗅覚を定量化し、CI で自動警告できる:
+
+```toml
+# specre.toml
+[markers]
+max_markers_per_file = 7  # 1ファイルあたりのマーカー上限（@specre + @specre-todo の合計）
+```
+
+```
+$ specre ci
+
+Warning: Marker concentration exceeds threshold (7)
+  src/order/total.rs: 7 markers (3 @specre + 4 @specre-todo)
+    → Consider decomposing responsibilities before adding new behaviors
+
+  Suggested actions:
+    - Review governing specre cards to identify separable concerns
+    - Extract discount/coupon logic into src/order/pricing.rs
+    - Run `specre plan --refactor src/order/total.rs` for decomposition suggestions
+```
+
+#### 健全なマーカー分布のパターン
+
+マーカー密度の閾値は一律ではない。設計パターンによって健全な分布は異なる:
+
+**典型的な実装ファイル: 1〜3 マーカーが健全**
+
+```rust
+// src/order/discount.rs
+// @specre 01DEF...  ← このファイルは1つの振る舞いに専念
+```
+
+1つのファイルが1〜3個の明確な振る舞いに対応する。これは Single Responsibility の範囲内。
+
+**集約パターン（Config, Repository, Router）: 意図的に多数**
+
+```rust
+// src/config.rs
+// @specre 01AAA...  ← DB設定の読み込み
+// @specre 01BBB...  ← API認証設定の読み込み
+// @specre 01CCC...  ← キャッシュ設定の読み込み
+// ... (10+ markers)
+// #[specre::allow(marker_concentration)]  ← 意図的な集約
+```
+
+Config、Repository、Router などのパターンは、設計上バリエーションを集約する役割を持つ。これらは閾値チェックから明示的に除外する設定が必要:
+
+```toml
+# specre.toml
+[markers]
+max_markers_per_file = 7
+
+# 意図的な集約パターン — 閾値チェックから除外
+allow_concentration = [
+  "src/config.rs",
+  "src/routes/mod.rs",
+  "src/repository/*.rs",
+]
+```
+
+**4〜6 マーカーの「グレーゾーン」**
+
+このゾーンは、現時点ではまだ管理可能だが、今後のマーカー追加で閾値を超える可能性がある状態。CI は警告ではなく情報レベルで通知し、計画段階で分割を検討する材料を提供する。
+
+#### なぜこれが「半決定論的な」技術的負債防止か
+
+従来の技術的負債防止:
+```
+[実装完了] → [メトリクス測定] → [負債検出] → [リファクタリング]
+             すでに書かれたコードを事後的に測定
+             リファクタコストは既に高い
+```
+
+マーカー密度による防止:
+```
+[specre-todo 配置] → [密度計測] → [集中警告] → [設計修正] → [実装]
+                     まだ書かれていないコードの密度を測定
+                     修正コストはほぼゼロ（マーカーを移動するだけ）
+```
+
+「半決定論的」と呼ぶ理由:
+- マーカーの配置自体は確率的（LLM の推定 + 人間のレビュー）
+- しかし密度の計測と閾値チェックは完全に決定論的
+- 「このファイルにマーカーが7つある」は事実であり、解釈の余地がない
+- そこから「責務を分割すべきか」の最終判断は人間がするが、**気づく仕組みが機械的に保証される**
+
 ### D-2. スケルトンファイルへの拡張 — コードベース上の詳細設計
 
 #### 概念の拡張
@@ -582,13 +697,14 @@ v0.5 — Decision Support [QA Support から拡張]
   └ MCP prompt: review   [新規: A-3]  ← blast-radius の結果を LLM に渡す
 
 v0.5.x — Prospective Impact & Team Coordination [新規マイルストーン]
-  ├ @specre-todo マーカー          [新規: D]    ← 将来変更の物理的宣言
-  ├ specre plan <specre-path>     [新規]       ← LLM によるマーカー配置 + スケルトン生成 + 決定論的影響分析
-  ├ specre plan --skeleton        [新規: D-2]  ← 新規スケルトンファイルの生成（コメントアウト設計）
-  ├ specre todo-status            [新規]       ← リポジトリ全体の計画中変更の俯瞰
-  ├ specre review-checklist       [新規: A-2]  ← blast-radius → checklist 変換
-  ├ specre scope                  [新規: B-1]  ← search + impact + complexity の合成
-  └ specre contradiction-check    [新規: B-2]  ← scenarios のクロスチェック
+  ├ @specre-todo マーカー          [新規: D]      ← 将来変更の物理的宣言
+  ├ specre plan <specre-path>     [新規]         ← LLM によるマーカー配置 + スケルトン生成 + 決定論的影響分析
+  ├ specre plan --skeleton        [新規: D-2]    ← 新規スケルトンファイルの生成（コメントアウト設計）
+  ├ マーカー密度チェック            [新規: D-1.5]  ← max_markers_per_file 閾値による責務集中の早期検出
+  ├ specre todo-status            [新規]         ← リポジトリ全体の計画中変更の俯瞰
+  ├ specre review-checklist       [新規: A-2]    ← blast-radius → checklist 変換
+  ├ specre scope                  [新規: B-1]    ← search + impact + complexity の合成
+  └ specre contradiction-check    [新規: B-2]    ← scenarios のクロスチェック
 
 v0.6〜v0.7 — Multi-Repository [変更なし]
 ```
@@ -601,6 +717,7 @@ specre が要件定義・コードレビューのボトルネック低減に寄�
 2. **LLM の推論の「入力」を構造化すること** — specre の価値は LLM の推論を代替することではなく、推論の前提となるデータを決定論的・網羅的に収集すること
 3. **「何が仮説で、何が決定論的か」を明確に分離すること** — 混同すると、ツール全体が「当てにならない」という評価になる
 4. **確率的判断と決定論的分析の明確な分離** — `@specre-todo` は LLM の確率的推論を「小さく検証可能なマーカー」に物質化し、そこから先の影響伝播を決定論的に処理する。この「半決定論的影響評価」は、LLM 時代の新しい Change Impact Analysis パターンとなりうる
+5. **マーカー密度を計画段階のアーキテクチャ品質指標として活用する** — 1ファイルへのマーカー集中は責務過多の定量的シグナルであり、実装前に構造上の問題を検出できる。従来のコード品質メトリクスが「実装後の事後検出」であるのに対し、これは「計画段階の事前検出」であり、修正コストがほぼゼロの時点で介入できる
 
 現行ロードマップの v0.5（impact, diff, export）は必要なプリミティブだが、それだけでは「要件定義が楽になった」「レビューが速くなった」という体験には直結しない。blast-radius と review-checklist でプリミティブからワークフローへの接続を作り、`@specre-todo` で retrospective から prospective への拡張を実現することで、specre は「仕様管理ツール」から「開発意思決定支援ツール」へと進化する。
 
