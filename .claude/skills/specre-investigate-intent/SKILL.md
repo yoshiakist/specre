@@ -64,7 +64,7 @@ Determine what context is available before choosing a path:
 
 - Extract each ULID.
 - Run `specre trace <ULID>` for each.
-- Read the governing specre card(s) in full.
+- Read the governing specre card(s) in full. When MCP tools are available, use `ReadMcpResourceTool` to fetch the card directly as a resource with URI `specre:///<ULID>` (e.g. `specre:///01JABCDEFGHJKMNPQRSTVWXYZ0`).
 - Proceed to Output.
 
 **No markers found:**
@@ -120,9 +120,23 @@ Clearly note in the output that no governing specre card was found.
 
 **Related Files:**
 <list>
+
+**Specification:**
+<markdown link to the specre card file, using the `path` field from the search result or card metadata>
 ```
 
 Present each card in sequence when multiple cards govern the subject.
+
+**Only if coding agent is working on VSCode based IDE**:
+
+- At the end of your response, open each consulted specre card file directly in the editor using the `code -r` command via the Bash tool.
+- The `-r` flag reuses the current window and opens the file as a new tab instead of a new window. Use the absolute path constructed from the workspace root and the `path` field returned by the search result or card metadata. Example:
+
+```bash
+code -r "<full_path>/name_of_specification.md"
+```
+
+If multiple cards were consulted, open each file with a separate `code -r` command. Do NOT output markdown file links — open the files directly instead.
 
 ### When no specre card is found
 
