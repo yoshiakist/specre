@@ -341,7 +341,7 @@ class QuotationService:
 
 - **v0.1 — コア CLI** ✅ `init`, `new`, `index`, `status`
 - **v0.2 — トレーサビリティ** ✅ `trace`, `orphans`, `tag`
-- **v0.3 — エージェント統合** — `coverage`, `health-check`, `search`, `--json` 出力, MCP サーバー
+- **v0.3 — エージェント統合** ✅ `coverage`, `health-check`, `search`, `--json` 出力, MCP サーバー
 - **v0.4 — ドリフト検出** — `drift`, `ci`, GitHub Actions テンプレート
 - **v0.5 — QA サポート** — `impact`, `diff`, `export`
 

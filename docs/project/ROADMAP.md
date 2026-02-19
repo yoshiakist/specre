@@ -13,7 +13,7 @@
 - [x] `specre orphans` — Detect specres with no `@specre` markers in source, or markers with no matching specre
 - [x] `specre tag <ULID> <file>` — Insert a `@specre` marker into a source file at the appropriate location
 
-## v0.3 — Agent Integration
+## v0.3 — Agent Integration ✅
 
 Enable AI agents to utilize specre as a first-class tool.
 
