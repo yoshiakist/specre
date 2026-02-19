@@ -143,17 +143,13 @@ Orphans are high or coverage is low. These often go together — uncovered files
 
 1. Run `specre coverage` to get the current coverage report and the list of uncovered files.
 2. Run `specre orphans` to identify unlinked cards and dangling markers.
-3. Analyze the results:
+3. Analyze the results. Address **only the first matching condition** below (highest priority first). This enforces the "one recommendation per invocation" principle — subsequent invocations will catch remaining issues.
 
-**If there are unlinked specre cards** (cards not referenced by any source file — reported as "orphan_specres" in tool output):
-Report them. These cards may have lost their traceability links. Recommend:
-- If the card's "Related Files" lists files that exist → suggest running `specre tag <ULID> <file>` to restore the link.
-- If the card's "Related Files" lists files that no longer exist → suggest updating or deprecating the card.
+**Priority 1 — Invalid `@specre` markers** (source files with `@specre` tags pointing to deleted or missing cards — reported as "dangling_markers" in tool output):
 
-**If there are invalid `@specre` markers** (source files with `@specre` tags pointing to deleted or missing cards — reported as "dangling_markers" in tool output):
 Report them. Group the invalid markers by ULID and list the affected files for each.
 
-These markers indicate that the source files once had governing specre cards that no longer exist. Simply deleting the markers would leave the source files without specifications — reducing traceability. Instead, recommend a **full recovery workflow**:
+These markers are broken references that must be cleaned up before adding new specre cards — otherwise, the ecosystem contains stale traceability links that distort coverage and orphan metrics. Recommend a **full recovery workflow**:
 
 1. **Remove the invalid markers** from the affected source files (the old ULIDs are invalid and cannot be reused).
 2. **Regenerate specre cards** for the affected domain using `/specre-generate <domain>` — this will create new cards covering the now-unspecified behaviors.
@@ -173,7 +169,13 @@ Present this as a single coordinated action:
 > 2. Run `/specre-generate <domain>` to create new specre cards for the uncovered behaviors
 > 3. Tag the source files with the new cards to restore traceability
 
-**If coverage is low:**
+**Priority 2 — Unlinked specre cards** (cards not referenced by any source file — reported as "orphan_specres" in tool output):
+
+Report them. These cards may have lost their traceability links. Recommend:
+- If the card's "Related Files" lists files that exist → suggest running `specre tag <ULID> <file>` to restore the link.
+- If the card's "Related Files" lists files that no longer exist → suggest updating or deprecating the card.
+
+**Priority 3 — Coverage below threshold:**
 
 First, count the total number of source files within `source_dirs`. Branch on the scope size:
 
