@@ -174,6 +174,26 @@ Present this as a single coordinated action:
 > 3. Tag the source files with the new cards to restore traceability
 
 **If coverage is low:**
+
+First, count the total number of source files within `source_dirs`. Branch on the scope size:
+
+**If the total source file count exceeds ~30 files AND coverage is below 50%:**
+
+The `source_dirs` scope is likely too broad — this is common immediately after `specre init`, which defaults to `["src"]`. Generating specre cards for dozens of uncovered files at once is impractical and goes against the incremental adoption philosophy. Recommend narrowing the scope first:
+
+> Current coverage: N% (X of Y files). Your `source_dirs` targets Y files — this is a broad scope to cover incrementally.
+>
+> **Recommended next step:** Narrow `source_dirs` in `specre.toml` to focus on one specific domain or subdirectory (e.g., `["src/auth"]` instead of `["src"]`). Once that domain reaches high coverage, expand `source_dirs` to include the next domain.
+>
+> For example, to start with the `<domain>` domain:
+> ```toml
+> source_dirs = ["src/<domain>"]
+> ```
+
+If `$ARGUMENTS` specifies a domain, incorporate it into the example. Otherwise, suggest the subdirectory with the fewest files (easiest quick win).
+
+**Otherwise (scope is focused, or coverage is already moderate):**
+
 Group the uncovered files by their top-level domain directory. Present a summary:
 
 > Current coverage: N%. Uncovered files by domain:
