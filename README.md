@@ -28,54 +28,11 @@ Most SDD tools (GitHub Spec Kit, Amazon Kiro, BMAD) treat specifications as larg
 
 *Specificatio credibilis crescere potest.*
 
-## Quick Start
+## Getting Started
 
-### Install Pre-built Binary
+**[Getting Started with specre](docs/guides/START-SPECRE.md)** — A step-by-step guide covering installation, project initialization, MCP server setup, AI workflow commands, and your first `/specre-whats-next` run. Start here.
 
-```bash
-# Linux / macOS
-curl --proto '=https' --tlsv1.2 -LsSf https://github.com/yoshiakist/specre/releases/latest/download/specre-installer.sh | sh
-
-# Windows (PowerShell)
-powershell -ExecutionPolicy ByPass -c "irm https://github.com/yoshiakist/specre/releases/latest/download/specre-installer.ps1 | iex"
-```
-
-### Install via Cargo (Rust users)
-
-```bash
-cargo install specre
-```
-
-This installs the `specre` CLI from [crates.io](https://crates.io/crates/specre). Requires Rust 1.85+.
-
-### As a Git Submodule
-
-```bash
-git submodule add git@github.com:yoshiakist/specre.git specre
-```
-
-### Adopting specre in an Existing Codebase
-
-If you are retrofitting specre into a project that already has code and tests, see the **[Adoption Strategy Guide](docs/guides/adoption-strategy.md)**. It walks you through assessing your test landscape and choosing the right strategy (test-derived extraction, code-behavior analysis, or top-down domain decomposition).
-
-### Writing Your First specre
-
-Create a Markdown file under your project's specres directory. Organize subdirectories however you like — by domain, module, feature area, or any scheme that fits your project:
-
-```
-docs/specres/
-  auth/
-    signup/
-      user_can_sign_up_with_email.md
-      system_sends_verification_email_on_signup.md
-    password/
-      user_can_reset_password.md
-  cart/
-    user_can_add_item_to_cart.md
-    cart_total_reflects_quantity_changes.md
-```
-
-Subdirectories within a domain are optional — use them when related behaviors benefit from grouping, but keep the tree flat where a single level is sufficient.
+For retrofitting specre into a project that already has code and tests, also see the **[Adoption Strategy Guide](docs/guides/adoption-strategy.md)**.
 
 ## specre Card Format
 
