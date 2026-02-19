@@ -61,7 +61,7 @@ Determine how much of the project's codebase is covered by the `source_dirs` con
 Run the scope assessment script:
 
 ```bash
-bash .claude/scripts/source-dir-scope.sh
+bash .claude/commands/scripts/source-dir-scope.sh
 ```
 
 The script reads `specre.toml`, counts source files across the project (excluding root-level files, build artifacts, `.git/`, `.claude/`, and the specre directory itself), and outputs:
