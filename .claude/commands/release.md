@@ -1,3 +1,7 @@
+---
+description: "Execute the release workflow: version bump, tag, and publish to crates.io"
+---
+
 You are executing the release workflow for specre. The user may optionally provide a version as $ARGUMENTS (e.g., `0.2.4`). If not provided, increment the patch version from the current `Cargo.toml`.
 
 Human checkpoints are limited to PR merge only — the agent drives everything else autonomously.
