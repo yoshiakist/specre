@@ -1,3 +1,7 @@
+---
+description: "Fix code quality issues across the codebase using the SDD workflow"
+---
+
 You are executing the SDD (Spec-Driven Development) code quality workflow. The user will describe the code quality issue identified during a prompt review as $ARGUMENTS.
 
 Follow these phases strictly. This workflow iterates over each affected file, updating specs, tests, and implementation in lockstep.

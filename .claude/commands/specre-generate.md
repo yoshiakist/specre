@@ -1,5 +1,5 @@
 ---
-description: "Generate specre cards for uncovered source files in a domain. Use this command when the user wants to retroactively create specification cards for existing code that lacks specre coverage. This command scans a domain directory, classifies behaviors, and creates cards one at a time in a controlled sequence. It is NOT for creating a single specre card (use specre-author skill) or for writing new code (use sdd-new)."
+description: "Generate specre cards for uncovered source files in a domain"
 ---
 
 You are executing the specre-generate workflow. The user has optionally provided a domain or subdirectory as `$ARGUMENTS`.

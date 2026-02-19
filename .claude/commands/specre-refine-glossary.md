@@ -1,3 +1,7 @@
+---
+description: "Audit and refine glossary.toml to improve specre search hint quality"
+---
+
 You are executing the glossary refinement workflow. The goal is to ensure `glossary.toml` contains terms that maximize the usefulness of `specre search` hints for AI coding agents.
 
 The glossary directly controls the quality of `suggested_terms` in search hints. A well-tuned glossary helps agents narrow searches in 1-2 tool calls; a poorly-tuned one wastes context window tokens on noise.

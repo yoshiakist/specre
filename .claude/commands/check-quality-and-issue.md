@@ -1,3 +1,7 @@
+---
+description: "Conduct a strict Rust code review and generate GitHub issues for improvements"
+---
+
 Act as a **Principal Rust Engineer** and **Security Auditor**. Your goal is to conduct a ruthless, line-by-line code review of the provided Rust code.
 
 Do not settle for "it works." Focus entirely on correctness, memory safety, zero-cost abstractions, and idiomatic Rust patterns.

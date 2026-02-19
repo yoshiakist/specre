@@ -1,3 +1,7 @@
+---
+description: "Implement a new feature using the Spec-Driven Development workflow"
+---
+
 You are executing the SDD (Spec-Driven Development) workflow to implement a new feature. The user will provide a description of what to implement as $ARGUMENTS.
 
 Follow these phases strictly. There is exactly ONE human checkpoint — after the specre card is written.
