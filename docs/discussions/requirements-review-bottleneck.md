@@ -680,6 +680,109 @@ specre-todo スケルトンのタイムライン:
 
 QA のシフトレフトにおいて、従来は「要件定義ドキュメントを渡す」というアプローチが主流だったが、これには具体性が欠ける。スケルトンファイルは **実装の具体的な構造** を伴うため、QA が「何をテストすべきか」をより正確に判断できる。
 
+### D-3. specre の責務境界 — 「安全かどうか」の判断について
+
+#### WHERE / WHAT / HOW MUCH は決定論的、HOW は人間の判断
+
+このディスカッションで提案してきた機能群が提供できるものを整理する:
+
+```
+決定論的に提供可能:
+  WHERE    — どのファイルが影響を受けるか（blast-radius, impact）
+  WHAT     — どの振る舞いが影響を受けるか（specre card の特定）
+  HOW MUCH — 何ファイル、何ドメイン、依存の深さ（complexity）
+
+人間の判断に委ねるべき:
+  HOW      — 変更が安全かどうか
+  WHETHER  — リリースして問題ないか
+```
+
+「変更が安全かどうか」は意味論の問題であり、コードの実行時の振る舞いに依存する。これを決定論的に解くことは（停止問題と同様に）原理的に不可能であり、specre のスコープ外である。
+
+#### specre が追加で貢献できる層: WHERE TO LOOK
+
+ただし、「安全かどうか」と「安全かどうかを判断するために何を検証すべきか」は別の問題である。後者は specre が構造化できる:
+
+```
+specre card: discount_code_reduces_order_total
+Scenarios:
+  1. Given a valid discount code → total is reduced
+  2. Given an expired code → error is returned
+  3. Given a discount + tax → tax is on post-discount amount
+  4. Given a 100% discount → total is 0, minimum order check applies
+
+@specre-todo 変更点:
+  src/order/total.rs:42           — subtotal計算にdiscount適用
+  src/invoice/generator.rs:67     — invoice表示にdiscount行追加
+
+→ レビュアーが検証すべき問い:
+  「Scenario 3: tax計算は discount 適用後の金額で行われるか？」
+  「Scenario 4: minimum order check は discount 後の金額に対して実行されるか？」
+  「既存の税計算パスと最低注文チェックのパスに、フラグOFF時に影響がないか？」
+```
+
+レビュアーが事故を起こすのは「あのシナリオのことを忘れていた」であって、見えているシナリオの判断を間違えることは比較的少ない。**検証すべきシナリオの完全な列挙** は、「安全かどうか」の判断そのものではないが、判断の漏れを構造的に防ぐ。
+
+#### リリースフラグと specre の接点
+
+リリースフラグの管理そのものは specre のスコープ外だが、一つだけ有用な情報を機械的に出せる:
+
+**変更点の「深度」の可視化**
+
+`@specre-todo` が置かれた場所がアーキテクチャ上のどの層にあるかを分類する:
+
+```
+$ specre plan --depth docs/specres/order/discount_code_reduces_order_total.md
+
+Change depth analysis:
+
+  Surface (controller/API/frontend) — flag-guardable:
+    src/api/orders_controller.rs:15   @specre-todo "discount パラメータの受け取り"
+
+  Domain (business logic) — flag guard adds complexity:
+    src/order/total.rs:42             @specre-todo "subtotal計算にdiscount適用"
+    src/order/discount.rs (new)       @specre-todo "DiscountCode 構造体と適用ロジック"
+
+  Infrastructure (DB/external) — flag guard is risky:
+    src/repository/order_repo.rs:88   @specre-todo "discount_code カラムの永続化"
+
+  Summary:
+    Surface changes: 1 (flag-guardable)
+    Domain changes: 2 (flag guard adds complexity — avoid if possible)
+    Infrastructure changes: 1 (flag guard is risky — plan migration carefully)
+```
+
+この分類があれば:
+- 「controller 層でフラグを入れれば、domain と infrastructure の変更はフラグの内側に隠せるか？」という問いに構造的に答えられる
+- 「domain 層にフラグを入れないと制御できない」ケースが事前に見え、リスクの高い変更点が計画段階で浮かび上がる
+
+層の分類は `specre.toml` のディレクトリ規約や明示的な設定で定義できる:
+
+```toml
+# specre.toml
+[layers]
+surface = ["src/api/**", "src/controllers/**", "frontend/src/**"]
+domain = ["src/order/**", "src/payment/**", "src/invoice/**"]
+infrastructure = ["src/repository/**", "src/migrations/**"]
+```
+
+#### specre の責務の明確な線引き
+
+```
+specre が提供するもの:
+  ✓ 影響を受ける振る舞いの完全なリスト
+  ✓ 検証すべきシナリオの完全なリスト
+  ✓ 変更点の深度分類（surface / domain / infrastructure）
+  ✓ マーカー密度による責務集中の警告
+
+specre が提供しないもの（人間 + LLM の判断領域）:
+  ✗ 変更が安全かどうかの判断
+  ✗ リリースフラグの配置戦略の決定
+  ✗ リリース可否の判断
+```
+
+specre は **判断を代替しない** が、**判断に必要な情報の漏れを構造的に防ぐ**。これが specre の責務の上限であり、同時に十分な価値提供でもある。
+
 ## ロードマップへの統合案（改訂）
 
 `@specre-todo` を加味してロードマップ統合案を改訂する:
