@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.1] - 2026-02-22
+
+### Fixed
+
+- `specre coverage`: truncate the uncovered files list to 30 items, preventing excessively long output in large projects
+- Source scanner: silently skip binary (non-UTF-8) files instead of erroring, improving reliability of `trace`, `orphans`, `coverage`, and `index` commands
+
 ## [0.3.0] - 2026-02-19
 
 ### Added
@@ -103,6 +110,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Bidirectional traceability via `@specre <ULID>` source markers
 - specre card format with YAML front-matter (`id`, `name`, `status`, `last_verified`)
 
+[0.3.1]: https://github.com/yoshiakist/specre/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/yoshiakist/specre/compare/v0.2.6...v0.3.0
 [0.2.6]: https://github.com/yoshiakist/specre/compare/v0.2.5...v0.2.6
 [0.2.5]: https://github.com/yoshiakist/specre/compare/v0.2.4...v0.2.5
