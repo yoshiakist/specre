@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-02-18T23:31:03Z",
+  "generated_at": "2026-02-22T05:05:40Z",
   "source_refs": [
     {
       "file": "src/card.rs",
@@ -621,7 +621,7 @@
     {
       "domain": "cli",
       "id": "01KHB48EES4FR5TFV6ZP2W3MGT",
-      "last_verified": "2026-02-18",
+      "last_verified": "2026-02-22",
       "name": "specre_orphans_detects_unlinked_specres_and_markers",
       "path": "docs/specres/cli/specre_orphans_detects_unlinked_specres_and_markers.md",
       "status": "stable"
@@ -645,7 +645,7 @@
     {
       "domain": "cli",
       "id": "01KHFD5R1G3C5R34XMQXQTTMM9",
-      "last_verified": "2026-02-17",
+      "last_verified": "2026-02-22",
       "name": "user_can_set_target_extensions",
       "path": "docs/specres/cli/user_can_set_target_extensions.md",
       "status": "stable"

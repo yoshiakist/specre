@@ -2,7 +2,7 @@
 id: "01KHFD5R1G3C5R34XMQXQTTMM9"
 name: "user_can_set_target_extensions"
 status: "stable"
-last_verified: "2026-02-17"
+last_verified: "2026-02-22"
 ---
 
 ## Related Files
@@ -16,13 +16,13 @@ last_verified: "2026-02-17"
 
 ## Functional Overview
 
-Users can configure `target_extensions` in `specre.toml` to restrict which source files are scanned for `@specre` markers. When set, only files whose extension matches the list are scanned by `index`, `orphans`, and `trace`. When unset, all files are scanned (preserving backward compatibility). The `specre init` command accepts a `--ext` flag to configure this setting at project initialization.
+Users can configure `target_extensions` in `specre.toml` to restrict which source files are scanned for `@specre` markers. When set, only files whose extension matches the list are scanned by `index`, `orphans`, and `trace`. When unset, all text files are scanned (binary files that fail UTF-8 decoding are always skipped silently). The `specre init` command accepts a `--ext` flag to configure this setting at project initialization.
 
 ## Design Intent
 
-Without extension filtering, specre scans every file in `source_dirs` — including binary files, images, lock files, and other non-source artifacts. This wastes time and can produce false positives if a binary file happens to contain a byte sequence matching the `@specre` pattern. The `target_extensions` setting lets users declare which file types constitute their source code, improving both performance and accuracy.
+Without extension filtering, specre scans every text file in `source_dirs`. Binary files (images, fonts, lock files, and other non-UTF-8 artifacts) are always skipped silently — they cannot contain `@specre` markers and scanning them wastes time. The `target_extensions` setting lets users further restrict which text file types constitute their source code, improving both performance and accuracy.
 
-This setting is project-level because the set of relevant source extensions is stable within a project (e.g., a Rust project always targets `.rs`). Making it a config value avoids repeating `--ext` on every command invocation. The setting is optional and defaults to scanning all files, ensuring zero friction for new users and full backward compatibility for existing projects.
+This setting is project-level because the set of relevant source extensions is stable within a project (e.g., a Rust project always targets `.rs`). Making it a config value avoids repeating `--ext` on every command invocation. The setting is optional and defaults to scanning all text files, ensuring zero friction for new users and full backward compatibility for existing projects.
 
 ## Key Members
 
@@ -37,7 +37,7 @@ This setting is project-level because the set of relevant source extensions is s
 2. `specre.toml` is created without a `target_extensions` field
 3. User runs `specre index`
 4. CLI reads `specre.toml`, finds no `target_extensions` field
-5. CLI scans all files in `source_dirs` for `@specre` markers (same as current behavior)
+5. CLI scans all text files in `source_dirs` for `@specre` markers; binary (non-UTF-8) files are skipped silently
 
 ### Init with target extensions
 
@@ -54,7 +54,7 @@ This setting is project-level because the set of relevant source extensions is s
 2. User updates specre binary to the new version
 3. User runs `specre index`
 4. CLI reads `specre.toml`, `target_extensions` field is missing
-5. All files in `source_dirs` are scanned — same behavior as before
+5. All text files in `source_dirs` are scanned; binary files are skipped silently
 
 ### Extensions are specified without leading dots
 

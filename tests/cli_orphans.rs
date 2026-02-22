@@ -418,6 +418,50 @@ fn orphans_target_extensions_hides_dangling_in_non_target_files() {
         ));
 }
 
+// -- Scenario: Binary files in source directories are skipped --
+
+#[test]
+fn orphans_skips_binary_files_silently() {
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src"]);
+    write_specre(
+        tmp.path(),
+        "docs/specres/cli/spec_a.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "spec_a",
+        "stable",
+    );
+    write_source(
+        tmp.path(),
+        "src/main.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nfn main() {}\n",
+    );
+    // Write a binary file (invalid UTF-8) into src/
+    let binary_path = tmp.path().join("src/logo.png");
+    fs::write(&binary_path, b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00").unwrap();
+
+    let output = specre()
+        .args(["orphans"])
+        .current_dir(tmp.path())
+        .output()
+        .unwrap();
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+
+    // Binary file should not produce any warning on stderr
+    assert!(
+        !stderr.contains("Warning"),
+        "Binary file should not produce a warning, got: {stderr}"
+    );
+    // Orphan detection should still work correctly
+    assert!(
+        stdout.contains("No orphans or dangling markers found."),
+        "Expected clean orphans output, got: {stdout}"
+    );
+    assert!(output.status.success());
+}
+
 // -- Failures / Exceptions: IO error warns and skips --
 
 #[cfg(unix)]
