@@ -27,8 +27,10 @@ No parameters.
 
 Return value:
 ```json
-{ "total": N, "tagged": N, "coverage": 0.0..1.0, "uncovered": ["<path>", ...] }
+{ "total": N, "tagged": N, "coverage": 0.0..1.0, "uncovered": ["<path>", ...], "uncovered_total": N, "truncated": bool }
 ```
+- `uncovered` contains at most 30 items
+- `uncovered_total` and `truncated` are present only when the list is truncated
 
 ## Scenarios
 
@@ -41,7 +43,8 @@ Return value:
 ### Partial coverage
 
 1. Some files lack `@specre` tags
-2. Server returns the ratio and list of uncovered files
+2. Server returns the ratio and list of uncovered files (at most 30)
+3. When more than 30 files are uncovered, `uncovered_total` and `truncated: true` are included
 
 ### No source files
 

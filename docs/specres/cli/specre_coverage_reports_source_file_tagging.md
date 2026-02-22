@@ -2,7 +2,7 @@
 id: "01KHFEA9QVV4A127VCRJY97A68"
 name: "specre_coverage_reports_source_file_tagging"
 status: "stable"
-last_verified: "2026-02-18"
+last_verified: "2026-02-22"
 ---
 
 ## Related Files
@@ -27,6 +27,7 @@ Coverage is a key metric for assessing traceability health. If most source files
 - **Tagged files:** the subset of total files that contain at least one `@specre <ULID>` marker
 - **Coverage percentage:** `tagged / total * 100`, displayed as a percentage with one decimal place. Derived from `CoverageResult` fields at display time.
 - `--ext` flag: comma-separated list of file extensions to filter by, overriding `target_extensions` from `specre.toml` for this invocation
+- **Uncovered files display limit:** at most 30 uncovered files are shown. When truncated, a summary line indicates the total count. This prevents excessive output from overwhelming AI agent context windows.
 
 ## Scenarios
 
@@ -87,7 +88,7 @@ Coverage is a key metric for assessing traceability health. If most source files
 
 ### Uncovered files are listed
 
-1. User runs `specre coverage` in a project with uncovered files
+1. User runs `specre coverage` in a project with uncovered files (30 or fewer)
 2. After the summary line, CLI prints uncovered files:
    ```
    Coverage: 1/3 files (33.3%)
@@ -97,6 +98,21 @@ Coverage is a key metric for assessing traceability health. If most source files
      src/baz.rs
    ```
 3. Uncovered file paths use forward slashes on all platforms and are sorted alphabetically
+
+### Too many uncovered files are truncated
+
+1. User runs `specre coverage` in a project with more than 30 uncovered files
+2. CLI prints the first 30 uncovered files followed by a truncation summary:
+   ```
+   Coverage: 1/50 files (2.0%)
+
+   Uncovered files:
+     src/a.rs
+     src/b.rs
+     ... (30 of 49 shown)
+   ```
+3. The `--json` output includes all fields: `uncovered` (truncated to 30 items), `uncovered_total` (actual count), and `truncated` (boolean)
+4. When `truncated` is false, `uncovered_total` is omitted from JSON output
 
 ### Paths use forward slashes
 

@@ -308,6 +308,83 @@ fn coverage_skips_nonexistent_source_dirs() {
         .stdout(predicate::str::contains("Coverage: 1/1 files (100.0%)"));
 }
 
+// -- Scenario: Too many uncovered files are truncated --
+
+#[test]
+fn coverage_truncates_uncovered_files_over_30() {
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src"]);
+
+    // Create 1 tagged file
+    write_source(
+        tmp.path(),
+        "src/tagged.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nfn tagged() {}\n",
+    );
+
+    // Create 35 uncovered files
+    for i in 0..35 {
+        write_source(
+            tmp.path(),
+            &format!("src/untagged_{i:03}.rs"),
+            &format!("fn untagged_{i}() {{}}\n"),
+        );
+    }
+
+    let output = specre()
+        .args(["coverage"])
+        .current_dir(tmp.path())
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8_lossy(&output.stdout);
+
+    // Should show truncation summary
+    assert!(
+        stdout.contains("... (30 of 35 shown)"),
+        "Expected truncation summary, got: {stdout}"
+    );
+
+    // Should show exactly 30 uncovered file lines (not 35)
+    let uncovered_lines: Vec<&str> = stdout
+        .lines()
+        .filter(|l| l.trim_start().starts_with("src/"))
+        .collect();
+    assert_eq!(
+        uncovered_lines.len(),
+        30,
+        "Expected 30 uncovered files listed, got {}",
+        uncovered_lines.len()
+    );
+}
+
+#[test]
+fn coverage_shows_all_uncovered_files_at_30() {
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src"]);
+
+    // Create exactly 30 uncovered files (no tagged files)
+    for i in 0..30 {
+        write_source(
+            tmp.path(),
+            &format!("src/file_{i:03}.rs"),
+            &format!("fn file_{i}() {{}}\n"),
+        );
+    }
+
+    let output = specre()
+        .args(["coverage"])
+        .current_dir(tmp.path())
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8_lossy(&output.stdout);
+
+    // Should NOT show truncation summary
+    assert!(
+        !stdout.contains("..."),
+        "Should not truncate at exactly 30 files, got: {stdout}"
+    );
+}
+
 // -- Full coverage does not show uncovered section --
 
 #[test]

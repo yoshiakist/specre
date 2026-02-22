@@ -131,7 +131,7 @@ The v0.3 roadmap targets agent integration. Agents need machine-readable output 
 
 ### coverage --json outputs structured JSON
 
-1. User runs `specre coverage --json`
+1. User runs `specre coverage --json` with 2 uncovered files (within the 30-item limit)
 2. CLI outputs JSON to stdout:
    ```json
    {
@@ -145,6 +145,23 @@ The v0.3 roadmap targets agent integration. Agents need machine-readable output 
    }
    ```
 3. CLI exits with exit code 0
+
+### coverage --json truncates uncovered files when too many
+
+1. User runs `specre coverage --json` with more than 30 uncovered files
+2. CLI outputs JSON to stdout with truncation metadata:
+   ```json
+   {
+     "total": 50,
+     "tagged": 1,
+     "coverage": 0.02,
+     "uncovered": ["src/a.rs", "...30 items..."],
+     "uncovered_total": 49,
+     "truncated": true
+   }
+   ```
+3. `uncovered` contains at most 30 items; `uncovered_total` is the actual count; `truncated` is `true`
+4. CLI exits with exit code 0
 
 ### coverage --json with --ext filter
 

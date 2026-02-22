@@ -350,6 +350,62 @@ fn coverage_json_with_ext_filter() {
 }
 
 // ============================================================
+// coverage --json truncation
+// ============================================================
+
+#[test]
+fn coverage_json_truncates_when_over_30() {
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres");
+
+    // Create 1 tagged file + 35 uncovered files
+    write_source(tmp.path(), "src/tagged.rs", "01AAAAAAAAAAAAAAAAAAAAAAAA");
+    for i in 0..35 {
+        write_source_no_marker(tmp.path(), &format!("src/untagged_{i:03}.rs"));
+    }
+
+    let assert = specre()
+        .args(["coverage", "--json"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let json = parse_json(&assert);
+    assert_eq!(json["total"], 36);
+    assert_eq!(json["tagged"], 1);
+
+    let uncovered = json["uncovered"].as_array().unwrap();
+    assert_eq!(uncovered.len(), 30, "uncovered should be truncated to 30");
+
+    assert_eq!(json["uncovered_total"], 35);
+    assert_eq!(json["truncated"], true);
+}
+
+#[test]
+fn coverage_json_no_truncation_metadata_when_within_limit() {
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres");
+    write_source(tmp.path(), "src/tagged.rs", "01AAAAAAAAAAAAAAAAAAAAAAAA");
+    write_source_no_marker(tmp.path(), "src/untagged.rs");
+
+    let assert = specre()
+        .args(["coverage", "--json"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let json = parse_json(&assert);
+    assert!(
+        json.get("uncovered_total").is_none(),
+        "uncovered_total should be absent when not truncated"
+    );
+    assert!(
+        json.get("truncated").is_none(),
+        "truncated should be absent when not truncated"
+    );
+}
+
+// ============================================================
 // init --json
 // ============================================================
 
