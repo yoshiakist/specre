@@ -479,6 +479,8 @@ pub fn execute_orphans() -> Result<CallToolResult, McpError> {
 // ---------------------------------------------------------------------------
 
 pub fn execute_coverage() -> Result<CallToolResult, McpError> {
+    const UNCOVERED_DISPLAY_LIMIT: usize = 30;
+
     let cfg = load_config()?;
     let cov = crate::commands::coverage::compute_coverage(
         &cfg.source_dirs,
@@ -491,12 +493,24 @@ pub fn execute_coverage() -> Result<CallToolResult, McpError> {
         cov.tagged as f64 / cov.total as f64
     };
 
-    let result = serde_json::json!({
+    let uncovered_total = cov.uncovered.len();
+    let is_truncated = uncovered_total > UNCOVERED_DISPLAY_LIMIT;
+    let mut uncovered = cov.uncovered;
+    if is_truncated {
+        uncovered.truncate(UNCOVERED_DISPLAY_LIMIT);
+    }
+
+    let mut result = serde_json::json!({
         "total": cov.total,
         "tagged": cov.tagged,
         "coverage": coverage_ratio,
-        "uncovered": cov.uncovered,
+        "uncovered": uncovered,
     });
+
+    if is_truncated {
+        result["uncovered_total"] = serde_json::json!(uncovered_total);
+        result["truncated"] = serde_json::json!(true);
+    }
 
     Ok(CallToolResult::success(vec![Content::text(
         result.to_string(),

@@ -6,12 +6,19 @@ use crate::error::SpecreError;
 use crate::scanner::{SourceScanResult, scan_source_markers};
 use serde::Serialize;
 
+/// Maximum number of uncovered files shown in output.
+const UNCOVERED_DISPLAY_LIMIT: usize = 30;
+
 #[derive(Serialize)]
 struct CoverageOutput {
     total: usize,
     tagged: usize,
     coverage: f64,
     uncovered: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    uncovered_total: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    truncated: Option<bool>,
 }
 
 #[derive(Debug)]
@@ -62,17 +69,26 @@ pub fn execute(args: CoverageArgs, json: bool) -> Result<(), SpecreError> {
 
     let result = compute_coverage(&config.source_dirs, extensions.as_deref());
 
+    let uncovered_total = result.uncovered.len();
+    let is_truncated = uncovered_total > UNCOVERED_DISPLAY_LIMIT;
+
     if json {
         let coverage_ratio = if result.total == 0 {
             0.0
         } else {
             result.tagged as f64 / result.total as f64
         };
+        let mut uncovered = result.uncovered;
+        if is_truncated {
+            uncovered.truncate(UNCOVERED_DISPLAY_LIMIT);
+        }
         let output = CoverageOutput {
             total: result.total,
             tagged: result.tagged,
             coverage: coverage_ratio,
-            uncovered: result.uncovered,
+            uncovered,
+            uncovered_total: is_truncated.then_some(uncovered_total),
+            truncated: is_truncated.then_some(true),
         };
         let json_str = serde_json::to_string_pretty(&output)?;
         println!("{json_str}");
@@ -90,8 +106,11 @@ pub fn execute(args: CoverageArgs, json: bool) -> Result<(), SpecreError> {
         if !result.uncovered.is_empty() {
             println!();
             println!("Uncovered files:");
-            for path in &result.uncovered {
+            for path in result.uncovered.iter().take(UNCOVERED_DISPLAY_LIMIT) {
                 println!("  {path}");
+            }
+            if is_truncated {
+                println!("  ... ({UNCOVERED_DISPLAY_LIMIT} of {uncovered_total} shown)");
             }
         }
     }

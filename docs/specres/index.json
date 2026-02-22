@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-02-22T05:05:40Z",
+  "generated_at": "2026-02-22T08:10:37Z",
   "source_refs": [
     {
       "file": "src/card.rs",
@@ -653,7 +653,7 @@
     {
       "domain": "cli",
       "id": "01KHFEA9QVV4A127VCRJY97A68",
-      "last_verified": "2026-02-18",
+      "last_verified": "2026-02-22",
       "name": "specre_coverage_reports_source_file_tagging",
       "path": "docs/specres/cli/specre_coverage_reports_source_file_tagging.md",
       "status": "stable"
