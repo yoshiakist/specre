@@ -1,12 +1,14 @@
 // @specre 01KHFGVXWP100JXYBZTRJGMB9H
+use crate::card;
 use crate::commands::coverage::coverage_from_scan_ref;
 use crate::commands::orphans::orphans_from_scan_ref;
 use crate::config;
 use crate::error::SpecreError;
-use crate::scanner::scan_source_markers;
+use crate::scanner::{SourceScanResult, scan_source_markers};
 use chrono::Utc;
 use serde::Serialize;
 use std::fs;
+use std::path::Path;
 
 #[derive(Serialize)]
 struct HealthCheckResult {
@@ -24,8 +26,13 @@ struct Thresholds {
     index_age_hours: f64,
 }
 
-fn get_index_age_hours(specre_dir: &str) -> Option<f64> {
-    let index_path = std::path::Path::new(specre_dir).join("index.json");
+struct IndexInfo {
+    age_hours: f64,
+    json: serde_json::Value,
+}
+
+fn load_index(specre_dir: &str) -> Option<IndexInfo> {
+    let index_path = Path::new(specre_dir).join("index.json");
     let content = match fs::read_to_string(&index_path) {
         Ok(c) => c,
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => return None,
@@ -54,8 +61,45 @@ fn get_index_age_hours(specre_dir: &str) -> Option<f64> {
     };
     let age = Utc::now().signed_duration_since(generated);
     let hours = age.num_minutes() as f64 / 60.0;
-    // Round to one decimal place
-    Some((hours * 10.0).round() / 10.0)
+    let age_hours = (hours * 10.0).round() / 10.0;
+    Some(IndexInfo {
+        age_hours,
+        json: parsed,
+    })
+}
+
+/// Checks whether the existing `index.json` content matches what would be
+/// regenerated from the current specre cards and source markers.
+fn is_index_content_current(
+    cfg: &config::Config,
+    scan: &SourceScanResult,
+    existing_json: &serde_json::Value,
+) -> bool {
+    // Build fresh specre cards
+    let specre_dir = Path::new(&cfg.specre_dir);
+    let fresh_specres = card::scan_specre_cards(specre_dir, &cfg.specre_dir);
+
+    let Ok(fresh_specres_value) = serde_json::to_value(&fresh_specres) else {
+        return false;
+    };
+
+    // Build fresh source_refs from scan results (same shape as index.rs SourceRef)
+    let fresh_source_refs: Vec<serde_json::Value> = scan
+        .all_markers
+        .iter()
+        .map(|m| {
+            serde_json::json!({
+                "specre_id": m.ulid,
+                "file": m.file,
+                "line": m.line,
+            })
+        })
+        .collect();
+    let fresh_source_refs_value = serde_json::Value::Array(fresh_source_refs);
+
+    // Compare with existing index content
+    existing_json.get("specres") == Some(&fresh_specres_value)
+        && existing_json.get("source_refs") == Some(&fresh_source_refs_value)
 }
 
 /// # Errors
@@ -86,13 +130,18 @@ pub fn execute() -> Result<(), SpecreError> {
     let orphan_result = orphans_from_scan_ref(&cfg.specre_dir, &scan);
     let orphan_count = orphan_result.orphan_count() + orphan_result.dangling_count();
 
-    // Index freshness
-    let index_age_hours = get_index_age_hours(&cfg.specre_dir);
+    // Index freshness (two-stage: timestamp check, then content comparison)
+    let index_info = load_index(&cfg.specre_dir);
+    let index_age_hours = index_info.as_ref().map(|i| i.age_hours);
 
     // Healthy check
     let coverage_ok = coverage_ratio >= threshold_coverage;
     let orphans_ok = orphan_count <= threshold_orphans;
-    let index_ok = index_age_hours.is_some_and(|age| age <= threshold_index_age);
+    let index_ok = match &index_info {
+        Some(info) if info.age_hours <= threshold_index_age => true,
+        Some(info) => is_index_content_current(&cfg, &scan, &info.json),
+        None => false,
+    };
     let healthy = coverage_ok && orphans_ok && index_ok;
 
     let result = HealthCheckResult {

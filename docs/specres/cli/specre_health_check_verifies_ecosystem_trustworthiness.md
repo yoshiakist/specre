@@ -2,12 +2,13 @@
 id: "01KHFGVXWP100JXYBZTRJGMB9H"
 name: "specre_health_check_verifies_ecosystem_trustworthiness"
 status: "stable"
-last_verified: "2026-02-18"
+last_verified: "2026-02-22"
 ---
 
 ## Related Files
 
 - `src/commands/health_check.rs`
+- `src/commands/index.rs` (reuses index generation logic for content comparison)
 - `src/scanner.rs` (reuses `scan_source_markers()`)
 - `src/commands/coverage.rs` (reuses `coverage_from_scan_ref()`)
 - `src/commands/orphans.rs` (reuses `orphans_from_scan_ref()`)
@@ -21,6 +22,8 @@ last_verified: "2026-02-18"
 
 `specre health-check` is a single entry point for coding agents to verify that the specre ecosystem is trustworthy before starting a task. It aggregates three metrics — coverage ratio, orphan count, and index freshness — into one structured JSON response, enabling agents to unambiguously determine whether specre cards can be relied upon without interpreting multiple commands individually. Each metric is compared against configurable thresholds (with sensible defaults), and a top-level `healthy` boolean summarizes whether all metrics are within acceptable bounds.
 
+Index freshness uses a two-stage evaluation: first, the `generated_at` timestamp is checked against the `index_age_hours` threshold. If the timestamp is within the threshold, the index is considered fresh. If the timestamp exceeds the threshold, health-check performs a **content comparison** — it regenerates the index data in memory (without writing to disk) and compares the `specres` and `source_refs` arrays against the existing `index.json`. If the content is identical, the index is still considered fresh (the timestamp is old but the data is accurate). Only when the content actually differs is the index considered stale.
+
 ## Design Intent
 
 AI agents need a fast, unambiguous signal before trusting specre cards as a source of truth for a coding session. Rather than requiring agents to run `coverage`, `orphans`, and check `index.json` separately — and then interpret the combined results — `health-check` provides a single JSON object with a clear `healthy` verdict. This makes it ideal as the first command an agent runs at the start of a session, or as an MCP server query.
@@ -29,7 +32,8 @@ AI agents need a fast, unambiguous signal before trusting specre cards as a sour
 
 - `HealthCheckResult` — struct containing `healthy: bool`, `coverage: f64`, `orphans: usize`, `index_age_hours: f64`, and `thresholds: Thresholds`
 - `Thresholds` — struct with `coverage: f64` (default `0.90`), `orphans: usize` (default `5`), `index_age_hours: f64` (default `24.0`); configurable via `specre.toml` under `[health_check]` section
-- `healthy` — `true` when `coverage >= thresholds.coverage` AND `orphans <= thresholds.orphans` AND `index_age_hours <= thresholds.index_age_hours`
+- `healthy` — `true` when `coverage >= thresholds.coverage` AND `orphans <= thresholds.orphans` AND index is fresh (see below)
+- Index freshness — the index is fresh when `index_age_hours <= thresholds.index_age_hours`, OR when the timestamp exceeds the threshold but a content comparison confirms that `specres` and `source_refs` in the existing `index.json` are identical to what would be regenerated. If `index.json` does not exist or cannot be parsed, the index is always stale
 - `coverage` — ratio (0.0–1.0) of source files containing at least one `@specre` marker, computed via `compute_coverage()`
 - `orphans` — total count of orphan specres (non-deprecated specres with no source markers) plus dangling markers (markers with no matching specre), computed via `compute_orphans()`
 - `index_age_hours` — hours since `index.json` was last generated, derived from its `generated_at` field. If `index.json` does not exist, this is reported as `null` and the metric is treated as failing (unhealthy)
@@ -70,11 +74,21 @@ AI agents need a fast, unambiguous signal before trusting specre cards as a sour
 2. CLI outputs JSON with `"healthy": false` and `"index_age_hours": null`
 3. CLI exits with exit code 1
 
-### Unhealthy ecosystem — index.json stale
+### Unhealthy ecosystem — index.json stale with content drift
 
 1. User runs `specre health-check` where `index.json` was generated more than 24 hours ago
-2. CLI outputs JSON with `"healthy": false` and `"index_age_hours"` reflecting the actual age
-3. CLI exits with exit code 1
+2. Since the timestamp exceeds the threshold, health-check regenerates index data in memory and compares it against the existing `index.json`
+3. The content differs (e.g., new specre cards were added, source files gained or lost `@specre` markers)
+4. CLI outputs JSON with `"healthy": false` and `"index_age_hours"` reflecting the actual age
+5. CLI exits with exit code 1
+
+### Stale timestamp but content identical — treated as healthy
+
+1. User runs `specre health-check` where `index.json` was generated more than 24 hours ago but no specre cards or source `@specre` markers have changed since then
+2. Since the timestamp exceeds the threshold, health-check regenerates index data in memory and compares it against the existing `index.json`
+3. The `specres` and `source_refs` arrays are identical — only `generated_at` differs
+4. CLI outputs JSON with `"healthy": true` and `"index_age_hours"` reflecting the actual (old) age
+5. CLI exits with exit code 0
 
 ### Custom thresholds via specre.toml
 

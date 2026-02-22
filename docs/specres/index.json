@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-02-22T08:46:16Z",
+  "generated_at": "2026-02-22T09:04:21Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -96,7 +96,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_health_check_verifies_ecosystem_trustworthiness.md",
-      "last_verified": "2026-02-18"
+      "last_verified": "2026-02-22"
     },
     {
       "id": "01KHFTCYJN8YJMW2RNHJTAQV49",

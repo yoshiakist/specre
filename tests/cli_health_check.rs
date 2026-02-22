@@ -293,6 +293,126 @@ fn health_check_unhealthy_stale_index() {
     assert!(json["index_age_hours"].as_f64().unwrap() > 24.0);
 }
 
+// -- Scenario: Stale timestamp but content identical — treated as healthy --
+
+#[test]
+fn health_check_stale_index_content_identical() {
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src"]);
+
+    // 1 source file, tagged -> coverage 1.0
+    write_source(
+        tmp.path(),
+        "src/a.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nfn a() {}\n",
+    );
+
+    // Matching specre card
+    write_specre_card(
+        tmp.path(),
+        "docs/specres/cli/card_a.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "card_a",
+        "stable",
+    );
+
+    // Generate real index.json with correct content
+    specre()
+        .args(["index"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    // Make the timestamp old (48 hours ago) but keep content identical
+    let index_path = tmp.path().join("docs/specres/index.json");
+    let content = fs::read_to_string(&index_path).unwrap();
+    let mut json: serde_json::Value = serde_json::from_str(&content).unwrap();
+    json["generated_at"] = serde_json::Value::String(old_timestamp(48));
+    fs::write(&index_path, serde_json::to_string_pretty(&json).unwrap()).unwrap();
+
+    let output = specre()
+        .args(["health-check"])
+        .current_dir(tmp.path())
+        .output()
+        .unwrap();
+
+    assert!(
+        output.status.success(),
+        "should be healthy when index content matches despite old timestamp"
+    );
+
+    let json = parse_json(&output.stdout);
+    assert_eq!(json["healthy"], true);
+    assert!(json["index_age_hours"].as_f64().unwrap() > 24.0);
+}
+
+// -- Scenario: Unhealthy ecosystem — index.json stale with content drift --
+
+#[test]
+fn health_check_stale_index_content_drift() {
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src"]);
+
+    // 1 source file, tagged
+    write_source(
+        tmp.path(),
+        "src/a.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nfn a() {}\n",
+    );
+
+    write_specre_card(
+        tmp.path(),
+        "docs/specres/cli/card_a.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "card_a",
+        "stable",
+    );
+
+    // Generate real index.json
+    specre()
+        .args(["index"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    // Make the timestamp old
+    let index_path = tmp.path().join("docs/specres/index.json");
+    let content = fs::read_to_string(&index_path).unwrap();
+    let mut json: serde_json::Value = serde_json::from_str(&content).unwrap();
+    json["generated_at"] = serde_json::Value::String(old_timestamp(48));
+    fs::write(&index_path, serde_json::to_string_pretty(&json).unwrap()).unwrap();
+
+    // Now add a new source file and specre card (content drift)
+    write_source(
+        tmp.path(),
+        "src/b.rs",
+        "// @specre 01BBBBBBBBBBBBBBBBBBBBBBBB\nfn b() {}\n",
+    );
+
+    write_specre_card(
+        tmp.path(),
+        "docs/specres/cli/card_b.md",
+        "01BBBBBBBBBBBBBBBBBBBBBBBB",
+        "card_b",
+        "stable",
+    );
+
+    let output = specre()
+        .args(["health-check"])
+        .current_dir(tmp.path())
+        .output()
+        .unwrap();
+
+    assert!(
+        !output.status.success(),
+        "should be unhealthy when index content has drifted"
+    );
+
+    let json = parse_json(&output.stdout);
+    assert_eq!(json["healthy"], false);
+    assert!(json["index_age_hours"].as_f64().unwrap() > 24.0);
+}
+
 // -- Scenario: Custom thresholds via specre.toml --
 
 #[test]
