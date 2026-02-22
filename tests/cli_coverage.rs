@@ -453,3 +453,73 @@ fn coverage_warns_on_unreadable_source_file() {
 
     fs::set_permissions(&bad_file, fs::Permissions::from_mode(0o644)).unwrap();
 }
+
+// -- Scenario: Dot files are always excluded --
+
+#[test]
+fn coverage_excludes_dot_files() {
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src"]);
+    write_source(
+        tmp.path(),
+        "src/main.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nfn main() {}\n",
+    );
+    // Dot files — should be excluded
+    write_source(tmp.path(), "src/.keep", "");
+    write_source(tmp.path(), "src/.gitignore", "*.tmp\n");
+
+    specre()
+        .args(["coverage"])
+        .current_dir(tmp.path())
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Coverage: 1/1 files (100.0%)"));
+}
+
+#[test]
+fn coverage_excludes_dot_files_even_with_target_extensions() {
+    let tmp = TempDir::new().unwrap();
+    // .keep has no extension so it wouldn't match anyway,
+    // but .gitignore-like files with matching extensions should still be excluded
+    write_config_with_ext(tmp.path(), "docs/specres", &["src"], &["rs"]);
+    write_source(
+        tmp.path(),
+        "src/main.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nfn main() {}\n",
+    );
+    write_source(tmp.path(), "src/.hidden.rs", "fn hidden() {}\n");
+
+    specre()
+        .args(["coverage"])
+        .current_dir(tmp.path())
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Coverage: 1/1 files (100.0%)"));
+}
+
+// -- Scenario: SVG files are always excluded --
+
+#[test]
+fn coverage_excludes_svg_files() {
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src"]);
+    write_source(
+        tmp.path(),
+        "src/main.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nfn main() {}\n",
+    );
+    // SVG file — valid UTF-8 but should be excluded
+    write_source(
+        tmp.path(),
+        "src/icon.svg",
+        "<svg xmlns=\"http://www.w3.org/2000/svg\"><circle r=\"10\"/></svg>\n",
+    );
+
+    specre()
+        .args(["coverage"])
+        .current_dir(tmp.path())
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Coverage: 1/1 files (100.0%)"));
+}
