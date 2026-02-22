@@ -17,12 +17,16 @@ Follow these phases strictly.
 3. Calculate the new version (use $ARGUMENTS if provided, otherwise increment the patch version)
 4. Create a branch: `chore/bump-version-v<NEW_VERSION>`
 5. Update `version` in `Cargo.toml`
-6. Run the **Pre-PR Quality Gate** (all three must pass before committing):
+6. Update `CHANGELOG.md`:
+   1. Get the previous release tag: `git tag --sort=-v:refname | head -1`
+   2. Get commit log since the previous tag: `git log <PREV_TAG>..HEAD --oneline`
+   3. Add a new entry at the top of the changelog (below the header) following the [Keep a Changelog](https://keepachangelog.com/) format. Group changes into `### Added`, `### Fixed`, `### Changed`, etc. as appropriate. Write concise, user-facing descriptions — not raw commit messages. Also add the compare link at the bottom of the file.
+7. Run the **Pre-PR Quality Gate** (all three must pass before committing):
    1. `cargo fmt --all` — auto-format all code
    2. `cargo clippy --all-targets -- -D warnings` — lint all targets (lib, bins, tests, examples, benches)
    3. `cargo test` — run all tests
-7. Commit `Cargo.toml`, `Cargo.lock`, and any formatting fixes
-8. Push the branch and create a PR using `gh pr create`
+8. Commit `Cargo.toml`, `Cargo.lock`, `CHANGELOG.md`, and any formatting fixes
+9. Push the branch and create a PR using `gh pr create`
 
 ## --- CHECKPOINT: PR merge ---
 
