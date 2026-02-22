@@ -2,6 +2,8 @@
 
 # specre
 
+test
+
 **Atomic, living specification cards for AI-agent-friendly development.**
 
 specre ( /spékré/ ) is a minimal specification format and toolkit for Spec-Driven Development (SDD). Each specre is a single Markdown file describing exactly one behavior, with machine-readable front-matter for lifecycle tracking and agent navigation.
