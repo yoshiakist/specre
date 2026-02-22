@@ -658,6 +658,86 @@ fn index_without_target_extensions_scans_all_files() {
     assert_eq!(refs.len(), 2);
 }
 
+// -- Scenario: Dot files are always excluded from source scanning --
+
+#[test]
+fn index_excludes_dot_files_from_source_scan() {
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src"]);
+    write_specre(
+        tmp.path(),
+        "docs/specres/cli/my_spec.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "my_spec",
+        "draft",
+        None,
+    );
+    // Normal source file with marker
+    write_source(
+        tmp.path(),
+        "src/main.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nfn main() {}\n",
+    );
+    // Dot files — should be excluded even though they're valid text
+    write_source(tmp.path(), "src/.keep", "");
+    write_source(tmp.path(), "src/.gitignore", "*.tmp\n");
+
+    specre()
+        .args(["index"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let json_str = fs::read_to_string(tmp.path().join("docs/specres/index.json")).unwrap();
+    let json: serde_json::Value = serde_json::from_str(&json_str).unwrap();
+
+    let refs = json["source_refs"].as_array().unwrap();
+    // Only main.rs should be scanned; dot files excluded
+    assert_eq!(refs.len(), 1);
+    assert_eq!(refs[0]["file"], "src/main.rs");
+}
+
+// -- Scenario: SVG files are always excluded from source scanning --
+
+#[test]
+fn index_excludes_svg_files_from_source_scan() {
+    let tmp = TempDir::new().unwrap();
+    write_config(tmp.path(), "docs/specres", &["src"]);
+    write_specre(
+        tmp.path(),
+        "docs/specres/cli/my_spec.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "my_spec",
+        "draft",
+        None,
+    );
+    write_source(
+        tmp.path(),
+        "src/main.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nfn main() {}\n",
+    );
+    // SVG file — valid UTF-8 text but should be excluded
+    write_source(
+        tmp.path(),
+        "src/icon.svg",
+        "<svg xmlns=\"http://www.w3.org/2000/svg\"><circle r=\"10\"/></svg>\n",
+    );
+
+    specre()
+        .args(["index"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let json_str = fs::read_to_string(tmp.path().join("docs/specres/index.json")).unwrap();
+    let json: serde_json::Value = serde_json::from_str(&json_str).unwrap();
+
+    let refs = json["source_refs"].as_array().unwrap();
+    // Only main.rs should be scanned; SVG excluded
+    assert_eq!(refs.len(), 1);
+    assert_eq!(refs[0]["file"], "src/main.rs");
+}
+
 // -- Failures / Exceptions: IO errors print warning and skip --
 
 #[test]

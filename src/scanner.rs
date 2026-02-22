@@ -48,6 +48,10 @@ pub fn collect_md_files<F: FnMut(&Path)>(dir: &Path, cb: &mut F) {
     }
 }
 
+/// Extensions that are always excluded from source scanning.
+/// These are text files that pass UTF-8 decoding but are never source code.
+const EXCLUDED_EXTENSIONS: &[&str] = &["svg"];
+
 pub fn collect_all_files<F: FnMut(&Path)>(
     dir: &Path,
     target_extensions: Option<&[String]>,
@@ -83,15 +87,30 @@ pub fn collect_all_files<F: FnMut(&Path)>(
                 continue;
             }
             collect_all_files(&path, target_extensions, cb);
-        } else if let Some(exts) = target_extensions {
-            let matches = path
-                .extension()
-                .is_some_and(|ext| exts.iter().any(|e| e == ext.to_string_lossy().as_ref()));
-            if !matches {
+        } else {
+            // Skip dot files (mirrors dot-directory exclusion above)
+            if path
+                .file_name()
+                .is_some_and(|n| n.to_string_lossy().starts_with('.'))
+            {
                 continue;
             }
-            cb(&path);
-        } else {
+            // Skip built-in excluded extensions
+            if path.extension().is_some_and(|ext| {
+                EXCLUDED_EXTENSIONS
+                    .iter()
+                    .any(|e| *e == ext.to_string_lossy().as_ref())
+            }) {
+                continue;
+            }
+            if let Some(exts) = target_extensions {
+                let matches = path
+                    .extension()
+                    .is_some_and(|ext| exts.iter().any(|e| e == ext.to_string_lossy().as_ref()));
+                if !matches {
+                    continue;
+                }
+            }
             cb(&path);
         }
     }
