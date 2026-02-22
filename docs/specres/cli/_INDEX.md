@@ -13,7 +13,7 @@
 | [user_can_set_target_extensions](user_can_set_target_extensions.md) | stable | 2026-02-22 |
 | [specre_coverage_reports_source_file_tagging](specre_coverage_reports_source_file_tagging.md) | stable | 2026-02-22 |
 | [specre_cli_dispatches_commands_and_handles_errors](specre_cli_dispatches_commands_and_handles_errors.md) | stable | 2026-02-15 |
-| [specre_health_check_verifies_ecosystem_trustworthiness](specre_health_check_verifies_ecosystem_trustworthiness.md) | stable | 2026-02-18 |
+| [specre_health_check_verifies_ecosystem_trustworthiness](specre_health_check_verifies_ecosystem_trustworthiness.md) | stable | 2026-02-22 |
 | [specre_search_finds_specre_cards_by_query](specre_search_finds_specre_cards_by_query.md) | stable | 2026-02-18 |
 | [specre_commands_support_json_output](specre_commands_support_json_output.md) | stable | 2026-02-17 |
 | [specre_error_provides_contextual_diagnostics](specre_error_provides_contextual_diagnostics.md) | stable | 2026-02-17 |
