@@ -139,15 +139,20 @@ pub fn scan_source_markers(
             continue;
         }
         collect_all_files(dir, target_extensions, &mut |path| {
-            total += 1;
             let content = match fs::read_to_string(path) {
                 Ok(c) => c,
+                Err(e) if e.kind() == std::io::ErrorKind::InvalidData => {
+                    // Binary (non-UTF-8) file — skip silently
+                    return;
+                }
                 Err(e) => {
+                    total += 1;
                     eprintln!("Warning: failed to read '{}': {e}", path.display());
                     uncovered.push(to_forward_slash(path).into_owned());
                     return;
                 }
             };
+            total += 1;
             let rel_path = to_forward_slash(path).into_owned();
             let mut file_has_marker = false;
             for (line_num, line) in content.lines().enumerate() {

@@ -2,7 +2,7 @@
 id: "01KHB48EES4FR5TFV6ZP2W3MGT"
 name: "specre_orphans_detects_unlinked_specres_and_markers"
 status: "stable"
-last_verified: "2026-02-18"
+last_verified: "2026-02-22"
 ---
 
 ## Related Files
@@ -14,7 +14,7 @@ last_verified: "2026-02-18"
 
 ## Functional Overview
 
-`specre orphans` detects specres that have no `@specre` markers in any source file (orphan specres) and `@specre` markers in source files that do not match any specre's `id` (dangling markers). It reports both categories so developers can restore traceability or clean up stale references. Source file scanning respects the `target_extensions` setting in `specre.toml` when configured.
+`specre orphans` detects specres that have no `@specre` markers in any source file (orphan specres) and `@specre` markers in source files that do not match any specre's `id` (dangling markers). It reports both categories so developers can restore traceability or clean up stale references. Source file scanning respects the `target_extensions` setting in `specre.toml` when configured. Binary (non-UTF-8) files are always skipped silently, regardless of `target_extensions` configuration.
 
 ## Design Intent
 
@@ -86,6 +86,14 @@ The primary consumers are CI pipelines (where a non-zero exit code can block mer
 
 1. User runs `specre orphans` in a directory without `specre.toml`
 2. CLI exits with error: `Error: specre.toml not found. Run 'specre init' first.`
+
+### Binary files in source directories are skipped
+
+1. A project has `source_dirs = ["src"]` without `target_extensions`
+2. `src/` contains a binary file `logo.png` (non-UTF-8)
+3. User runs `specre orphans`
+4. The binary file is silently skipped — no warning on stderr, not counted as a scanned file
+5. Orphan and dangling marker detection proceeds using only text files
 
 ### Empty project
 
