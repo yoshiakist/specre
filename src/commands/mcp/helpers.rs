@@ -190,7 +190,11 @@ pub fn execute_index() -> Result<CallToolResult, McpError> {
     let cfg = load_config()?;
     let specre_dir = Path::new(&cfg.specre_dir);
     let cards = card::scan_specre_cards(specre_dir, &cfg.specre_dir);
-    let scan = scan_source_markers(&cfg.source_dirs, cfg.target_extensions.as_deref());
+    let scan = scan_source_markers(
+        &cfg.source_dirs,
+        cfg.target_extensions.as_deref(),
+        cfg.exclude_patterns.as_deref(),
+    );
 
     // Build source_refs array for index.json
     let source_refs: Vec<serde_json::Value> = scan
@@ -382,7 +386,11 @@ fn trace_by_ulid(ulid_str: &str) -> Result<CallToolResult, McpError> {
     let specre_path = cards.iter().find(|c| c.id == ulid_str).map(|c| &c.path);
 
     // Find source references
-    let scan = scan_source_markers(&cfg.source_dirs, cfg.target_extensions.as_deref());
+    let scan = scan_source_markers(
+        &cfg.source_dirs,
+        cfg.target_extensions.as_deref(),
+        cfg.exclude_patterns.as_deref(),
+    );
     let source_refs: Vec<serde_json::Value> = scan
         .all_markers
         .iter()
@@ -460,6 +468,7 @@ pub fn execute_orphans() -> Result<CallToolResult, McpError> {
         &cfg.specre_dir,
         &cfg.source_dirs,
         cfg.target_extensions.as_deref(),
+        cfg.exclude_patterns.as_deref(),
     );
 
     let json = serde_json::to_value(&result).map_err(|e| {
@@ -485,6 +494,7 @@ pub fn execute_coverage() -> Result<CallToolResult, McpError> {
     let cov = crate::commands::coverage::compute_coverage(
         &cfg.source_dirs,
         cfg.target_extensions.as_deref(),
+        cfg.exclude_patterns.as_deref(),
     );
 
     let coverage_ratio = if cov.total == 0 {
@@ -530,7 +540,11 @@ pub fn execute_health_check() -> Result<CallToolResult, McpError> {
     let t_index_age = hc.and_then(|h| h.index_age_hours).unwrap_or(24.0);
 
     // Single scan for both coverage and orphans
-    let scan = scan_source_markers(&cfg.source_dirs, cfg.target_extensions.as_deref());
+    let scan = scan_source_markers(
+        &cfg.source_dirs,
+        cfg.target_extensions.as_deref(),
+        cfg.exclude_patterns.as_deref(),
+    );
 
     let cov = coverage_from_scan_ref(&scan);
     let coverage_ratio = if cov.total == 0 {

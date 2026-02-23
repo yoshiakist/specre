@@ -4,7 +4,7 @@ use crate::card::{self, SpecreCard, to_forward_slash};
 use crate::config;
 use crate::error::SpecreError;
 use crate::parser::extract_marker_ulid;
-use crate::scanner::collect_all_files;
+use crate::scanner::{collect_all_files, compile_exclude_patterns};
 use chrono::Utc;
 use serde::Serialize;
 use std::collections::BTreeMap;
@@ -44,7 +44,11 @@ pub fn execute(json_flag: bool) -> Result<(), SpecreError> {
 
     let specre_dir = Path::new(&config.specre_dir);
     let specres = card::scan_specre_cards(specre_dir, &config.specre_dir);
-    let source_refs = scan_source_refs(&config.source_dirs, config.target_extensions.as_deref());
+    let source_refs = scan_source_refs(
+        &config.source_dirs,
+        config.target_extensions.as_deref(),
+        config.exclude_patterns.as_deref(),
+    );
 
     let index = Index {
         version: 1,
@@ -89,14 +93,16 @@ pub fn execute(json_flag: bool) -> Result<(), SpecreError> {
 fn scan_source_refs(
     source_dirs: &[String],
     target_extensions: Option<&[String]>,
+    exclude_patterns: Option<&[String]>,
 ) -> Vec<SourceRef> {
+    let exclude_set = compile_exclude_patterns(exclude_patterns);
     let mut refs = Vec::new();
     for dir_str in source_dirs {
         let dir = Path::new(dir_str);
         if !dir.exists() {
             continue;
         }
-        collect_all_files(dir, target_extensions, &mut |path| {
+        collect_all_files(dir, target_extensions, exclude_set.as_ref(), &mut |path| {
             let content = match fs::read_to_string(path) {
                 Ok(c) => c,
                 Err(e) => {

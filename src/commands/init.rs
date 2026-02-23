@@ -15,6 +15,8 @@ struct SpecreConfig {
     language: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     target_extensions: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    exclude_patterns: Option<Vec<String>>,
 }
 
 #[derive(Serialize)]
@@ -85,6 +87,7 @@ pub fn execute(args: InitArgs, json: bool) -> Result<(), SpecreError> {
         source_dirs,
         language,
         target_extensions: ext,
+        exclude_patterns: None,
     };
     let config_content = toml::to_string(&config).map_err(SpecreError::ConfigSerialize)?;
 

@@ -34,6 +34,28 @@ fn write_config_with_health_check(
     fs::write(dir.join("specre.toml"), content).unwrap();
 }
 
+fn write_config_with_exclude_and_health_check(
+    dir: &std::path::Path,
+    specre_dir: &str,
+    source_dirs: &[&str],
+    exclude_patterns: &[&str],
+    coverage: f64,
+    orphans: usize,
+    index_age_hours: f64,
+) {
+    let dirs_toml: Vec<String> = source_dirs.iter().map(|s| format!("\"{s}\"")).collect();
+    let pats_toml: Vec<String> = exclude_patterns
+        .iter()
+        .map(|s| format!("\"{s}\""))
+        .collect();
+    let content = format!(
+        "specre_dir = \"{specre_dir}\"\nsource_dirs = [{}]\nexclude_patterns = [{}]\n\n[health_check]\ncoverage = {coverage}\norphans = {orphans}\nindex_age_hours = {index_age_hours}\n",
+        dirs_toml.join(", "),
+        pats_toml.join(", ")
+    );
+    fs::write(dir.join("specre.toml"), content).unwrap();
+}
+
 fn write_source(dir: &std::path::Path, rel_path: &str, content: &str) {
     let path = dir.join(rel_path);
     fs::create_dir_all(path.parent().unwrap()).unwrap();
@@ -664,4 +686,56 @@ fn health_check_warns_on_unreadable_index_json() {
     assert!(json["index_age_hours"].is_null());
 
     fs::set_permissions(&index_path, fs::Permissions::from_mode(0o644)).unwrap();
+}
+
+// -- Scenario: exclude_patterns makes coverage healthy --
+
+#[test]
+fn health_check_exclude_patterns_improves_coverage() {
+    let tmp = TempDir::new().unwrap();
+    // Without exclude, coverage would be 1/3 = 33% (below 0.90 threshold)
+    // With exclude, coverage becomes 1/1 = 100% (above threshold)
+    write_config_with_exclude_and_health_check(
+        tmp.path(),
+        "docs/specres",
+        &["src"],
+        &["*.test.ts", "*/_generated/*"],
+        0.90,
+        5,
+        24.0,
+    );
+
+    write_source(
+        tmp.path(),
+        "src/main.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nfn main() {}\n",
+    );
+    // These should be excluded
+    write_source(tmp.path(), "src/app.test.ts", "// no marker\n");
+    write_source(tmp.path(), "src/_generated/types.rs", "type T = i32;\n");
+
+    write_specre_card(
+        tmp.path(),
+        "docs/specres/cli/card_a.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "card_a",
+        "stable",
+    );
+
+    write_index_json(tmp.path(), &recent_timestamp());
+
+    let output = specre()
+        .args(["health-check"])
+        .current_dir(tmp.path())
+        .output()
+        .unwrap();
+
+    assert!(
+        output.status.success(),
+        "should be healthy after excluding test/generated files"
+    );
+
+    let json = parse_json(&output.stdout);
+    assert_eq!(json["healthy"], true);
+    assert_eq!(json["coverage"], 1.0);
 }

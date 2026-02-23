@@ -46,6 +46,25 @@ fn write_specre(dir: &std::path::Path, rel_path: &str, id: &str, name: &str, sta
     fs::write(path, fm).unwrap();
 }
 
+fn write_config_with_exclude(
+    dir: &std::path::Path,
+    specre_dir: &str,
+    source_dirs: &[&str],
+    exclude_patterns: &[&str],
+) {
+    let dirs_toml: Vec<String> = source_dirs.iter().map(|s| format!("\"{s}\"")).collect();
+    let pats_toml: Vec<String> = exclude_patterns
+        .iter()
+        .map(|s| format!("\"{s}\""))
+        .collect();
+    let content = format!(
+        "specre_dir = \"{specre_dir}\"\nsource_dirs = [{}]\nexclude_patterns = [{}]\n",
+        dirs_toml.join(", "),
+        pats_toml.join(", ")
+    );
+    fs::write(dir.join("specre.toml"), content).unwrap();
+}
+
 fn write_source(dir: &std::path::Path, rel_path: &str, content: &str) {
     let path = dir.join(rel_path);
     fs::create_dir_all(path.parent().unwrap()).unwrap();
@@ -505,4 +524,29 @@ fn orphans_warns_on_unreadable_source_file() {
     );
 
     fs::set_permissions(&bad_file, fs::Permissions::from_mode(0o644)).unwrap();
+}
+
+// -- Scenario: exclude_patterns hides dangling markers in excluded files --
+
+#[test]
+fn orphans_exclude_patterns_hides_dangling_in_excluded_files() {
+    let tmp = TempDir::new().unwrap();
+    write_config_with_exclude(tmp.path(), "docs/specres", &["src"], &["*.test.ts"]);
+    fs::create_dir_all(tmp.path().join("docs/specres")).unwrap();
+    // Dangling marker in excluded test file — should NOT be reported
+    write_source(
+        tmp.path(),
+        "src/app.test.ts",
+        "// @specre 01ZZZZZZZZZZZZZZZZZZZZZZZZ\n",
+    );
+    fs::create_dir_all(tmp.path().join("src")).unwrap();
+
+    specre()
+        .args(["orphans"])
+        .current_dir(tmp.path())
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(
+            "No orphans or dangling markers found.",
+        ));
 }

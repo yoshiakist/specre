@@ -46,6 +46,25 @@ fn write_specre(dir: &std::path::Path, rel_path: &str, id: &str, name: &str, sta
     fs::write(path, fm).unwrap();
 }
 
+fn write_config_with_exclude(
+    dir: &std::path::Path,
+    specre_dir: &str,
+    source_dirs: &[&str],
+    exclude_patterns: &[&str],
+) {
+    let dirs_toml: Vec<String> = source_dirs.iter().map(|s| format!("\"{s}\"")).collect();
+    let pats_toml: Vec<String> = exclude_patterns
+        .iter()
+        .map(|s| format!("\"{s}\""))
+        .collect();
+    let content = format!(
+        "specre_dir = \"{specre_dir}\"\nsource_dirs = [{}]\nexclude_patterns = [{}]\n",
+        dirs_toml.join(", "),
+        pats_toml.join(", ")
+    );
+    fs::write(dir.join("specre.toml"), content).unwrap();
+}
+
 fn write_source(dir: &std::path::Path, rel_path: &str, content: &str) {
     let path = dir.join(rel_path);
     fs::create_dir_all(path.parent().unwrap()).unwrap();
@@ -675,4 +694,41 @@ fn trace_ulid_warns_on_unreadable_source_file() {
     assert!(stdout.contains("src/good.rs"));
 
     fs::set_permissions(&bad_file, fs::Permissions::from_mode(0o644)).unwrap();
+}
+
+// -- Scenario: exclude_patterns hides source refs in excluded files --
+
+#[test]
+fn trace_ulid_exclude_patterns_hides_excluded_files() {
+    let tmp = TempDir::new().unwrap();
+    write_config_with_exclude(tmp.path(), "docs/specres", &["src"], &["*.test.ts"]);
+    write_specre(
+        tmp.path(),
+        "docs/specres/cli/spec_a.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "spec_a",
+        "stable",
+    );
+    // Source ref in a non-excluded file
+    write_source(
+        tmp.path(),
+        "src/main.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nfn main() {}\n",
+    );
+    // Source ref in an excluded test file — should NOT appear
+    write_source(
+        tmp.path(),
+        "src/app.test.ts",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n",
+    );
+
+    specre()
+        .args(["trace", "01AAAAAAAAAAAAAAAAAAAAAAAA"])
+        .current_dir(tmp.path())
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("src/main.rs:1")
+                .and(predicate::str::contains("app.test.ts").not()),
+        );
 }

@@ -5,7 +5,7 @@ use crate::cli::TraceArgs;
 use crate::config;
 use crate::error::SpecreError;
 use crate::parser::{extract_marker_ulid, parse_frontmatter};
-use crate::scanner::{collect_all_files, collect_md_files};
+use crate::scanner::{collect_all_files, collect_md_files, compile_exclude_patterns};
 use crate::ulid;
 use serde::Serialize;
 use std::collections::HashMap;
@@ -76,29 +76,35 @@ fn trace_by_ulid(ulid: &str, json: bool) -> Result<(), SpecreError> {
     }
 
     // Find source references
+    let exclude_set = compile_exclude_patterns(config.exclude_patterns.as_deref());
     let mut source_refs: Vec<(Rc<str>, usize)> = Vec::new();
     for dir_str in &config.source_dirs {
         let dir = Path::new(dir_str);
         if !dir.exists() {
             continue;
         }
-        collect_all_files(dir, config.target_extensions.as_deref(), &mut |path| {
-            let content = match fs::read_to_string(path) {
-                Ok(c) => c,
-                Err(e) => {
-                    eprintln!("Warning: failed to read '{}': {e}", path.display());
-                    return;
+        collect_all_files(
+            dir,
+            config.target_extensions.as_deref(),
+            exclude_set.as_ref(),
+            &mut |path| {
+                let content = match fs::read_to_string(path) {
+                    Ok(c) => c,
+                    Err(e) => {
+                        eprintln!("Warning: failed to read '{}': {e}", path.display());
+                        return;
+                    }
+                };
+                let rel_path: Rc<str> = Rc::from(to_forward_slash(path).as_ref());
+                for (line_num, line) in content.lines().enumerate() {
+                    if let Some(found_ulid) = extract_marker_ulid(line)
+                        && found_ulid == ulid
+                    {
+                        source_refs.push((Rc::clone(&rel_path), line_num + 1));
+                    }
                 }
-            };
-            let rel_path: Rc<str> = Rc::from(to_forward_slash(path).as_ref());
-            for (line_num, line) in content.lines().enumerate() {
-                if let Some(found_ulid) = extract_marker_ulid(line)
-                    && found_ulid == ulid
-                {
-                    source_refs.push((Rc::clone(&rel_path), line_num + 1));
-                }
-            }
-        });
+            },
+        );
     }
     source_refs.sort_by(|a, b| a.0.cmp(&b.0).then(a.1.cmp(&b.1)));
 

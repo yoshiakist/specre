@@ -19,6 +19,7 @@ pub struct Config {
     pub source_dirs: Vec<String>,
     pub language: Option<String>,
     pub target_extensions: Option<Vec<String>>,
+    pub exclude_patterns: Option<Vec<String>>,
     pub health_check: Option<HealthCheckConfig>,
     pub search: Option<SearchConfig>,
 }
