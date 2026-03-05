@@ -1,6 +1,7 @@
 // @specre 01KJYMAV7G01B743W72WAG9RGN
 use crate::config;
 use crate::error::SpecreError;
+use crate::parser::extract_marker_ulid;
 use crate::scanner::{collect_all_files, compile_exclude_patterns};
 use std::fs;
 use std::io::{self, BufRead, Write as IoWrite};
@@ -9,7 +10,30 @@ use std::path::Path;
 const CONFIG_FILE: &str = "specre.toml";
 const GLOSSARY_FILE: &str = "glossary.toml";
 
-/// Removes every line containing an `@specre <ULID>` marker from `path`.
+/// Returns `true` if `line` is a specre marker line inserted by `specre tag`.
+///
+/// All three conditions must hold:
+/// 1. No leading whitespace (starts at column 0).
+/// 2. [`extract_marker_ulid`] returns `Some(_)` — valid 26-char ULID, not
+///    preceded by a quote character.
+/// 3. The prefix text before `@specre `, when trimmed, contains no embedded
+///    space — accepting comment prefixes like `//`, `#`, `/*`, `<!--` while
+///    rejecting prose like `# See @specre …`.
+fn is_marker_line(line: &str) -> bool {
+    // Condition 1: no leading whitespace
+    if line.starts_with(|c: char| c.is_whitespace()) {
+        return false;
+    }
+    // Condition 2: valid ULID marker (not in a string literal)
+    if extract_marker_ulid(line).is_none() {
+        return false;
+    }
+    // Condition 3: prefix before "@specre " has no embedded space
+    line.find("@specre ")
+        .is_some_and(|pos| !line[..pos].trim().contains(' '))
+}
+
+/// Removes every marker line (as defined by [`is_marker_line`]) from `path`.
 /// Returns the number of lines removed. The file is rewritten only if at
 /// least one line was removed.
 ///
@@ -30,7 +54,7 @@ fn remove_markers_from_file(path: &Path) -> Result<usize, SpecreError> {
     let original_line_count = content.lines().count();
     let filtered: Vec<&str> = content
         .lines()
-        .filter(|line| !line.contains("@specre "))
+        .filter(|line| !is_marker_line(line))
         .collect();
     let removed = original_line_count - filtered.len();
 

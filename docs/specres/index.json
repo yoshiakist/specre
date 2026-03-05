@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-05T09:22:36Z",
+  "generated_at": "2026-03-05T09:48:55Z",
   "source_refs": [
     {
       "file": "src/card.rs",
@@ -818,7 +818,7 @@
       "last_verified": "2026-03-05",
       "name": "user_can_uninstall_specre_from_project",
       "path": "docs/specres/cli/user_can_uninstall_specre_from_project.md",
-      "status": "stable"
+      "status": "in-development"
     }
   ],
   "version": 1

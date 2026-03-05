@@ -217,6 +217,80 @@ source_dirs = ["src"]
         ));
 }
 
+// --- Scenario 7: Lines containing @specre that are NOT markers — preserved ---
+
+#[test]
+fn destroy_preserves_indented_marker_lines() {
+    let tmp = TempDir::new().unwrap();
+    setup_project(&tmp);
+
+    // Indented @specre line — condition 1 fails (has leading whitespace)
+    let src_dir = tmp.path().join("src");
+    let indented = "fn foo() {\n    // @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\n}\n";
+    fs::write(src_dir.join("lib.rs"), indented).unwrap();
+
+    specre()
+        .args(["destroy"])
+        .current_dir(tmp.path())
+        .write_stdin("n\n")
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("src/lib.rs")).unwrap();
+    assert_eq!(
+        content, indented,
+        "indented @specre line must not be removed"
+    );
+}
+
+#[test]
+fn destroy_preserves_string_literal_containing_specre() {
+    let tmp = TempDir::new().unwrap();
+    setup_project(&tmp);
+
+    // String literal — condition 2 fails (quote precedes @specre)
+    let src_dir = tmp.path().join("src");
+    let with_string = "let s = \"// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\";\n";
+    fs::write(src_dir.join("lib.rs"), with_string).unwrap();
+
+    specre()
+        .args(["destroy"])
+        .current_dir(tmp.path())
+        .write_stdin("n\n")
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("src/lib.rs")).unwrap();
+    assert_eq!(
+        content, with_string,
+        "string literal containing @specre must not be removed"
+    );
+}
+
+#[test]
+fn destroy_preserves_prose_comment_mentioning_specre() {
+    let tmp = TempDir::new().unwrap();
+    setup_project(&tmp);
+
+    // Prose comment — condition 3 fails (prefix "# See " has embedded space)
+    let src_dir = tmp.path().join("src");
+    let prose = "# See @specre 01AAAAAAAAAAAAAAAAAAAAAAAA for details\n";
+    fs::write(src_dir.join("lib.rs"), prose).unwrap();
+
+    specre()
+        .args(["destroy"])
+        .current_dir(tmp.path())
+        .write_stdin("n\n")
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("src/lib.rs")).unwrap();
+    assert_eq!(
+        content, prose,
+        "prose comment mentioning @specre must not be removed"
+    );
+}
+
 // --- Output: prompt text ---
 
 #[test]
