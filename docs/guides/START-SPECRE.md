@@ -119,6 +119,9 @@ source_dirs = ["src/auth", "tests/auth"]
 # Target file extensions (omit to auto-detect common extensions)
 ext = ["rb", "js", "ts"]
 
+# Exclude files matching these patterns from source scanning (optional)
+# exclude_patterns = [".stories.tsx", "**/dist"]
+
 # Language for specre card templates (default: "en")
 # Currently supports "en" and "ja"
 language = "en"
@@ -165,6 +168,19 @@ ext = ["ts", "tsx", "js", "jsx"]
 # Ruby on Rails
 ext = ["rb", "erb"]
 ```
+
+#### `exclude_patterns` — Excluding Files from Scanning
+
+Patterns used to exclude specific files from source scanning. Useful for filtering out test fixtures, generated files, or other files you do not want to track with specre.
+
+Each pattern is matched as a substring against the file path, or as a glob pattern if it contains `*`:
+
+```toml
+# Exclude Storybook story files and build output
+exclude_patterns = [".stories.tsx", "**/dist"]
+```
+
+When omitted, all files within `source_dirs` matching the target extensions are scanned.
 
 #### `language` — Language Setting
 
