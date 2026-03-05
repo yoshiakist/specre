@@ -13,10 +13,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `exclude_patterns` config field in `specre.toml` — glob patterns to filter paths from source scanning; affects `index`, `orphans`, `coverage`, and `trace`
 - `specre init`: generated `specre.toml` now includes commented-out default options (e.g. `exclude_patterns`) as inline documentation
 
-### Fixed
-
-- `specre destroy`: tightened `@specre` marker detection to avoid false positives on lines that only partially match the marker pattern
-
 ## [0.3.2] - 2026-02-22
 
 ### Fixed
