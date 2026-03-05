@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-05T09:00:57Z",
+  "generated_at": "2026-03-05T09:22:36Z",
   "source_refs": [
     {
       "file": "src/card.rs",
@@ -35,6 +35,11 @@
       "file": "src/commands/coverage.rs",
       "line": 2,
       "specre_id": "01KHG0A2V4YXE918WMJCY7WFE8"
+    },
+    {
+      "file": "src/commands/destroy.rs",
+      "line": 1,
+      "specre_id": "01KJYMAV7G01B743W72WAG9RGN"
     },
     {
       "file": "src/commands/health_check.rs",
@@ -345,6 +350,11 @@
       "file": "tests/cli_coverage.rs",
       "line": 1,
       "specre_id": "01KHFEA9QVV4A127VCRJY97A68"
+    },
+    {
+      "file": "tests/cli_destroy.rs",
+      "line": 1,
+      "specre_id": "01KJYMAV7G01B743W72WAG9RGN"
     },
     {
       "file": "tests/cli_dispatch.rs",
@@ -800,6 +810,14 @@
       "last_verified": "2026-03-05",
       "name": "source_scanning_respects_exclude_patterns",
       "path": "docs/specres/cli/source_scanning_respects_exclude_patterns.md",
+      "status": "stable"
+    },
+    {
+      "domain": "cli",
+      "id": "01KJYMAV7G01B743W72WAG9RGN",
+      "last_verified": "2026-03-05",
+      "name": "user_can_uninstall_specre_from_project",
+      "path": "docs/specres/cli/user_can_uninstall_specre_from_project.md",
       "status": "stable"
     }
   ],
