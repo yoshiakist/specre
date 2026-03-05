@@ -1,7 +1,8 @@
 ---
 id: "01KJ4NJW28F072X64SS68P3N08"
 name: "source_scanning_respects_exclude_patterns"
-status: "in-development"
+status: "stable"
+last_verified: "2026-03-05"
 ---
 
 ## Related Files
