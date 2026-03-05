@@ -3,6 +3,7 @@
 // @specre 01KHFD5R1G3C5R34XMQXQTTMM9
 use crate::card::to_forward_slash;
 use crate::parser::extract_marker_ulid;
+use globset::{GlobBuilder, GlobSet, GlobSetBuilder};
 use std::collections::HashSet;
 use std::fs;
 use std::path::Path;
@@ -52,9 +53,40 @@ pub fn collect_md_files<F: FnMut(&Path)>(dir: &Path, cb: &mut F) {
 /// These are text files that pass UTF-8 decoding but are never source code.
 const EXCLUDED_EXTENSIONS: &[&str] = &["svg"];
 
+/// Compiles an optional list of glob patterns into a [`GlobSet`] for O(1) matching.
+///
+/// Invalid patterns are reported as warnings on stderr and skipped.
+#[must_use]
+pub fn compile_exclude_patterns(patterns: Option<&[String]>) -> Option<GlobSet> {
+    let patterns = patterns?;
+    if patterns.is_empty() {
+        return None;
+    }
+    let mut builder = GlobSetBuilder::new();
+    for pat in patterns {
+        match GlobBuilder::new(pat).literal_separator(false).build() {
+            Ok(glob) => {
+                builder.add(glob);
+            }
+            Err(e) => {
+                eprintln!("Warning: invalid exclude pattern '{pat}': {e}");
+            }
+        }
+    }
+    match builder.build() {
+        Ok(set) if !set.is_empty() => Some(set),
+        Ok(_) => None,
+        Err(e) => {
+            eprintln!("Warning: failed to compile exclude patterns: {e}");
+            None
+        }
+    }
+}
+
 pub fn collect_all_files<F: FnMut(&Path)>(
     dir: &Path,
     target_extensions: Option<&[String]>,
+    exclude_set: Option<&GlobSet>,
     cb: &mut F,
 ) {
     let read_dir = match fs::read_dir(dir) {
@@ -86,7 +118,14 @@ pub fn collect_all_files<F: FnMut(&Path)>(
             {
                 continue;
             }
-            collect_all_files(&path, target_extensions, cb);
+            // Check exclude patterns on directory before recursing
+            if let Some(excludes) = exclude_set {
+                let forward = to_forward_slash(&path);
+                if excludes.is_match(forward.as_ref()) {
+                    continue;
+                }
+            }
+            collect_all_files(&path, target_extensions, exclude_set, cb);
         } else {
             // Skip dot files (mirrors dot-directory exclusion above)
             if path
@@ -108,6 +147,13 @@ pub fn collect_all_files<F: FnMut(&Path)>(
                     .extension()
                     .is_some_and(|ext| exts.iter().any(|e| e == ext.to_string_lossy().as_ref()));
                 if !matches {
+                    continue;
+                }
+            }
+            // Check exclude patterns on file
+            if let Some(excludes) = exclude_set {
+                let forward = to_forward_slash(&path);
+                if excludes.is_match(forward.as_ref()) {
                     continue;
                 }
             }
@@ -145,7 +191,9 @@ pub struct MarkerLocation {
 pub fn scan_source_markers(
     source_dirs: &[String],
     target_extensions: Option<&[String]>,
+    exclude_patterns: Option<&[String]>,
 ) -> SourceScanResult {
+    let exclude_set = compile_exclude_patterns(exclude_patterns);
     let mut total = 0usize;
     let mut tagged = 0usize;
     let mut uncovered = Vec::new();
@@ -157,7 +205,7 @@ pub fn scan_source_markers(
         if !dir.exists() {
             continue;
         }
-        collect_all_files(dir, target_extensions, &mut |path| {
+        collect_all_files(dir, target_extensions, exclude_set.as_ref(), &mut |path| {
             let content = match fs::read_to_string(path) {
                 Ok(c) => c,
                 Err(e) if e.kind() == std::io::ErrorKind::InvalidData => {

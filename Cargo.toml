@@ -19,6 +19,7 @@ schemars = "1"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 serde_yml = "0.0.12"
+globset = { version = "0.4", default-features = false }
 
 [dev-dependencies]
 assert_cmd = "2"

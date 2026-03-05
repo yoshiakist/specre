@@ -122,8 +122,9 @@ pub fn compute_orphans(
     specre_dir: &str,
     source_dirs: &[String],
     target_extensions: Option<&[String]>,
+    exclude_patterns: Option<&[String]>,
 ) -> OrphanResult {
-    let scan = scan_source_markers(source_dirs, target_extensions);
+    let scan = scan_source_markers(source_dirs, target_extensions, exclude_patterns);
     orphans_from_scan(specre_dir, scan)
 }
 
@@ -137,6 +138,7 @@ pub fn execute(json: bool) -> Result<(), SpecreError> {
         &config.specre_dir,
         &config.source_dirs,
         config.target_extensions.as_deref(),
+        config.exclude_patterns.as_deref(),
     );
 
     if json {

@@ -37,6 +37,50 @@ fn write_config_with_ext(
     fs::write(dir.join("specre.toml"), content).unwrap();
 }
 
+fn write_config_with_exclude(
+    dir: &std::path::Path,
+    specre_dir: &str,
+    source_dirs: &[&str],
+    exclude_patterns: &[&str],
+) {
+    let dirs_toml: Vec<String> = source_dirs.iter().map(|s| format!("\"{s}\"")).collect();
+    let pats_toml: Vec<String> = exclude_patterns
+        .iter()
+        .map(|s| format!("\"{s}\""))
+        .collect();
+    let content = format!(
+        "specre_dir = \"{specre_dir}\"\nsource_dirs = [{}]\nexclude_patterns = [{}]\n",
+        dirs_toml.join(", "),
+        pats_toml.join(", ")
+    );
+    fs::write(dir.join("specre.toml"), content).unwrap();
+}
+
+fn write_config_with_ext_and_exclude(
+    dir: &std::path::Path,
+    specre_dir: &str,
+    source_dirs: &[&str],
+    target_extensions: &[&str],
+    exclude_patterns: &[&str],
+) {
+    let dirs_toml: Vec<String> = source_dirs.iter().map(|s| format!("\"{s}\"")).collect();
+    let ext_toml: Vec<String> = target_extensions
+        .iter()
+        .map(|s| format!("\"{s}\""))
+        .collect();
+    let pats_toml: Vec<String> = exclude_patterns
+        .iter()
+        .map(|s| format!("\"{s}\""))
+        .collect();
+    let content = format!(
+        "specre_dir = \"{specre_dir}\"\nsource_dirs = [{}]\ntarget_extensions = [{}]\nexclude_patterns = [{}]\n",
+        dirs_toml.join(", "),
+        ext_toml.join(", "),
+        pats_toml.join(", ")
+    );
+    fs::write(dir.join("specre.toml"), content).unwrap();
+}
+
 fn write_source(dir: &std::path::Path, rel_path: &str, content: &str) {
     let path = dir.join(rel_path);
     fs::create_dir_all(path.parent().unwrap()).unwrap();
@@ -522,4 +566,114 @@ fn coverage_excludes_svg_files() {
         .assert()
         .success()
         .stdout(predicate::str::contains("Coverage: 1/1 files (100.0%)"));
+}
+
+// -- Scenario: exclude_patterns excludes files from coverage --
+
+#[test]
+fn coverage_exclude_patterns_file_glob() {
+    let tmp = TempDir::new().unwrap();
+    write_config_with_exclude(tmp.path(), "docs/specres", &["src"], &["*.test.ts"]);
+    write_source(
+        tmp.path(),
+        "src/app.ts",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nconst x = 1;\n",
+    );
+    // This test file should be excluded from coverage
+    write_source(tmp.path(), "src/app.test.ts", "// no marker\n");
+
+    specre()
+        .args(["coverage"])
+        .current_dir(tmp.path())
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Coverage: 1/1 files (100.0%)"));
+}
+
+// -- Scenario: exclude_patterns excludes directories --
+
+#[test]
+fn coverage_exclude_patterns_directory() {
+    let tmp = TempDir::new().unwrap();
+    write_config_with_exclude(tmp.path(), "docs/specres", &["src"], &["*/_generated/*"]);
+    write_source(
+        tmp.path(),
+        "src/main.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nfn main() {}\n",
+    );
+    // These generated files should be excluded
+    write_source(tmp.path(), "src/_generated/schema.rs", "struct S {}\n");
+    write_source(tmp.path(), "src/_generated/types.rs", "type T = i32;\n");
+
+    specre()
+        .args(["coverage"])
+        .current_dir(tmp.path())
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Coverage: 1/1 files (100.0%)"));
+}
+
+// -- Scenario: target_extensions + exclude_patterns combined --
+
+#[test]
+fn coverage_target_extensions_and_exclude_patterns() {
+    let tmp = TempDir::new().unwrap();
+    write_config_with_ext_and_exclude(
+        tmp.path(),
+        "docs/specres",
+        &["src"],
+        &["ts"],
+        &["*.test.ts"],
+    );
+    write_source(
+        tmp.path(),
+        "src/app.ts",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nconst x = 1;\n",
+    );
+    write_source(tmp.path(), "src/util.ts", "export {};\n");
+    // test file — excluded by pattern
+    write_source(tmp.path(), "src/app.test.ts", "// test\n");
+    // py file — excluded by target_extensions
+    write_source(tmp.path(), "src/script.py", "# no marker\n");
+
+    specre()
+        .args(["coverage"])
+        .current_dir(tmp.path())
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Coverage: 1/2 files (50.0%)"));
+}
+
+// -- Scenario: invalid exclude pattern warns but continues --
+
+#[test]
+fn coverage_invalid_exclude_pattern_warns() {
+    let tmp = TempDir::new().unwrap();
+    write_config_with_exclude(tmp.path(), "docs/specres", &["src"], &["[invalid"]);
+    write_source(
+        tmp.path(),
+        "src/main.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nfn main() {}\n",
+    );
+
+    let output = specre()
+        .args(["coverage"])
+        .current_dir(tmp.path())
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("Warning: invalid exclude pattern"),
+        "Expected warning about invalid pattern in stderr, got: {stderr}"
+    );
+
+    // Coverage should still work (pattern is skipped)
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.contains("Coverage: 1/1 files (100.0%)"),
+        "Coverage should still work, got: {stdout}"
+    );
 }

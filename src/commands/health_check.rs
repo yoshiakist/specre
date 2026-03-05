@@ -115,7 +115,11 @@ pub fn execute() -> Result<(), SpecreError> {
     let threshold_index_age = hc.and_then(|h| h.index_age_hours).unwrap_or(24.0);
 
     // Single scan for both coverage and orphans
-    let scan = scan_source_markers(&cfg.source_dirs, cfg.target_extensions.as_deref());
+    let scan = scan_source_markers(
+        &cfg.source_dirs,
+        cfg.target_extensions.as_deref(),
+        cfg.exclude_patterns.as_deref(),
+    );
 
     // Coverage
     let cov = coverage_from_scan_ref(&scan);

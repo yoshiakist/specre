@@ -54,8 +54,9 @@ pub fn coverage_from_scan_ref(scan: &SourceScanResult) -> CoverageResult {
 pub fn compute_coverage(
     source_dirs: &[String],
     target_extensions: Option<&[String]>,
+    exclude_patterns: Option<&[String]>,
 ) -> CoverageResult {
-    let scan = scan_source_markers(source_dirs, target_extensions);
+    let scan = scan_source_markers(source_dirs, target_extensions, exclude_patterns);
     coverage_from_scan(scan)
 }
 
@@ -67,7 +68,11 @@ pub fn execute(args: CoverageArgs, json: bool) -> Result<(), SpecreError> {
 
     let extensions = args.ext.or(config.target_extensions);
 
-    let result = compute_coverage(&config.source_dirs, extensions.as_deref());
+    let result = compute_coverage(
+        &config.source_dirs,
+        extensions.as_deref(),
+        config.exclude_patterns.as_deref(),
+    );
 
     let uncovered_total = result.uncovered.len();
     let is_truncated = uncovered_total > UNCOVERED_DISPLAY_LIMIT;
