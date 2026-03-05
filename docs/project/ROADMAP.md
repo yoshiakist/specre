@@ -75,13 +75,21 @@ The MCP server includes prompts designed for QA engineers, enabling them to leve
 
 These prompts keep specre engine-independent — the AI reasoning is performed by whichever LLM the agent is connected to, not by specre itself.
 
-## v0.4 — Drift Detection
+## v0.4 — Command Usability Improvements
+
+Quality-of-life improvements across existing commands, shipped as v0.3.x patches.
+
+- [x] `specre destroy` — Remove `@specre` markers from source files, cleaning up traceability links when a specre is deleted
+- [x] `specre init` — Generated `specre.toml` now includes commented-out default options (`exclude_patterns`, health-check thresholds) to lower the configuration discovery cost
+- [x] `exclude_patterns` in `specre.toml` — Filter files and directories from source scanning (e.g. exclude `vendor/`, generated files)
+
+## v0.5 — Drift Detection
 
 - [ ] `specre drift` — Compare `last_verified` dates against git history of related files; flag specres where source has changed since last verification
 - [ ] `specre ci` — Exit with non-zero status if drift or orphans are detected (for CI integration)
 - [ ] GitHub Actions workflow template
 
-## v0.5 — QA Support
+## v0.6 — QA Support
 
 Deterministic CLI commands that help QA engineers work directly with specre cards — no LLM required.
 
@@ -89,7 +97,7 @@ Deterministic CLI commands that help QA engineers work directly with specre card
 - [ ] `specre diff [specre-path]` — Show how a specre card has changed since its last `stable` state, using git history. Complements `specre drift` (which detects *whether* something changed) by showing *what* changed.
 - [ ] `specre export [--format <fmt>]` — Convert Scenarios sections into structured test case formats (Markdown checklist, CSV) for import into test management tools. Eliminates the manual transcription of specifications into test cases.
 
-## v0.6 — Multi-Repository Traceability
+## v0.7 — Multi-Repository Traceability
 
 Enable specre traceability across repository boundaries — for polyrepo microservices, separate frontend/backend repos, and event-driven architectures.
 
@@ -156,7 +164,7 @@ External references:
 - [ ] `specre coverage` extended — Count `@specre-ext` markers as coverage
 - [ ] `specre health-check` extended — Report external references in a separate section; do not let unresolved externals affect `healthy`
 
-## v0.7 — Remote Resolution & Boundary Management
+## v0.8 — Remote Resolution & Boundary Management
 
 Build on v0.6's multi-repo foundation with network-based resolution and cross-repo contract management tooling.
 

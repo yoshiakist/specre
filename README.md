@@ -296,8 +296,9 @@ Each entry records a `@specre` marker found in the source tree:
 - **v0.1 — Core CLI** ✅ `init`, `new`, `index`, `status`
 - **v0.2 — Traceability** ✅ `trace`, `orphans`, `tag`
 - **v0.3 — Agent Integration** ✅ `coverage`, `health-check`, `search`, `--json` output, MCP server
-- **v0.4 — Drift Detection** — `drift`, `ci`, GitHub Actions template
-- **v0.5 — QA Support** — `impact`, `diff`, `export`
+- **v0.4 — Command Usability Improvements** ✅ `destroy`, `exclude_patterns`, richer `specre.toml` defaults
+- **v0.5 — Drift Detection** — `drift`, `ci`, GitHub Actions template
+- **v0.6 — QA Support** — `impact`, `diff`, `export`
 
 ## Contributing
 

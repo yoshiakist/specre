@@ -299,8 +299,9 @@ class QuotationService:
 - **v0.1 — コア CLI** ✅ `init`, `new`, `index`, `status`
 - **v0.2 — トレーサビリティ** ✅ `trace`, `orphans`, `tag`
 - **v0.3 — エージェント統合** ✅ `coverage`, `health-check`, `search`, `--json` 出力, MCP サーバー
-- **v0.4 — ドリフト検出** — `drift`, `ci`, GitHub Actions テンプレート
-- **v0.5 — QA サポート** — `impact`, `diff`, `export`
+- **v0.4 — コマンド利便性向上** ✅ `destroy`、`exclude_patterns`、`specre.toml` デフォルト設定の強化
+- **v0.5 — ドリフト検出** — `drift`, `ci`, GitHub Actions テンプレート
+- **v0.6 — QA サポート** — `impact`, `diff`, `export`
 
 ## コントリビューション
 
