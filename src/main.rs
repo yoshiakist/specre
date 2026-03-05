@@ -31,6 +31,7 @@ fn main() {
         Commands::HealthCheck => commands::health_check::execute(),
         Commands::Search(ref args) => commands::search::execute(args),
         Commands::Mcp => commands::mcp::execute(),
+        Commands::Destroy => commands::destroy::execute(),
     };
 
     match result {

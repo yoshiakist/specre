@@ -50,6 +50,9 @@ pub enum Commands {
 
     /// Start the MCP server (stdio transport)
     Mcp,
+
+    /// Remove all specre artifacts from the project (markers, config files)
+    Destroy,
 }
 
 #[derive(Debug, Args)]
