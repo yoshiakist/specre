@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] - 2026-03-05
+
+### Added
+
+- `specre destroy` — new command to remove `@specre` markers from source files; accepts a ULID or file path and strips all matching markers, making it easy to unlink a specre card from source code
+- `exclude_patterns` config field in `specre.toml` — glob patterns to filter paths from source scanning; affects `index`, `orphans`, `coverage`, and `trace`
+- `specre init`: generated `specre.toml` now includes commented-out default options (e.g. `exclude_patterns`) as inline documentation
+
+### Fixed
+
+- `specre destroy`: tightened `@specre` marker detection to avoid false positives on lines that only partially match the marker pattern
+
 ## [0.3.2] - 2026-02-22
 
 ### Fixed
@@ -121,6 +133,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Bidirectional traceability via `@specre <ULID>` source markers
 - specre card format with YAML front-matter (`id`, `name`, `status`, `last_verified`)
 
+[0.4.0]: https://github.com/yoshiakist/specre/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/yoshiakist/specre/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/yoshiakist/specre/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/yoshiakist/specre/compare/v0.2.6...v0.3.0
