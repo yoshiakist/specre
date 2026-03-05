@@ -2,7 +2,7 @@
 id: "01KHAGG8NQQ7RSNYZ6SWBCYH3N"
 name: "specre_init_initializes_project_configuration"
 status: "stable"
-last_verified: "2026-02-18"
+last_verified: "2026-03-05"
 ---
 
 ## Related Files
@@ -28,6 +28,9 @@ The primary consumer of this command is expected to be a human developer setting
 - `specre_dir: String` — directory where specre cards are stored (default: `docs/specres`)
 - `source_dirs: Vec<String>` — directories to scan for `@specre` markers (default: `["src"]`)
 - `ext: Option<Vec<String>>` — target file extensions for source scanning (e.g., `["rs", "ts"]`). When omitted, all files are scanned.
+- `health_check` — optional thresholds for `specre health-check` (coverage, orphans, index_age_hours)
+- `exclude_patterns: Option<Vec<String>>` — glob/substring patterns to exclude from source scanning
+- `language: Option<String>` — language code for specre card generation (default: `en`)
 
 ## Scenarios
 
@@ -35,10 +38,19 @@ The primary consumer of this command is expected to be a human developer setting
 
 1. User runs `specre init` in their project root
 2. CLI creates `docs/specres/` directory
-3. CLI writes `specre.toml` with default values:
+3. CLI writes `specre.toml` with default values and commented-out optional settings:
    ```toml
    specre_dir = "docs/specres"
    source_dirs = ["src"]
+
+   # target_extensions = ["rb", "js", "ts"]
+   # exclude_patterns = [".stories.tsx", "**/dist"]
+   # language = "ja"
+
+   # [health_check]
+   # coverage = 0.30
+   # orphans = 10
+   # index_age_hours = 48
    ```
 4. CLI writes `glossary.toml` with sample terms:
    ```toml
@@ -88,7 +100,7 @@ The primary consumer of this command is expected to be a human developer setting
 
 1. User runs `specre init --ext rs,ts`
 2. CLI creates `docs/specres/` directory
-3. CLI writes `specre.toml` with `target_extensions = ["rs", "ts"]` in addition to `specre_dir` and `source_dirs`
+3. CLI writes `specre.toml` with `target_extensions = ["rs", "ts"]` in addition to `specre_dir` and `source_dirs`; the `# target_extensions` comment line is omitted since the field is already active
 4. CLI prints the summary to stdout
 
 ### specre.toml already exists
@@ -125,6 +137,8 @@ The primary consumer of this command is expected to be a human developer setting
 ## Implementation Notes
 
 - Config generation uses `toml::to_string()` for serialization to prevent TOML injection via special characters in user-supplied values (quotes, backslashes, etc.)
+- After the serialized active config, commented-out examples of optional settings are appended as a static string; a comment for a field is omitted when the user already supplied that field via CLI arguments (e.g., `--ext` suppresses the `# target_extensions` comment, `--language` suppresses the `# language` comment)
+- `exclude_patterns` and `[health_check]` comments are always appended because there are no CLI arguments to set them directly via `specre init`
 
 ## Failures / Exceptions
 

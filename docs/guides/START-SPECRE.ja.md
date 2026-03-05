@@ -119,6 +119,9 @@ source_dirs = ["src/auth", "tests/auth"]
 # 対象ファイル拡張子（省略時は一般的な拡張子を自動検出）
 ext = ["rb", "js", "ts"]
 
+# スキャンから除外するファイルパターン（任意）
+# exclude_patterns = [".stories.tsx", "**/dist"]
+
 # specre カードの言語（省略時は "en"）
 # 現在は "en" と "ja" に対応
 language = "ja"
@@ -165,6 +168,19 @@ ext = ["ts", "tsx", "js", "jsx"]
 # Ruby on Rails
 ext = ["rb", "erb"]
 ```
+
+#### `exclude_patterns` — スキャン除外パターン
+
+ソーススキャンから特定ファイルを除外するパターンです。テストフィクスチャ、生成ファイル、specre で追跡したくないファイルを除外する際に使います。
+
+各パターンはファイルパスの部分文字列として照合されます。`*` を含む場合はグロブパターンとして扱われます：
+
+```toml
+# Storybook のストーリーファイルとビルド出力を除外
+exclude_patterns = [".stories.tsx", "**/dist"]
+```
+
+省略すると、`source_dirs` 内の対象拡張子に一致するすべてのファイルがスキャンされます。
 
 #### `language` — 言語設定
 

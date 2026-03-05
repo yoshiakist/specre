@@ -149,7 +149,7 @@ fn init_with_language_ja() {
 }
 
 #[test]
-fn init_without_language_omits_field() {
+fn init_without_language_has_language_as_comment() {
     let tmp = TempDir::new().unwrap();
 
     specre()
@@ -159,7 +159,9 @@ fn init_without_language_omits_field() {
         .success();
 
     let content = fs::read_to_string(tmp.path().join("specre.toml")).unwrap();
-    assert!(!content.contains("language"));
+    // Without --language, the field should appear only as a commented-out example, not as an active setting.
+    assert!(content.contains("# language"));
+    assert!(!content.contains("\nlanguage"));
 }
 
 // -- Scenario: Custom target extensions --
@@ -179,7 +181,7 @@ fn init_with_ext_creates_target_extensions() {
 }
 
 #[test]
-fn init_without_ext_omits_target_extensions() {
+fn init_without_ext_has_target_extensions_as_comment() {
     let tmp = TempDir::new().unwrap();
 
     specre()
@@ -189,7 +191,63 @@ fn init_without_ext_omits_target_extensions() {
         .success();
 
     let content = fs::read_to_string(tmp.path().join("specre.toml")).unwrap();
-    assert!(!content.contains("target_extensions"));
+    // Without --ext, the field should appear only as a commented-out example, not as an active setting.
+    assert!(content.contains("# target_extensions"));
+    assert!(!content.contains("\ntarget_extensions"));
+}
+
+// -- Scenario: Default init includes commented-out optional settings --
+
+#[test]
+fn init_default_includes_commented_optional_settings() {
+    let tmp = TempDir::new().unwrap();
+
+    specre()
+        .args(["init"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("specre.toml")).unwrap();
+    assert!(content.contains("# target_extensions"));
+    assert!(content.contains("# exclude_patterns"));
+    assert!(content.contains("# language"));
+    assert!(content.contains("# [health_check]"));
+    assert!(content.contains("# coverage = 0.30"));
+    assert!(content.contains("# orphans = 10"));
+    assert!(content.contains("# index_age_hours = 48"));
+}
+
+#[test]
+fn init_with_ext_omits_target_extensions_comment() {
+    let tmp = TempDir::new().unwrap();
+
+    specre()
+        .args(["init", "--ext", "rs,ts"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("specre.toml")).unwrap();
+    // Active setting is present; commented-out example should be absent.
+    assert!(content.contains(r#"target_extensions = ["rs", "ts"]"#));
+    assert!(!content.contains("# target_extensions"));
+}
+
+#[test]
+fn init_with_language_omits_language_comment() {
+    let tmp = TempDir::new().unwrap();
+
+    specre()
+        .args(["init", "--language", "en"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("specre.toml")).unwrap();
+    // Active setting is present; commented-out example should be absent.
+    assert!(content.contains(r#"language = "en""#));
+    assert!(!content.contains("# language"));
 }
 
 // -- Scenario: Special characters in arguments --
