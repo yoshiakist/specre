@@ -50,6 +50,20 @@ terms = [
 ]
 "#;
 
+fn append_optional_hints(config: &mut String, has_ext: bool, has_language: bool) {
+    config.push('\n');
+    if !has_ext {
+        config.push_str("# target_extensions = [\"rb\", \"js\", \"ts\"]\n");
+    }
+    config.push_str("# exclude_patterns = [\".stories.tsx\", \"**/dist\"]\n");
+    if !has_language {
+        config.push_str("# language = \"ja\"\n");
+    }
+    config.push_str(
+        "\n# [health_check]\n# coverage = 0.30\n# orphans = 10\n# index_age_hours = 48\n",
+    );
+}
+
 /// # Errors
 ///
 /// Returns [`SpecreError`] if already initialized, or on I/O / serialization failure.
@@ -82,6 +96,8 @@ pub fn execute(args: InitArgs, json: bool) -> Result<(), SpecreError> {
         println!("Exists  {specre_dir}/");
     }
 
+    let has_ext = ext.is_some();
+    let has_language = language.is_some();
     let config = SpecreConfig {
         specre_dir: specre_dir.clone(),
         source_dirs,
@@ -89,7 +105,8 @@ pub fn execute(args: InitArgs, json: bool) -> Result<(), SpecreError> {
         target_extensions: ext,
         exclude_patterns: None,
     };
-    let config_content = toml::to_string(&config).map_err(SpecreError::ConfigSerialize)?;
+    let mut config_content = toml::to_string(&config).map_err(SpecreError::ConfigSerialize)?;
+    append_optional_hints(&mut config_content, has_ext, has_language);
 
     fs::write(config_path, &config_content).map_err(|e| SpecreError::Io {
         path: config_path.to_path_buf(),
