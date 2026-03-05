@@ -2,6 +2,7 @@
 mod common;
 use assert_cmd::cargo::cargo_bin_cmd;
 use assert_fs::TempDir;
+use common::write_config_with_exclude;
 use predicates::prelude::*;
 use std::fs;
 
@@ -44,25 +45,6 @@ fn write_specre(dir: &std::path::Path, rel_path: &str, id: &str, name: &str, sta
         "---\nid: \"{id}\"\nname: \"{name}\"\nstatus: \"{status}\"\n---\n\n## Related Files\n\n-\n"
     );
     fs::write(path, fm).unwrap();
-}
-
-fn write_config_with_exclude(
-    dir: &std::path::Path,
-    specre_dir: &str,
-    source_dirs: &[&str],
-    exclude_patterns: &[&str],
-) {
-    let dirs_toml: Vec<String> = source_dirs.iter().map(|s| format!("\"{s}\"")).collect();
-    let pats_toml: Vec<String> = exclude_patterns
-        .iter()
-        .map(|s| format!("\"{s}\""))
-        .collect();
-    let content = format!(
-        "specre_dir = \"{specre_dir}\"\nsource_dirs = [{}]\nexclude_patterns = [{}]\n",
-        dirs_toml.join(", "),
-        pats_toml.join(", ")
-    );
-    fs::write(dir.join("specre.toml"), content).unwrap();
 }
 
 fn write_source(dir: &std::path::Path, rel_path: &str, content: &str) {
