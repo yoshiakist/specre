@@ -9,6 +9,7 @@ last_verified: "2026-04-07"
 
 - `src/commands/health_check.rs`
 - `src/commands/index.rs` (reuses index generation logic for content comparison)
+- `src/commands/drift.rs` (reuses drift detection logic)
 - `src/scanner.rs` (reuses `scan_source_markers()`)
 - `src/commands/coverage.rs` (reuses `coverage_from_scan_ref()`)
 - `src/commands/orphans.rs` (reuses `orphans_from_scan_ref()`)
@@ -20,9 +21,11 @@ last_verified: "2026-04-07"
 
 ## Functional Overview
 
-`specre health-check` is a single entry point for coding agents to verify that the specre ecosystem is trustworthy before starting a task. It aggregates three metrics — coverage ratio, orphan count, and index freshness — into one structured JSON response, enabling agents to unambiguously determine whether specre cards can be relied upon without interpreting multiple commands individually. Each metric is compared against configurable thresholds (with sensible defaults), and a top-level `healthy` boolean summarizes whether all metrics are within acceptable bounds.
+`specre health-check` is a single entry point for coding agents to verify that the specre ecosystem is trustworthy before starting a task. It aggregates four metrics — coverage ratio, orphan count, index freshness, and drift count — into one structured JSON response, enabling agents to unambiguously determine whether specre cards can be relied upon without interpreting multiple commands individually. Each metric is compared against configurable thresholds (with sensible defaults), and a top-level `healthy` boolean summarizes whether all metrics are within acceptable bounds.
 
 Index freshness uses a two-stage evaluation: first, the `generated_at` timestamp is checked against the `index_age_hours` threshold. If the timestamp is within the threshold, the index is considered fresh. If the timestamp exceeds the threshold, health-check performs a **content comparison** — it regenerates the index data in memory (without writing to disk) and compares the `specres` and `source_refs` arrays against the existing `index.json`. If the content is identical, the index is still considered fresh (the timestamp is old but the data is accurate). Only when the content actually differs is the index considered stale.
+
+Drift count reports how many `stable` specre cards have source files modified after `last_verified` (plus the configured grace period). The grace period is read from `[drift] grace_days` in `specre.toml` (default: 0). Drift detection requires a git repository; if git is not available, the drift check is skipped and `drifts` is reported as `null` (without affecting the `healthy` verdict).
 
 ## Design Intent
 
@@ -30,19 +33,20 @@ AI agents need a fast, unambiguous signal before trusting specre cards as a sour
 
 ## Key Members
 
-- `HealthCheckResult` — struct containing `healthy: bool`, `coverage: f64`, `orphans: usize`, `index_age_hours: f64`, and `thresholds: Thresholds`
-- `Thresholds` — struct with `coverage: f64` (default `0.90`), `orphans: usize` (default `5`), `index_age_hours: f64` (default `24.0`); configurable via `specre.toml` under `[health_check]` section
-- `healthy` — `true` when `coverage >= thresholds.coverage` AND `orphans <= thresholds.orphans` AND index is fresh (see below)
+- `HealthCheckResult` — struct containing `healthy: bool`, `coverage: f64`, `orphans: usize`, `drifts: Option<usize>`, `index_age_hours: Option<f64>`, and `thresholds: Thresholds`
+- `Thresholds` — struct with `coverage: f64` (default `0.90`), `orphans: usize` (default `5`), `index_age_hours: f64` (default `24.0`), `drifts: usize` (default `0`); configurable via `specre.toml` under `[health_check]` section
+- `healthy` — `true` when `coverage >= thresholds.coverage` AND `orphans <= thresholds.orphans` AND index is fresh AND `drifts <= thresholds.drifts` (when drift check is available)
 - Index freshness — the index is fresh when `index_age_hours <= thresholds.index_age_hours`, OR when the timestamp exceeds the threshold but a content comparison confirms that `specres` and `source_refs` in the existing `index.json` are identical to what would be regenerated. If `index.json` does not exist or cannot be parsed, the index is always stale
 - `coverage` — ratio (0.0–1.0) of source files containing at least one `@specre` marker, computed via `compute_coverage()`
 - `orphans` — total count of orphan specres (non-deprecated specres with no source markers) plus dangling markers (markers with no matching specre), computed via `compute_orphans()`
+- `drifts` — count of `stable` specre cards whose related source files have been modified after `last_verified` + grace period. Uses the same detection logic as `specre drift` (default status filter: `stable`, grace from `[drift] grace_days`). If git is not available, reported as `null` and excluded from the `healthy` verdict
 - `index_age_hours` — hours since `index.json` was last generated, derived from its `generated_at` field. If `index.json` does not exist, this is reported as `null` and the metric is treated as failing (unhealthy)
 
 ## Scenarios
 
 ### Healthy ecosystem — all metrics within thresholds
 
-1. Project has `specre.toml`, source files with good coverage, few orphans, and a recent `index.json`
+1. Project has `specre.toml`, source files with good coverage, few orphans, a recent `index.json`, and no drifted specres
 2. User runs `specre health-check`
 3. CLI outputs JSON to stdout:
    ```json
@@ -50,8 +54,9 @@ AI agents need a fast, unambiguous signal before trusting specre cards as a sour
      "healthy": true,
      "coverage": 0.93,
      "orphans": 2,
+     "drifts": 0,
      "index_age_hours": 3.2,
-     "thresholds": { "coverage": 0.90, "orphans": 5, "index_age_hours": 24.0 }
+     "thresholds": { "coverage": 0.90, "orphans": 5, "drifts": 0, "index_age_hours": 24.0 }
    }
    ```
 4. CLI exits with exit code 0
@@ -90,6 +95,19 @@ AI agents need a fast, unambiguous signal before trusting specre cards as a sour
 4. CLI outputs JSON with `"healthy": true` and `"index_age_hours"` reflecting the actual (old) age
 5. CLI exits with exit code 0
 
+### Unhealthy ecosystem — drifts above threshold
+
+1. User runs `specre health-check` in a project where 3 stable specres have drifted (threshold is 0)
+2. CLI outputs JSON with `"healthy": false` and `"drifts": 3`
+3. CLI exits with exit code 1
+
+### Git not available — drift check skipped
+
+1. User runs `specre health-check` in a project that is not a git repository (or git is not installed)
+2. Drift check is skipped; `drifts` is reported as `null`
+3. The `healthy` verdict is determined by the remaining three metrics only (coverage, orphans, index freshness)
+4. CLI exits with exit code 0 if all other metrics are within thresholds
+
 ### Custom thresholds via specre.toml
 
 1. User configures `specre.toml`:
@@ -98,10 +116,11 @@ AI agents need a fast, unambiguous signal before trusting specre cards as a sour
    coverage = 0.50
    orphans = 10
    index_age_hours = 48.0
+   drifts = 5
    ```
 2. User runs `specre health-check`
 3. CLI uses the custom thresholds for evaluation and includes them in the output JSON
-4. A project with 60% coverage, 8 orphans, and 36-hour-old index would report `"healthy": true`
+4. A project with 60% coverage, 8 orphans, 3 drifted specres, and 36-hour-old index would report `"healthy": true`
 
 ### No source files — coverage is 0.0
 
@@ -129,6 +148,7 @@ AI agents need a fast, unambiguous signal before trusting specre cards as a sour
 3. `coverage` is a floating-point number (0.0–1.0), not a percentage
 4. `index_age_hours` is a floating-point number rounded to one decimal place, or `null` if index.json is missing
 5. `orphans` is an integer
+6. `drifts` is an integer, or `null` if git is not available
 
 ## Failures / Exceptions
 
@@ -137,3 +157,4 @@ AI agents need a fast, unambiguous signal before trusting specre cards as a sour
 - If `index.json` exists but cannot be parsed (malformed JSON or missing `generated_at`), CLI prints a warning to stderr and `index_age_hours` is reported as `null` and treated as failing
 - If `source_dirs` entries do not exist, they are skipped silently (consistent with `coverage` behavior)
 - If `specre_dir` does not exist, orphan count is 0 (no specres to be orphaned)
+- If git is not available (not a git repository, or `git` command not found), drift check is skipped: `drifts` is `null` and does not affect the `healthy` verdict

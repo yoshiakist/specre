@@ -533,12 +533,15 @@ pub fn execute_coverage() -> Result<CallToolResult, McpError> {
 // ---------------------------------------------------------------------------
 
 pub fn execute_health_check() -> Result<CallToolResult, McpError> {
+    use crate::commands::drift;
+
     let cfg = load_config()?;
 
     let hc = cfg.health_check.as_ref();
     let t_coverage = hc.and_then(|h| h.coverage).unwrap_or(0.90);
     let t_orphans = hc.and_then(|h| h.orphans).unwrap_or(5);
     let t_index_age = hc.and_then(|h| h.index_age_hours).unwrap_or(24.0);
+    let t_drifts = hc.and_then(|h| h.drifts).unwrap_or(0);
 
     // Single scan for both coverage and orphans
     let scan = scan_source_markers(
@@ -557,21 +560,26 @@ pub fn execute_health_check() -> Result<CallToolResult, McpError> {
     let orphan_result = orphans_from_scan_ref(&cfg.specre_dir, &scan);
     let orphan_count = orphan_result.orphan_count() + orphan_result.dangling_count();
 
+    let drifts = drift::count_drifts(&cfg);
+
     let index_age_hours = get_index_age_hours(&cfg.specre_dir);
 
     let coverage_ok = coverage_ratio >= t_coverage;
     let orphans_ok = orphan_count <= t_orphans;
+    let drifts_ok = drifts.is_none_or(|d| d <= t_drifts);
     let index_ok = index_age_hours.is_some_and(|age| age <= t_index_age);
-    let healthy = coverage_ok && orphans_ok && index_ok;
+    let healthy = coverage_ok && orphans_ok && drifts_ok && index_ok;
 
     let result = serde_json::json!({
         "healthy": healthy,
         "coverage": coverage_ratio,
         "orphans": orphan_count,
+        "drifts": drifts,
         "index_age_hours": index_age_hours,
         "thresholds": {
             "coverage": t_coverage,
             "orphans": t_orphans,
+            "drifts": t_drifts,
             "index_age_hours": t_index_age,
         },
     });

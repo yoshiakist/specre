@@ -5,6 +5,7 @@ use assert_cmd::cargo::cargo_bin_cmd;
 use assert_fs::TempDir;
 use predicates::prelude::*;
 use std::fs;
+use std::process::Command;
 
 fn specre() -> assert_cmd::Command {
     cargo_bin_cmd!("specre")
@@ -30,6 +31,20 @@ fn write_config_with_health_check(
     let dirs_toml: Vec<String> = source_dirs.iter().map(|s| format!("\"{s}\"")).collect();
     let content = format!(
         "specre_dir = \"{specre_dir}\"\nsource_dirs = [{}]\n\n[health_check]\ncoverage = {coverage}\norphans = {orphans}\nindex_age_hours = {index_age_hours}\n",
+        dirs_toml.join(", ")
+    );
+    fs::write(dir.join("specre.toml"), content).unwrap();
+}
+
+fn write_config_with_drifts_threshold(
+    dir: &std::path::Path,
+    specre_dir: &str,
+    source_dirs: &[&str],
+    drifts: usize,
+) {
+    let dirs_toml: Vec<String> = source_dirs.iter().map(|s| format!("\"{s}\"")).collect();
+    let content = format!(
+        "specre_dir = \"{specre_dir}\"\nsource_dirs = [{}]\n\n[health_check]\ncoverage = 0.0\norphans = 100\nindex_age_hours = 1000.0\ndrifts = {drifts}\n",
         dirs_toml.join(", ")
     );
     fs::write(dir.join("specre.toml"), content).unwrap();
@@ -144,8 +159,13 @@ fn health_check_healthy() {
     assert_eq!(json["coverage"], 1.0);
     assert_eq!(json["orphans"], 0);
     assert!(json["index_age_hours"].as_f64().unwrap() < 1.0);
+    assert!(
+        json["drifts"].is_null(),
+        "drifts should be null without git"
+    );
     assert_eq!(json["thresholds"]["coverage"], 0.9);
     assert_eq!(json["thresholds"]["orphans"], 5);
+    assert_eq!(json["thresholds"]["drifts"], 0);
     assert_eq!(json["thresholds"]["index_age_hours"], 24.0);
 }
 
@@ -478,6 +498,7 @@ fn health_check_custom_thresholds() {
     assert_eq!(json["healthy"], true);
     assert_eq!(json["thresholds"]["coverage"], 0.3);
     assert_eq!(json["thresholds"]["orphans"], 20);
+    assert_eq!(json["thresholds"]["drifts"], 0);
     assert_eq!(json["thresholds"]["index_age_hours"], 100.0);
 }
 
@@ -582,6 +603,11 @@ fn health_check_json_output_is_valid() {
     assert!(json["healthy"].is_boolean());
     assert!(json["coverage"].is_f64());
     assert!(json["orphans"].is_u64());
+    // drifts is null (no git) or u64
+    assert!(
+        json["drifts"].is_null() || json["drifts"].is_u64(),
+        "drifts should be null or integer"
+    );
     assert!(
         json["index_age_hours"].is_f64(),
         "index_age_hours should be a float"
@@ -589,6 +615,7 @@ fn health_check_json_output_is_valid() {
     assert!(json["thresholds"].is_object());
     assert!(json["thresholds"]["coverage"].is_f64());
     assert!(json["thresholds"]["orphans"].is_u64());
+    assert!(json["thresholds"]["drifts"].is_u64());
     assert!(json["thresholds"]["index_age_hours"].is_f64());
 }
 
@@ -739,4 +766,226 @@ fn health_check_exclude_patterns_improves_coverage() {
     let json = parse_json(&output.stdout);
     assert_eq!(json["healthy"], true);
     assert_eq!(json["coverage"], 1.0);
+}
+
+// ---------------------------------------------------------------------------
+// Git helpers for drift-related health-check tests
+// ---------------------------------------------------------------------------
+
+fn write_specre_card_with_verified(
+    dir: &std::path::Path,
+    rel_path: &str,
+    id: &str,
+    name: &str,
+    status: &str,
+    last_verified: Option<&str>,
+    related_files: &[&str],
+) {
+    let path = dir.join(rel_path);
+    fs::create_dir_all(path.parent().unwrap()).unwrap();
+    let verified_line =
+        last_verified.map_or_else(String::new, |date| format!("last_verified: \"{date}\"\n"));
+    let related = if related_files.is_empty() {
+        String::new()
+    } else {
+        related_files
+            .iter()
+            .map(|f| format!("- `{f}`"))
+            .collect::<Vec<_>>()
+            .join("\n")
+    };
+    let content = format!(
+        "---\nid: \"{id}\"\nname: \"{name}\"\nstatus: \"{status}\"\n{verified_line}---\n\n## Related Files\n\n{related}\n\n## Functional Overview\n\nTest card.\n\n## Scenarios\n\n### Test\n\n1. Test step\n"
+    );
+    fs::write(path, content).unwrap();
+}
+
+fn git_init_and_commit_with_date(dir: &std::path::Path, date: &str) {
+    Command::new("git")
+        .args(["init"])
+        .current_dir(dir)
+        .output()
+        .unwrap();
+    Command::new("git")
+        .args(["config", "user.email", "test@test.com"])
+        .current_dir(dir)
+        .output()
+        .unwrap();
+    Command::new("git")
+        .args(["config", "user.name", "Test"])
+        .current_dir(dir)
+        .output()
+        .unwrap();
+    Command::new("git")
+        .args(["add", "-A"])
+        .current_dir(dir)
+        .output()
+        .unwrap();
+    Command::new("git")
+        .args(["commit", "-m", "initial"])
+        .env("GIT_AUTHOR_DATE", date)
+        .env("GIT_COMMITTER_DATE", date)
+        .current_dir(dir)
+        .output()
+        .unwrap();
+}
+
+fn git_commit_file_with_date(dir: &std::path::Path, file: &str, content: &str, date: &str) {
+    fs::write(dir.join(file), content).unwrap();
+    Command::new("git")
+        .args(["add", file])
+        .current_dir(dir)
+        .output()
+        .unwrap();
+    Command::new("git")
+        .args(["commit", "-m", &format!("update {file}")])
+        .env("GIT_AUTHOR_DATE", date)
+        .env("GIT_COMMITTER_DATE", date)
+        .current_dir(dir)
+        .output()
+        .unwrap();
+}
+
+// -- Scenario: Git not available — drift check skipped --
+
+#[test]
+fn health_check_no_git_drifts_null() {
+    let tmp = TempDir::new().unwrap();
+    // Permissive thresholds so only drift matters
+    write_config_with_drifts_threshold(tmp.path(), "docs/specres", &["src"], 0);
+
+    write_source(
+        tmp.path(),
+        "src/a.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nfn a() {}\n",
+    );
+    write_specre_card(
+        tmp.path(),
+        "docs/specres/cli/card_a.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "card_a",
+        "stable",
+    );
+    write_index_json(tmp.path(), &recent_timestamp());
+
+    let output = specre()
+        .args(["health-check"])
+        .current_dir(tmp.path())
+        .output()
+        .unwrap();
+
+    assert!(
+        output.status.success(),
+        "should be healthy when git is unavailable (drifts excluded from verdict)"
+    );
+
+    let json = parse_json(&output.stdout);
+    assert_eq!(json["healthy"], true);
+    assert!(
+        json["drifts"].is_null(),
+        "drifts should be null without git"
+    );
+    assert_eq!(json["thresholds"]["drifts"], 0);
+}
+
+// -- Scenario: Unhealthy ecosystem — drifts above threshold --
+
+#[test]
+fn health_check_unhealthy_drifts_above_threshold() {
+    let tmp = TempDir::new().unwrap();
+    // Permissive thresholds for everything except drifts (default 0)
+    write_config_with_drifts_threshold(tmp.path(), "docs/specres", &["src"], 0);
+
+    // Source file with marker, committed at old date
+    write_source(
+        tmp.path(),
+        "src/a.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nfn a() {}\n",
+    );
+    // Specre card verified at old date, with related file
+    write_specre_card_with_verified(
+        tmp.path(),
+        "docs/specres/cli/card_a.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "card_a",
+        "stable",
+        Some("2026-01-01"),
+        &["src/a.rs"],
+    );
+    write_index_json(tmp.path(), &recent_timestamp());
+
+    // Initialize git and commit at old date
+    git_init_and_commit_with_date(tmp.path(), "2026-01-01T00:00:00+00:00");
+
+    // Modify the source file and commit at a later date (causes drift)
+    git_commit_file_with_date(
+        tmp.path(),
+        "src/a.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nfn a() { /* changed */ }\n",
+        "2026-03-15T00:00:00+00:00",
+    );
+
+    let output = specre()
+        .args(["health-check"])
+        .current_dir(tmp.path())
+        .output()
+        .unwrap();
+
+    assert!(
+        !output.status.success(),
+        "should exit 1 when drifts exceed threshold"
+    );
+
+    let json = parse_json(&output.stdout);
+    assert_eq!(json["healthy"], false);
+    assert_eq!(json["drifts"], 1);
+}
+
+// -- Scenario: Healthy with drifts within custom threshold --
+
+#[test]
+fn health_check_healthy_drifts_within_threshold() {
+    let tmp = TempDir::new().unwrap();
+    // Allow up to 5 drifts
+    write_config_with_drifts_threshold(tmp.path(), "docs/specres", &["src"], 5);
+
+    write_source(
+        tmp.path(),
+        "src/a.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nfn a() {}\n",
+    );
+    write_specre_card_with_verified(
+        tmp.path(),
+        "docs/specres/cli/card_a.md",
+        "01AAAAAAAAAAAAAAAAAAAAAAAA",
+        "card_a",
+        "stable",
+        Some("2026-01-01"),
+        &["src/a.rs"],
+    );
+    write_index_json(tmp.path(), &recent_timestamp());
+
+    git_init_and_commit_with_date(tmp.path(), "2026-01-01T00:00:00+00:00");
+    git_commit_file_with_date(
+        tmp.path(),
+        "src/a.rs",
+        "// @specre 01AAAAAAAAAAAAAAAAAAAAAAAA\nfn a() { /* changed */ }\n",
+        "2026-03-15T00:00:00+00:00",
+    );
+
+    let output = specre()
+        .args(["health-check"])
+        .current_dir(tmp.path())
+        .output()
+        .unwrap();
+
+    assert!(
+        output.status.success(),
+        "should be healthy when drifts (1) <= threshold (5)"
+    );
+
+    let json = parse_json(&output.stdout);
+    assert_eq!(json["healthy"], true);
+    assert_eq!(json["drifts"], 1);
+    assert_eq!(json["thresholds"]["drifts"], 5);
 }

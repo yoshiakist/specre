@@ -31,6 +31,7 @@ pub struct HealthCheckConfig {
     pub coverage: Option<f64>,
     pub orphans: Option<usize>,
     pub index_age_hours: Option<f64>,
+    pub drifts: Option<usize>,
 }
 
 #[derive(Debug, Deserialize)]

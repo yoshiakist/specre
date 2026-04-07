@@ -12,4 +12,4 @@
 | [mcp_tool_orphans_detects_unlinked_specres](mcp_tool_orphans_detects_unlinked_specres.md) | stable | 2026-02-18 |
 | [mcp_tool_search_queries_specre_cards](mcp_tool_search_queries_specre_cards.md) | stable | 2026-02-18 |
 | [mcp_tool_coverage_reports_tag_coverage](mcp_tool_coverage_reports_tag_coverage.md) | stable | 2026-02-18 |
-| [mcp_tool_health_check_runs_preflight](mcp_tool_health_check_runs_preflight.md) | stable | 2026-02-18 |
+| [mcp_tool_health_check_runs_preflight](mcp_tool_health_check_runs_preflight.md) | stable | 2026-04-07 |
