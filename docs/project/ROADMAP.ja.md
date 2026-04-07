@@ -9,7 +9,7 @@ specre カードと実装コードの乖離を検知し、検知後の対応パ�
 - [x] `specre reopen` — 真のドリフトが見つかった specre を `stable` から `in-development` に戻せる
 - [x] `specre health-check` 拡張 — `drifted` 数をヘルスチェック報告に追加（grace 適用済み）
 - [x] GitHub Actions ワークフローテンプレートを利用できる — [CI インテグレーションガイド](../guides/CI-INTEGRATION.ja.md)参照
-- [ ] `specre init` 拡張 — 生成される `specre.toml` に `[drift] grace_days = 7` をコメントアウトで含める
+- [x] `specre init` 拡張 — 生成される `specre.toml` に `[health-check] drifts = 10`, `[drift] grace_days = 7` をコメントアウトで含める
 
 ### drift コマンド設計
 

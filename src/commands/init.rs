@@ -60,9 +60,15 @@ fn append_optional_hints(config: &mut String, has_ext: bool, has_language: bool)
     if !has_language {
         config.push_str("# language = \"ja\"\n");
     }
-    config.push_str(
-        "\n# [health_check]\n# coverage = 0.30\n# orphans = 10\n# index_age_hours = 48\n",
-    );
+    config.push_str(concat!(
+        "\n# [health_check]\n",
+        "# coverage = 0.30      # min ratio of source files with @specre tags\n",
+        "# orphans = 10         # max specres with no linked source files\n",
+        "# index_age_hours = 48 # max hours since last `specre index`\n",
+        "# drifts = 10          # max drifted specres before health-check fails\n",
+        "\n# [drift]\n",
+        "# grace_days = 7       # days to ignore changes before reporting drift\n",
+    ));
 }
 
 /// # Errors

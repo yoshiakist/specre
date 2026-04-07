@@ -216,6 +216,28 @@ fn init_default_includes_commented_optional_settings() {
     assert!(content.contains("# coverage = 0.30"));
     assert!(content.contains("# orphans = 10"));
     assert!(content.contains("# index_age_hours = 48"));
+    assert!(content.contains("# drifts = 10"));
+    assert!(content.contains("# [drift]"));
+    assert!(content.contains("# grace_days = 7"));
+}
+
+#[test]
+fn init_default_includes_inline_annotations_for_commented_settings() {
+    let tmp = TempDir::new().unwrap();
+
+    specre()
+        .args(["init"])
+        .current_dir(tmp.path())
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(tmp.path().join("specre.toml")).unwrap();
+    // All commented-out health_check and drift settings should have inline annotations
+    assert!(content.contains("# min ratio of source files with @specre tags"));
+    assert!(content.contains("# max specres with no linked source files"));
+    assert!(content.contains("# max hours since last `specre index`"));
+    assert!(content.contains("# max drifted specres before health-check fails"));
+    assert!(content.contains("# days to ignore changes before reporting drift"));
 }
 
 #[test]
