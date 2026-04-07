@@ -33,6 +33,7 @@ fn main() {
         Commands::Mcp => commands::mcp::execute(),
         Commands::Destroy => commands::destroy::execute(),
         Commands::Drift(ref args) => commands::drift::execute(args, json),
+        Commands::Verify(ref args) => commands::verify::execute(args, json),
     };
 
     match result {

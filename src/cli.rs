@@ -56,6 +56,9 @@ pub enum Commands {
 
     /// Detect drift between specre cards and implementation code
     Drift(DriftArgs),
+
+    /// Update `last_verified` to today for confirmed specres
+    Verify(VerifyArgs),
 }
 
 #[derive(Debug, Args)]
@@ -144,6 +147,21 @@ pub struct NewArgs {
     /// Name of the specre (used as filename and front-matter name field)
     #[arg(long, default_value = "untitled")]
     pub name: String,
+}
+
+#[derive(Debug, Args)]
+pub struct VerifyArgs {
+    /// ULIDs of specres to verify
+    #[arg(conflicts_with_all = ["domain", "file"])]
+    pub ulids: Vec<String>,
+
+    /// Verify all specres in a domain
+    #[arg(long, conflicts_with = "file")]
+    pub domain: Option<String>,
+
+    /// Verify all specres linked to a source file
+    #[arg(long)]
+    pub file: Option<String>,
 }
 
 #[derive(Debug, Args)]

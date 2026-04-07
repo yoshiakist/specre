@@ -12,3 +12,4 @@ pub mod search;
 pub mod status;
 pub mod tag;
 pub mod trace;
+pub mod verify;
