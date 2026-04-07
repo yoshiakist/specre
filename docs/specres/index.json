@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-07T05:07:30Z",
+  "generated_at": "2026-04-07T05:43:48Z",
   "source_refs": [
     {
       "file": "src/card.rs",
@@ -207,6 +207,11 @@
       "specre_id": "01KHG0A2V4YXE918WMJCY7WFE8"
     },
     {
+      "file": "src/commands/reopen.rs",
+      "line": 1,
+      "specre_id": "01KNK6TW0DJQ8TE4FF2ZBC6V67"
+    },
+    {
       "file": "src/commands/search/hint.rs",
       "line": 1,
       "specre_id": "01KHQBKWZY2D77XP7A50HGTZQ8"
@@ -405,6 +410,11 @@
       "file": "tests/cli_orphans.rs",
       "line": 1,
       "specre_id": "01KHB48EES4FR5TFV6ZP2W3MGT"
+    },
+    {
+      "file": "tests/cli_reopen.rs",
+      "line": 1,
+      "specre_id": "01KNK6TW0DJQ8TE4FF2ZBC6V67"
     },
     {
       "file": "tests/cli_search.rs",
@@ -854,6 +864,14 @@
       "last_verified": "2026-04-07",
       "name": "specre_verify_updates_last_verified_for_confirmed_specres",
       "path": "docs/specres/cli/specre_verify_updates_last_verified_for_confirmed_specres.md",
+      "status": "stable"
+    },
+    {
+      "domain": "cli",
+      "id": "01KNK6TW0DJQ8TE4FF2ZBC6V67",
+      "last_verified": "2026-04-07",
+      "name": "specre_reopen_transitions_stable_specre_to_in_development",
+      "path": "docs/specres/cli/specre_reopen_transitions_stable_specre_to_in_development.md",
       "status": "stable"
     }
   ],

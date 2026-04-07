@@ -22,3 +22,4 @@
 | [user_can_uninstall_specre_from_project](user_can_uninstall_specre_from_project.md) | stable | 2026-04-07 |
 | [specre_drift_detects_specification_implementation_divergence](specre_drift_detects_specification_implementation_divergence.md) | stable | 2026-04-07 |
 | [specre_verify_updates_last_verified_for_confirmed_specres](specre_verify_updates_last_verified_for_confirmed_specres.md) | stable | 2026-04-07 |
+| [specre_reopen_transitions_stable_specre_to_in_development](specre_reopen_transitions_stable_specre_to_in_development.md) | stable | 2026-04-07 |

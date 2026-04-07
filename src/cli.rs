@@ -59,6 +59,9 @@ pub enum Commands {
 
     /// Update `last_verified` to today for confirmed specres
     Verify(VerifyArgs),
+
+    /// Transition a stable specre back to in-development
+    Reopen(ReopenArgs),
 }
 
 #[derive(Debug, Args)]
@@ -162,6 +165,12 @@ pub struct VerifyArgs {
     /// Verify all specres linked to a source file
     #[arg(long)]
     pub file: Option<String>,
+}
+
+#[derive(Debug, Args)]
+pub struct ReopenArgs {
+    /// ULID of the specre to reopen
+    pub ulid: String,
 }
 
 #[derive(Debug, Args)]

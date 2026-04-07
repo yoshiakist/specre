@@ -8,6 +8,7 @@ pub mod init;
 pub mod mcp;
 pub mod new;
 pub mod orphans;
+pub mod reopen;
 pub mod search;
 pub mod status;
 pub mod tag;
