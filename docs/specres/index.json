@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-04-07T04:11:06Z",
+  "generated_at": "2026-04-07T04:19:56Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -176,7 +176,7 @@
       "status": "stable",
       "domain": "mcp",
       "path": "docs/specres/mcp/mcp_tool_status_reports_project_health.md",
-      "last_verified": "2026-02-18"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KHQKZ633JHVDK0WADPPVP3CM",
