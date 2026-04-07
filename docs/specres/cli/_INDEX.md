@@ -19,4 +19,5 @@
 | [specre_error_provides_contextual_diagnostics](specre_error_provides_contextual_diagnostics.md) | stable | 2026-02-17 |
 | [specre_search_hints_guide_query_refinement](specre_search_hints_guide_query_refinement.md) | stable | 2026-02-18 |
 | [source_scanning_respects_exclude_patterns](source_scanning_respects_exclude_patterns.md) | stable | 2026-03-05 |
-| [user_can_uninstall_specre_from_project](user_can_uninstall_specre_from_project.md) | in-development | 2026-03-05 |
+| [user_can_uninstall_specre_from_project](user_can_uninstall_specre_from_project.md) | stable | 2026-03-05 |
+| [specre_drift_detects_specification_implementation_divergence](specre_drift_detects_specification_implementation_divergence.md) | stable | 2026-04-07 |

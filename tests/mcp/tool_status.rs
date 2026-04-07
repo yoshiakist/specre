@@ -2,6 +2,7 @@
 
 use super::helpers::*;
 use assert_fs::prelude::*;
+use chrono::Utc;
 use serde_json::{Value, json};
 use std::io::BufReader;
 
@@ -97,10 +98,13 @@ fn mcp_tool_status_mixed() {
 #[test]
 fn mcp_tool_status_custom_threshold() {
     let dir = setup_project("docs/specres");
-    // Card with last_verified set to a recent date — should not be stale with default threshold
-    let content = "---\nid: \"01AAAAAAAAAAAAAAAAAAAAAAAA\"\nname: \"recent_card\"\nstatus: \"stable\"\nlast_verified: \"2026-02-17\"\n---\n\n## Functional Overview\n\nTest.\n";
+    // Card with last_verified set to today — should not be stale with default threshold
+    let today = Utc::now().date_naive().format("%Y-%m-%d");
+    let content = format!(
+        "---\nid: \"01AAAAAAAAAAAAAAAAAAAAAAAA\"\nname: \"recent_card\"\nstatus: \"stable\"\nlast_verified: \"{today}\"\n---\n\n## Functional Overview\n\nTest.\n"
+    );
     dir.child("docs/specres/cli/recent.md")
-        .write_str(content)
+        .write_str(&content)
         .unwrap();
 
     let mut child = spawn_mcp(dir.path());

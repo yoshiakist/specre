@@ -53,6 +53,9 @@ pub enum Commands {
 
     /// Remove all specre artifacts from the project (markers, config files)
     Destroy,
+
+    /// Detect drift between specre cards and implementation code
+    Drift(DriftArgs),
 }
 
 #[derive(Debug, Args)]
@@ -141,4 +144,22 @@ pub struct NewArgs {
     /// Name of the specre (used as filename and front-matter name field)
     #[arg(long, default_value = "untitled")]
     pub name: String,
+}
+
+#[derive(Debug, Args)]
+pub struct DriftArgs {
+    /// Target: ULID, specre path, or omit for project-wide check
+    pub target: Option<String>,
+
+    /// Buffer period before reporting drift (e.g., 0d, 7d, 30d)
+    #[arg(long)]
+    pub grace: Option<String>,
+
+    /// Filter by status (default: stable)
+    #[arg(long)]
+    pub status: Option<String>,
+
+    /// Filter by domain name
+    #[arg(long)]
+    pub domain: Option<String>,
 }
