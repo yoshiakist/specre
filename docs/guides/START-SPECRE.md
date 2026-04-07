@@ -520,6 +520,10 @@ How you start creating specre cards depends on your project's test quality and c
 | `specre health-check` | Check ecosystem health |
 | `specre status` | List specre card statuses |
 
+### Enforce with CI
+
+Once your specre ecosystem is healthy and stable, integrate `specre health-check` into your CI pipeline to prevent silent degradation. The **[CI Integration Guide](CI-INTEGRATION.md)** covers GitHub Actions workflows, threshold tuning, and other CI platforms.
+
 ### Principles to Keep in Mind
 
 - **One domain at a time** — Don't try to cover everything at once. Finish one domain thoroughly before moving to the next.

@@ -8,7 +8,7 @@ Detect divergence between specre cards and implementation code, and provide resp
 - [x] `specre verify` — Bulk-update `last_verified` to today's date for confirmed specres (fast path for false positives)
 - [x] `specre reopen` — Transition a specre from `stable` back to `in-development` when real drift is found
 - [x] `specre health-check` extended — Add `drifted` count to health-check report (with grace applied)
-- [ ] GitHub Actions workflow template
+- [x] GitHub Actions workflow template — see [CI Integration Guide](../guides/CI-INTEGRATION.md)
 - [ ] `specre init` extended — Include `[drift] grace_days = 7` as a commented-out default in the generated `specre.toml`
 
 ### drift command design

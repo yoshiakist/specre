@@ -34,6 +34,8 @@ specre は、仕様を書くコストを限りなくゼロに近づけること�
 
 既にコードとテストが存在するプロジェクトに specre を導入する場合は、**[導入戦略ガイド](docs/guides/adoption-strategy.ja.md)** も参照してください。
 
+CI パイプラインへの specre 統合については、**[CI インテグレーションガイド](docs/guides/CI-INTEGRATION.ja.md)** を参照してください。
+
 ## specre カードフォーマット
 
 すべての specre は以下の構造に従います：
