@@ -2,7 +2,7 @@
 id: "01KHFTCYJN8YJMW2RNHJTAQV49"
 name: "specre_search_finds_specre_cards_by_query"
 status: "stable"
-last_verified: "2026-02-18"
+last_verified: "2026-04-07"
 ---
 
 ## Related Files

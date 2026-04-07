@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-04-07T03:16:55Z",
+  "generated_at": "2026-04-07T03:59:34Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -16,7 +16,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_init_initializes_project_configuration.md",
-      "last_verified": "2026-03-05"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KHAKAYN5WPTDVR99D5Q5TMJE",
@@ -32,7 +32,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_status_reports_project_health.md",
-      "last_verified": "2026-02-17"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KHB48DYZDN8GHXPX7MSYJ1NZ",
@@ -56,7 +56,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_tag_inserts_marker_into_source_file.md",
-      "last_verified": "2026-02-17"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KHDF9WHR5HFM4RQCF6HS3KCC",
@@ -96,7 +96,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_health_check_verifies_ecosystem_trustworthiness.md",
-      "last_verified": "2026-02-22"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KHFTCYJN8YJMW2RNHJTAQV49",
@@ -104,7 +104,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_search_finds_specre_cards_by_query.md",
-      "last_verified": "2026-02-18"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KHG0A2V4YXE918WMJCY7WFE8",
@@ -120,7 +120,7 @@
       "status": "stable",
       "domain": "mcp",
       "path": "docs/specres/mcp/mcp_server_starts_via_stdio.md",
-      "last_verified": "2026-02-17"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KHJ98TFCDTCARMMX1GC5ZHXE",
@@ -136,7 +136,7 @@
       "status": "stable",
       "domain": "mcp",
       "path": "docs/specres/mcp/mcp_tool_new_creates_specre_card.md",
-      "last_verified": "2026-02-18"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KHMEB8WF7BFZASE8SQHF5PR2",
@@ -144,7 +144,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_error_provides_contextual_diagnostics.md",
-      "last_verified": "2026-02-17"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KHQBKWZY2D77XP7A50HGTZQ8",
@@ -152,7 +152,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_search_hints_guide_query_refinement.md",
-      "last_verified": "2026-02-18"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KHQJG96BS5STGSENPNDHEH1H",
@@ -232,7 +232,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/user_can_uninstall_specre_from_project.md",
-      "last_verified": "2026-03-05"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KNJYEGK8KFVQK7EQGK9ZCZJR",
