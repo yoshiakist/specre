@@ -85,9 +85,155 @@ Quality-of-life improvements across existing commands, shipped as v0.3.x patches
 
 ## v0.5 — Drift Detection
 
-- [ ] `specre drift` — Compare `last_verified` dates against git history of related files; flag specres where source has changed since last verification
+Detect divergence between specre cards and implementation code, and provide response paths for what comes after detection. Rather than detection alone, this milestone delivers efficient handling of false positives and tools for addressing real drift as a cohesive set.
+
+- [ ] `specre drift` — Compare `last_verified` dates against git history of related files; report specres where source has changed since last verification
+- [ ] `specre verify` — Bulk-update `last_verified` to today's date for confirmed specres (fast path for false positives)
+- [ ] `specre reopen` — Transition a specre from `stable` back to `in-development` when real drift is found
 - [ ] `specre ci` — Exit with non-zero status if drift or orphans are detected (for CI integration)
+- [ ] `specre init` extended — Include `[drift] grace_days = 7` as a commented-out default in the generated `specre.toml`
+- [ ] `specre health-check` extended — Add `drifted` count to health-check report (with grace applied)
 - [ ] GitHub Actions workflow template
+
+### drift command design
+
+#### Design principle: Report only, never modify front-matter
+
+Drift is a derived state, always computable from `last_verified` and git history. It is not an attribute of the specre card itself. Just as `index.json` is a "derived cache," drift information is computed and reported at command execution time. No `drifted: true` flag is written into front-matter.
+
+#### Detection logic
+
+```
+drifted = file_last_modified > (last_verified + grace_period)
+```
+
+- Compare a specre card's `last_verified` against the git last-modified date of source files linked via Related Files and `@specre` markers
+- Changes within the grace period are not reported as drift (see below)
+- Only `stable` specres are checked by default. `draft` and `in-development` specres are expected to be out of sync with implementation, so the concept of drift does not apply
+
+#### Interface
+
+```
+specre drift [target] [--grace <duration>] [--status <status>] [--domain <name>] [--json]
+```
+
+| Argument / Option | Description |
+|-------------------|-------------|
+| (none) | Report drift across the entire project |
+| `<ULID>` | Check drift for a single specre |
+| `<path>` | Check only specres under the given path |
+| `--domain <name>` | Filter by domain name |
+| `--status <status>` | Filter by status (default: `stable`) |
+| `--grace <duration>` | Buffer period (e.g., `3d`, `7d`, `30d`). Defaults to value in `specre.toml`; falls back to `0` (immediate detection) if unset |
+| `--json` | Output in JSON format |
+
+#### Grace period
+
+Changes made the next day are typically by the same developer who is aware of the change scope — the specification is likely already updated. Changes made a month later, however, are far more likely to introduce drift. The grace period reflects this reality.
+
+Project-level defaults can be configured in `specre.toml`:
+
+```toml
+[drift]
+grace_days = 7
+```
+
+The `--grace` option overrides the configured default when specified. Recommended values by use case:
+
+| Context | Grace |
+|---------|-------|
+| CI (strict) | `0` or `1d` |
+| Development checks | `3d`–`7d` |
+| Long-term maintenance audit | `30d` (catch only obvious drift) |
+| AI agent preflight | `7d` |
+
+#### JSON output
+
+```json
+{
+  "drifted": [
+    {
+      "id": "01HZYPMZRK...",
+      "name": "user_can_sign_up_with_email",
+      "path": "docs/specres/auth/user_can_sign_up_with_email.md",
+      "domain": "auth",
+      "last_verified": "2026-03-01",
+      "changed_files": [
+        { "file": "src/auth/signup.rs", "last_modified": "2026-04-05", "diff_stat": "+12 -3" }
+      ]
+    }
+  ],
+  "clean": 42,
+  "total": 45,
+  "grace_days": 7
+}
+```
+
+- `changed_files` includes `diff_stat` (`+N -M`). Detailed content analysis is left to agents reading `git diff` directly
+- Language-dependent heuristics like `changed_functions` are intentionally excluded (language-independent principle)
+
+#### Aggregation file problem and response paths
+
+Source files with intentional aggregation patterns (`mod.rs`, `router.rs`, etc.) may carry 10+ `@specre` tags. When even one line changes in such a file, all linked specres are reported as drifted. Most will be false positives.
+
+Rather than improving detection precision, this design **reduces the cost of post-detection response**. Specifically, `specre verify` (bulk false-positive handling) and `specre reopen` (real drift response) are provided.
+
+| Detection result | Response | Command |
+|-----------------|----------|---------|
+| No drift (false positive) | Update `last_verified` only | `specre verify` |
+| Drifted, spec is correct | Fix implementation to match spec | Existing SDD workflow |
+| Drifted, spec is outdated | Revert specre to `in-development` and update | `specre reopen` |
+
+### verify command design
+
+When a specre is reported as drifted but, upon review, no actual divergence exists between spec and implementation, update `last_verified` to today's date.
+
+```
+specre verify <ULID>...                    # Bulk-specify multiple ULIDs
+specre verify --domain <name>              # By domain
+specre verify --file <source-file-path>    # Bulk-update all specres linked to this file
+```
+
+The `--file` option directly addresses the aggregation file problem. When a change to `src/commands/mod.rs` flags 12 specres, after review you can run `specre verify --file src/commands/mod.rs` to update them all at once.
+
+### reopen command design
+
+When real drift is found, transition a specre's status from `stable` back to `in-development`.
+
+```
+specre reopen <ULID>
+```
+
+- Changes `status` to `in-development`; `last_verified` is preserved (it retains historical value as the date of last verification)
+- Returns an error when run against a specre that is not `stable`
+
+### health-check extension
+
+Add `drifted` count to the health-check report. Grace period is applied when counting.
+
+```json
+{
+  "healthy": false,
+  "coverage": 0.93,
+  "orphans": 2,
+  "drifted": 3,
+  "index_age_hours": 1.2,
+  "thresholds": { "coverage": 0.90, "orphans": 5, "index_age_hours": 24, "drifted": 0 }
+}
+```
+
+### AI agent triage workflow
+
+Expected flow for AI agent triage after drift detection:
+
+1. `specre drift --json` — get the list of drifted specres
+2. For each drifted specre:
+   - Review changes via `git diff <last_verified>..HEAD -- <changed_files>`
+   - Read the specre card's Scenarios
+   - Classify: false positive / spec is correct (implementation bug) / spec is outdated
+3. False positive → `specre verify <ULID>`
+4. Spec is correct → fix implementation (existing SDD workflow)
+5. Spec is outdated → `specre reopen <ULID>` → update the card → verify implementation
 
 ## v0.6 — QA Support
 

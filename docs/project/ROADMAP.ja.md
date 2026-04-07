@@ -85,9 +85,155 @@ MCP サーバーには QA エンジニア向けに設計されたプロンプト
 
 ## v0.5 — ドリフト（乖離）検出
 
-- [ ] `specre drift` — 関連ファイルの git 履歴に対して `last_verified` の日付を比較し、最後の検証以降にソースが変更された specre をフラグ付けできる
+specre カードと実装コードの乖離を検知し、検知後の対応パスを提供する。検知だけでなく、偽陽性の効率的な処理と真のドリフトへの対応手段をセットで設計する。
+
+- [ ] `specre drift` — 関連ファイルの git 履歴に対して `last_verified` の日付を比較し、最後の検証以降にソースが変更された specre を報告できる
+- [ ] `specre verify` — 確認済みの specre の `last_verified` を今日の日付に一括更新できる（偽陽性の高速パス）
+- [ ] `specre reopen` — 真のドリフトが見つかった specre を `stable` から `in-development` に戻せる
 - [ ] `specre ci` — ドリフトまたは孤立が検出された場合に非ゼロステータスで終了（CI 統合用）
+- [ ] `specre init` 拡張 — 生成される `specre.toml` に `[drift] grace_days = 7` をコメントアウトで含める
+- [ ] `specre health-check` 拡張 — `drifted` 数をヘルスチェック報告に追加（grace 適用済み）
 - [ ] GitHub Actions ワークフローテンプレートを利用できる
+
+### drift コマンド設計
+
+#### 設計原則: 報告のみ、front-matter は書き換えない
+
+ドリフトは `last_verified` と git 履歴から常に導出可能な状態であり、specre カード自身の属性ではない。`index.json` が「導出キャッシュ」であるのと同様に、ドリフト情報はコマンド実行時に算出して報告する。front-matter に `drifted: true` のようなフラグを書き込まない。
+
+#### 検知ロジック
+
+```
+drifted = file_last_modified > (last_verified + grace_period)
+```
+
+- specre カードの `last_verified` と、Related Files および `@specre` マーカーで紐づくソースファイルの git 上の最終変更日を比較する
+- grace 期間内の変更はドリフトとして報告しない（後述）
+- 対象はデフォルトで `stable` ステータスの specre のみ。`draft` や `in-development` は実装と一致していないことが前提であり、ドリフトという概念が当てはまらない
+
+#### インターフェース
+
+```
+specre drift [target] [--grace <duration>] [--status <status>] [--domain <name>] [--json]
+```
+
+| 引数/オプション | 説明 |
+|----------------|------|
+| （なし） | プロジェクト全体のドリフトを報告 |
+| `<ULID>` | 単一 specre のドリフトを確認 |
+| `<path>` | 指定パス配下の specre のみを対象 |
+| `--domain <name>` | ドメイン名でフィルタ |
+| `--status <status>` | 対象ステータスを指定（デフォルト: `stable`） |
+| `--grace <duration>` | バッファ期間（例: `3d`, `7d`, `30d`）。デフォルトは `specre.toml` の設定値、未設定なら `0`（即時検知） |
+| `--json` | JSON 形式で出力 |
+
+#### grace（猶予期間）
+
+翌日に行った変更は同一作業者によるものであることが多く、仕様書も実態に合わせて修正されている可能性が高い。一方、1ヶ月以上後に行った変更は、仕様を意識せずに行われドリフトを招いている可能性が高い。grace はこの現実を反映するバッファである。
+
+`specre.toml` でプロジェクトごとのデフォルトを設定可能:
+
+```toml
+[drift]
+grace_days = 7
+```
+
+`--grace` オプションが明示された場合はそちらが優先される。用途別の目安:
+
+| 場面 | grace |
+|------|-------|
+| CI（厳格） | `0` または `1d` |
+| 開発中のチェック | `3d`〜`7d` |
+| 長期メンテナンス棚卸し | `30d`（明らかなドリフトのみ） |
+| AI エージェントのプリフライト | `7d` |
+
+#### JSON 出力
+
+```json
+{
+  "drifted": [
+    {
+      "id": "01HZYPMZRK...",
+      "name": "user_can_sign_up_with_email",
+      "path": "docs/specres/auth/user_can_sign_up_with_email.md",
+      "domain": "auth",
+      "last_verified": "2026-03-01",
+      "changed_files": [
+        { "file": "src/auth/signup.rs", "last_modified": "2026-04-05", "diff_stat": "+12 -3" }
+      ]
+    }
+  ],
+  "clean": 42,
+  "total": 45,
+  "grace_days": 7
+}
+```
+
+- `changed_files` には `diff_stat`（`+N -M`）を含める。変更内容の詳細判断はエージェントが `git diff` を読んで行う
+- `changed_functions` のような言語依存のヒューリスティックは含めない（言語非依存の原則）
+
+#### 集約ファイル問題と対応パス
+
+意図的な集約パターン（`mod.rs`、`router.rs` など）のソースファイルには10個以上の `@specre` タグが付与されることがある。このようなファイルに1行でも変更が入ると、紐づくすべての specre がドリフトとして報告される。大半は偽陽性である。
+
+この問題に対して、検知精度を上げるのではなく、**検知後の対応コストを下げる**アプローチを取る。具体的には `specre verify`（偽陽性の一括処理）と `specre reopen`（真のドリフトへの対応）を提供する。
+
+| 検知結果 | 対応 | コマンド |
+|---------|------|---------|
+| ドリフトなし（偽陽性） | `last_verified` を更新するだけ | `specre verify` |
+| ドリフトあり、仕様は正しい | 実装を仕様に合わせる | 既存の SDD ワークフロー |
+| ドリフトあり、仕様が古い | specre を `in-development` に戻して仕様を更新 | `specre reopen` |
+
+### verify コマンド設計
+
+ドリフトとして報告されたが、確認の結果仕様と実装に乖離がない場合に、`last_verified` を今日の日付に更新する。
+
+```
+specre verify <ULID>...                    # 複数 ULID を一括指定
+specre verify --domain <name>              # ドメイン単位
+specre verify --file <source-file-path>    # このファイルに紐づく全 specre を一括更新
+```
+
+`--file` オプションは集約ファイル問題への直接的な対策。`src/commands/mod.rs` の変更で12個の specre がフラグされた場合、確認後に `specre verify --file src/commands/mod.rs` で一括更新できる。
+
+### reopen コマンド設計
+
+真のドリフトが見つかった場合に、specre のステータスを `stable` から `in-development` に戻す。
+
+```
+specre reopen <ULID>
+```
+
+- `status` を `in-development` に変更し、`last_verified` はそのまま残す（最後に検証した日付としての履歴的価値がある）
+- `stable` 以外のステータスに対して実行した場合はエラー
+
+### health-check 拡張
+
+`drifted` 数をヘルスチェック報告に追加する。grace 期間を適用した上でカウントする。
+
+```json
+{
+  "healthy": false,
+  "coverage": 0.93,
+  "orphans": 2,
+  "drifted": 3,
+  "index_age_hours": 1.2,
+  "thresholds": { "coverage": 0.90, "orphans": 5, "index_age_hours": 24, "drifted": 0 }
+}
+```
+
+### AI エージェント向けトリアージワークフロー
+
+drift 検知後の AI エージェントによるトリアージの想定フロー:
+
+1. `specre drift --json` でドリフト一覧を取得
+2. drifted ごとに:
+   - `git diff <last_verified>..HEAD -- <changed_files>` で変更内容を確認
+   - specre カードの Scenarios を読む
+   - 判定: 偽陽性 / 仕様が正しい（実装バグ） / 仕様が古い
+3. 偽陽性 → `specre verify <ULID>`
+4. 仕様が正しい → 実装を修正（既存 SDD ワークフロー）
+5. 仕様が古い → `specre reopen <ULID>` → カードを更新 → 実装を確認
 
 ## v0.6 — QA サポート
 
