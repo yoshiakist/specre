@@ -2,7 +2,7 @@
 id: "01KHK7MFZJZ12XFPQE4RHCBHQN"
 name: "mcp_tool_new_creates_specre_card"
 status: "stable"
-last_verified: "2026-02-18"
+last_verified: "2026-04-07"
 ---
 
 ## Related Files

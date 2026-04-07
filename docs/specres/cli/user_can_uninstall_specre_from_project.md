@@ -2,7 +2,7 @@
 id: "01KJYMAV7G01B743W72WAG9RGN"
 name: "user_can_uninstall_specre_from_project"
 status: "stable"
-last_verified: "2026-03-05"
+last_verified: "2026-04-07"
 ---
 
 ## Related Files

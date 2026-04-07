@@ -2,7 +2,7 @@
 id: "01KHQBKWZY2D77XP7A50HGTZQ8"
 name: "specre_search_hints_guide_query_refinement"
 status: "stable"
-last_verified: "2026-02-18"
+last_verified: "2026-04-07"
 ---
 
 ## Related Files

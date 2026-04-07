@@ -2,7 +2,7 @@
 id: "01KHMEB8WF7BFZASE8SQHF5PR2"
 name: "specre_error_provides_contextual_diagnostics"
 status: "stable"
-last_verified: "2026-02-17"
+last_verified: "2026-04-07"
 ---
 
 ## Related Files

@@ -2,7 +2,7 @@
 id: "01KHB48EYB9686YYQMYFYQ5R1Z"
 name: "specre_tag_inserts_marker_into_source_file"
 status: "stable"
-last_verified: "2026-02-17"
+last_verified: "2026-04-07"
 ---
 
 ## Related Files
