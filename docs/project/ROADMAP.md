@@ -6,7 +6,7 @@ Detect divergence between specre cards and implementation code, and provide resp
 
 - [x] `specre drift` — Compare `last_verified` dates against git history of related files; report specres where source has changed since last verification
 - [x] `specre verify` — Bulk-update `last_verified` to today's date for confirmed specres (fast path for false positives)
-- [ ] `specre reopen` — Transition a specre from `stable` back to `in-development` when real drift is found
+- [x] `specre reopen` — Transition a specre from `stable` back to `in-development` when real drift is found
 - [ ] `specre ci` — Exit with non-zero status if drift or orphans are detected (for CI integration)
 - [ ] `specre init` extended — Include `[drift] grace_days = 7` as a commented-out default in the generated `specre.toml`
 - [ ] `specre health-check` extended — Add `drifted` count to health-check report (with grace applied)
