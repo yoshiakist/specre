@@ -2,7 +2,7 @@
 id: "01KHJ98TFCDTCARMMX1GC5ZHXE"
 name: "mcp_resources_expose_specre_cards"
 status: "stable"
-last_verified: "2026-02-16"
+last_verified: "2026-04-07"
 ---
 
 ## Related Files

@@ -18,7 +18,7 @@
 | [specre_commands_support_json_output](specre_commands_support_json_output.md) | stable | 2026-04-07 |
 | [specre_error_provides_contextual_diagnostics](specre_error_provides_contextual_diagnostics.md) | stable | 2026-04-07 |
 | [specre_search_hints_guide_query_refinement](specre_search_hints_guide_query_refinement.md) | stable | 2026-04-07 |
-| [source_scanning_respects_exclude_patterns](source_scanning_respects_exclude_patterns.md) | stable | 2026-03-05 |
+| [source_scanning_respects_exclude_patterns](source_scanning_respects_exclude_patterns.md) | stable | 2026-04-07 |
 | [user_can_uninstall_specre_from_project](user_can_uninstall_specre_from_project.md) | stable | 2026-04-07 |
 | [specre_drift_detects_specification_implementation_divergence](specre_drift_detects_specification_implementation_divergence.md) | stable | 2026-04-07 |
 | [specre_verify_updates_last_verified_for_confirmed_specres](specre_verify_updates_last_verified_for_confirmed_specres.md) | stable | 2026-04-07 |

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-04-07T06:25:52Z",
+  "generated_at": "2026-04-07T06:27:56Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -128,7 +128,7 @@
       "status": "stable",
       "domain": "mcp",
       "path": "docs/specres/mcp/mcp_resources_expose_specre_cards.md",
-      "last_verified": "2026-02-16"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KHK7MFZJZ12XFPQE4RHCBHQN",
@@ -160,7 +160,7 @@
       "status": "stable",
       "domain": "mcp",
       "path": "docs/specres/mcp/mcp_tool_tag_inserts_marker_into_source_file.md",
-      "last_verified": "2026-02-18"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KHQKZ5M6N304YYJNW8VDKT4W",
@@ -168,7 +168,7 @@
       "status": "stable",
       "domain": "mcp",
       "path": "docs/specres/mcp/mcp_tool_index_regenerates_index.md",
-      "last_verified": "2026-02-18"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KHQKZ5VKTHSD483ZWK0RYPR9",
@@ -184,7 +184,7 @@
       "status": "stable",
       "domain": "mcp",
       "path": "docs/specres/mcp/mcp_tool_trace_looks_up_traceability.md",
-      "last_verified": "2026-02-18"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KHQKZ6AAMY6Y6AQB3VDVSF6Z",
@@ -192,7 +192,7 @@
       "status": "stable",
       "domain": "mcp",
       "path": "docs/specres/mcp/mcp_tool_orphans_detects_unlinked_specres.md",
-      "last_verified": "2026-02-18"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KHQKZ6H8FB46ESFXB03N85AN",
@@ -200,7 +200,7 @@
       "status": "stable",
       "domain": "mcp",
       "path": "docs/specres/mcp/mcp_tool_search_queries_specre_cards.md",
-      "last_verified": "2026-02-18"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KHQKZ6RE7Z3WEDZ54ZKHM6BM",
@@ -208,7 +208,7 @@
       "status": "stable",
       "domain": "mcp",
       "path": "docs/specres/mcp/mcp_tool_coverage_reports_tag_coverage.md",
-      "last_verified": "2026-02-18"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KHQKZ6ZHSZX3GR2D7DS23XTE",
@@ -224,7 +224,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/source_scanning_respects_exclude_patterns.md",
-      "last_verified": "2026-03-05"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KJYMAV7G01B743W72WAG9RGN",
