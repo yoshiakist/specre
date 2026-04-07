@@ -2,7 +2,7 @@
 id: "01KHAKAYN5WPTDVR99D5Q5TMJE"
 name: "specre_index_generates_project_index"
 status: "stable"
-last_verified: "2026-02-18"
+last_verified: "2026-04-07"
 ---
 
 ## Related Files
@@ -37,7 +37,7 @@ Per-domain `_INDEX.md` files provide a browsable overview of all specres in a do
 1. User runs `specre index` in a project with `specre.toml` and specre files
 2. CLI reads `specre.toml` to determine `specre_dir` and `source_dirs`
 3. CLI scans all `.md` files under `specre_dir` recursively, parsing YAML front-matter
-4. CLI scans files under `source_dirs` recursively for `@specre <ULID>` markers (filtered by `target_extensions` if set)
+4. CLI scans files under `source_dirs` recursively for `@specre <ULID>` markers, applying the following filters in order: dot files and dot directories are skipped, SVG files are skipped, `exclude_patterns` globs are applied if configured, and `target_extensions` whitelist is applied if set
 5. CLI writes `index.json` inside `specre_dir` (e.g., `docs/specres/index.json`) with `version`, `generated_at`, `specres`, and `source_refs`
 6. CLI prints a summary to stdout: `Generated <specre_dir>/index.json (N specres, M source refs)`
 
@@ -54,7 +54,10 @@ Per-domain `_INDEX.md` files provide a browsable overview of all specres in a do
 2. A file with multiple `@specre` markers produces one entry per marker
 3. The marker pattern is `@specre [0-9A-Z]{26}`, ignoring surrounding comment syntax
 4. Markers inside string literals are ignored: if a quote character (`"` or `'`) appears before `@specre` on the same line, the marker is not detected
-5. When `target_extensions` is set in `specre.toml`, only files whose extension matches the list are scanned. When unset, all files are scanned.
+5. Dot files (filenames starting with `.`) and dot directories are always skipped silently
+6. SVG files (`.svg` extension) are always skipped silently
+7. When `exclude_patterns` is set in `specre.toml`, files and directories matching any glob pattern are skipped. Patterns are matched against forward-slash-normalized relative paths.
+8. When `target_extensions` is set in `specre.toml`, only files whose extension matches the list are scanned. When unset, all remaining files are scanned.
 
 ### Per-domain _INDEX.md is generated
 

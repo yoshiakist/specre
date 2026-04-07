@@ -2,7 +2,7 @@
 id: "01KHB48DYZDN8GHXPX7MSYJ1NZ"
 name: "specre_trace_resolves_bidirectional_references"
 status: "stable"
-last_verified: "2026-02-17"
+last_verified: "2026-04-07"
 ---
 
 ## Related Files
@@ -34,7 +34,7 @@ The output is designed for both human developers navigating a codebase and AI ag
 1. User runs `specre trace 01HZYPMZRK8F9R2DGBGGMM2N8T` in a project with `specre.toml`
 2. CLI reads `specre.toml` to determine `specre_dir` and `source_dirs`
 3. CLI scans specre files for a matching `id` in front-matter
-4. CLI scans source files for `@specre 01HZYPMZRK8F9R2DGBGGMM2N8T` markers (filtered by `target_extensions` if set)
+4. CLI scans source files for `@specre 01HZYPMZRK8F9R2DGBGGMM2N8T` markers, applying the standard source-file filters: dot files/directories and SVG files are skipped, `exclude_patterns` globs are applied if configured, and `target_extensions` whitelist is applied if set
 5. CLI prints:
    ```
    Specre:

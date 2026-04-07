@@ -2,7 +2,7 @@
 id: "01KHB48EES4FR5TFV6ZP2W3MGT"
 name: "specre_orphans_detects_unlinked_specres_and_markers"
 status: "stable"
-last_verified: "2026-02-22"
+last_verified: "2026-04-07"
 ---
 
 ## Related Files
@@ -14,7 +14,7 @@ last_verified: "2026-02-22"
 
 ## Functional Overview
 
-`specre orphans` detects specres that have no `@specre` markers in any source file (orphan specres) and `@specre` markers in source files that do not match any specre's `id` (dangling markers). It reports both categories so developers can restore traceability or clean up stale references. Source file scanning respects the `target_extensions` setting in `specre.toml` when configured. Binary (non-UTF-8) files are always skipped silently, regardless of `target_extensions` configuration.
+`specre orphans` detects specres that have no `@specre` markers in any source file (orphan specres) and `@specre` markers in source files that do not match any specre's `id` (dangling markers). It reports both categories so developers can restore traceability or clean up stale references. Source file scanning applies the standard filters: dot files/directories and SVG files are always skipped, `exclude_patterns` globs are applied if configured, and `target_extensions` whitelist is applied if set. Binary (non-UTF-8) files are always skipped silently.
 
 ## Design Intent
 
@@ -24,7 +24,7 @@ The primary consumers are CI pipelines (where a non-zero exit code can block mer
 
 ## Key Members
 
-- Orphan specre: a specre file whose `id` does not appear as an `@specre` marker in any scanned source file (filtered by `target_extensions` if set)
+- Orphan specre: a specre file whose `id` does not appear as an `@specre` marker in any scanned source file (after applying dot-file, SVG, `exclude_patterns`, and `target_extensions` filters)
 - Dangling marker: a `@specre <ULID>` marker in a scanned source file where no specre file has that ULID as its `id`
 
 ## Scenarios
@@ -94,6 +94,14 @@ The primary consumers are CI pipelines (where a non-zero exit code can block mer
 3. User runs `specre orphans`
 4. The binary file is silently skipped — no warning on stderr, not counted as a scanned file
 5. Orphan and dangling marker detection proceeds using only text files
+
+### exclude_patterns hides dangling markers in excluded files
+
+1. User configures `exclude_patterns = ["*.test.ts"]` in `specre.toml`
+2. A file `src/helper.test.ts` contains `// @specre <ULID>` where the ULID does not match any specre
+3. User runs `specre orphans`
+4. The marker in `helper.test.ts` is not detected — the file is excluded by the glob pattern
+5. No dangling marker is reported for that file
 
 ### Empty project
 

@@ -2,7 +2,7 @@
 id: "01KHDF9WHR5HFM4RQCF6HS3KCC"
 name: "user_can_set_language_config"
 status: "stable"
-last_verified: "2026-02-14"
+last_verified: "2026-04-07"
 ---
 
 ## Related Files
@@ -27,8 +27,8 @@ The implementation supports only `"en"` and `"ja"` initially. Unknown language v
 
 ## Key Members
 
-- `Config.language: Option<String>` — language code read from `specre.toml` (e.g., `"en"`, `"ja"`). Defaults to `"en"` when absent.
-- `InitArgs.language: String` — CLI argument `--language` for `specre init` (default: `"en"`).
+- `Config.language: Option<String>` — language code read from `specre.toml` (e.g., `"en"`, `"ja"`). Defaults to `"en"` when absent via `load_language()`.
+- `InitArgs.language: Option<String>` — CLI argument `--language` for `specre init`. When not provided, the `language` field is omitted from active config and instead appears as a commented-out hint (`# language = "ja"`).
 - `template::render(id, name, language)` — accepts a language parameter to select the template variant.
 
 ## Scenarios
@@ -36,7 +36,7 @@ The implementation supports only `"en"` and `"ja"` initially. Unknown language v
 ### Default behavior (no language setting)
 
 1. User runs `specre init` without `--language`
-2. `specre.toml` is created without a `language` field (backward compatible)
+2. `specre.toml` is created without an active `language` field; a commented-out hint `# language = "ja"` is appended for discoverability
 3. User runs `specre new docs/specres/cli --name some_behavior`
 4. CLI reads `specre.toml`, finds no `language` field, defaults to `"en"`
 5. Generated template has English section headings: `## Related Files`, `## Functional Overview`, `## Scenarios`
@@ -44,7 +44,7 @@ The implementation supports only `"en"` and `"ja"` initially. Unknown language v
 ### Init with Japanese language
 
 1. User runs `specre init --language ja`
-2. `specre.toml` is created with `language = "ja"` in addition to `specre_dir` and `source_dirs`
+2. `specre.toml` is created with `language = "ja"` as an active field in addition to `specre_dir` and `source_dirs`. Other optional settings (`target_extensions`, `exclude_patterns`, `[health_check]`) appear as commented-out hints.
 3. User runs `specre new docs/specres/cli --name some_behavior`
 4. CLI reads `specre.toml`, finds `language = "ja"`
 5. Generated template has Japanese section headings: `## 関連ファイル`, `## 機能概要`, `## シナリオ`
