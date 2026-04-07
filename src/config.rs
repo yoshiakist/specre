@@ -22,6 +22,7 @@ pub struct Config {
     pub exclude_patterns: Option<Vec<String>>,
     pub health_check: Option<HealthCheckConfig>,
     pub search: Option<SearchConfig>,
+    pub drift: Option<DriftConfig>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -34,6 +35,11 @@ pub struct HealthCheckConfig {
 #[derive(Debug, Deserialize)]
 pub struct SearchConfig {
     pub max_results: Option<usize>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct DriftConfig {
+    pub grace_days: Option<u64>,
 }
 
 /// Loads and parses `specre.toml` from the current directory.
