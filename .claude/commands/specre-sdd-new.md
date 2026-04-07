@@ -63,3 +63,24 @@ Notify the user that the checkpoint has been reached (if a notification script i
 4. Create a feature branch from `main` with a descriptive name (e.g., `feature/<specre-name>`)
 5. Commit all changes with a descriptive message
 6. Push the branch and create a Pull Request using `gh pr create`
+
+## Phase 5: Drift Triage
+
+Changes to shared files (e.g., `mod.rs`, `cli.rs`, `main.rs`) often trigger false-positive drift for unrelated specre cards. Triage them now so the next developer or agent starts with a clean ecosystem.
+
+1. Run `specre drift --json`
+2. If no drifted items → report "No drift detected. Ecosystem is clean." and finish
+3. For each drifted item, spawn a **subagent** (one per item, sequentially) to compare the specre card against the code changes since `last_verified`:
+   - The subagent reads the specre card (Functional Overview, Scenarios, Failures / Exceptions)
+   - The subagent runs `git diff` from `last_verified` to HEAD for each changed file
+   - The subagent returns a verdict: `no_drift` | `drift_spec_stale` | `drift_impl_wrong` | `uncertain`
+4. Process each verdict:
+   - **`no_drift`** (false positive) → update `last_verified` to today's date in the specre card's YAML front-matter
+   - **`drift_spec_stale`** → report to user: the spec needs updating. Suggest `/specre-sdd-fix` as a follow-up
+   - **`drift_impl_wrong`** → report to user: implementation may have regressed
+   - **`uncertain`** → report to user: requires manual review
+5. If any `last_verified` dates were updated:
+   - Run `specre index`
+   - Commit the updates as a separate commit (e.g., "chore: update last_verified for false-positive drift")
+   - Push to update the PR
+6. Present a summary: how many false positives were resolved, how many real drifts remain
