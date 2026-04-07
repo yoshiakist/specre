@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-04-07T03:59:34Z",
+  "generated_at": "2026-04-07T04:26:22Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -24,7 +24,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_index_generates_project_index.md",
-      "last_verified": "2026-02-18"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KHAN6JE712ZAKXPP97854PKJ",
@@ -40,7 +40,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_trace_resolves_bidirectional_references.md",
-      "last_verified": "2026-02-17"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KHB48EES4FR5TFV6ZP2W3MGT",
@@ -48,7 +48,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_orphans_detects_unlinked_specres_and_markers.md",
-      "last_verified": "2026-02-22"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KHB48EYB9686YYQMYFYQ5R1Z",
@@ -64,7 +64,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/user_can_set_language_config.md",
-      "last_verified": "2026-02-14"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KHFD5R1G3C5R34XMQXQTTMM9",
@@ -72,7 +72,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/user_can_set_target_extensions.md",
-      "last_verified": "2026-02-22"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KHFEA9QVV4A127VCRJY97A68",
@@ -80,7 +80,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_coverage_reports_source_file_tagging.md",
-      "last_verified": "2026-02-22"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KHFFCX8BCDAYP8YHG0J65H0E",
@@ -88,7 +88,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_cli_dispatches_commands_and_handles_errors.md",
-      "last_verified": "2026-02-15"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KHFGVXWP100JXYBZTRJGMB9H",
@@ -112,7 +112,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_commands_support_json_output.md",
-      "last_verified": "2026-02-17"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KHJ98T83DPJGMEFH9HAXXAZ1",
@@ -176,7 +176,7 @@
       "status": "stable",
       "domain": "mcp",
       "path": "docs/specres/mcp/mcp_tool_status_reports_project_health.md",
-      "last_verified": "2026-02-18"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KHQKZ633JHVDK0WADPPVP3CM",

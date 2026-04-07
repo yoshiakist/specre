@@ -2,7 +2,7 @@
 id: "01KHFEA9QVV4A127VCRJY97A68"
 name: "specre_coverage_reports_source_file_tagging"
 status: "stable"
-last_verified: "2026-02-22"
+last_verified: "2026-04-07"
 ---
 
 ## Related Files
@@ -14,7 +14,7 @@ last_verified: "2026-02-22"
 
 ## Functional Overview
 
-`specre coverage` reports what percentage of source files are linked to specre cards via `@specre` tags. It scans all files in the configured `source_dirs`, counts how many contain at least one `@specre` marker, and outputs the coverage ratio. The command respects `target_extensions` from `specre.toml` and also accepts a `--ext` flag to override the filter for a single invocation. This gives developers and AI agents a quick measure of how well-traced the codebase is.
+`specre coverage` reports what percentage of source files are linked to specre cards via `@specre` tags. It scans all files in the configured `source_dirs`, counts how many contain at least one `@specre` marker, and outputs the coverage ratio. The command applies the standard source-file filters: dot files/directories and SVG files are always skipped, `exclude_patterns` globs are applied if configured, and `target_extensions` whitelist is applied if set. A `--ext` flag can override the `target_extensions` filter for a single invocation. This gives developers and AI agents a quick measure of how well-traced the codebase is.
 
 ## Design Intent
 
@@ -23,7 +23,7 @@ Coverage is a key metric for assessing traceability health. If most source files
 ## Key Members
 
 - `CoverageResult` — public struct returned by `compute_coverage()`, containing `total: usize`, `tagged: usize`, and `uncovered: Vec<String>`. This struct is the reusable unit: `execute()` formats it for human output, and future commands (e.g., `health-check`) can call `compute_coverage()` directly to obtain the same data without parsing CLI output.
-- **Total files:** the number of files found in `source_dirs` (filtered by `target_extensions` or `--ext` if specified)
+- **Total files:** the number of files found in `source_dirs` (after dot-file, SVG, `exclude_patterns`, and `target_extensions`/`--ext` filters)
 - **Tagged files:** the subset of total files that contain at least one `@specre <ULID>` marker
 - **Coverage percentage:** `tagged / total * 100`, displayed as a percentage with one decimal place. Derived from `CoverageResult` fields at display time.
 - `--ext` flag: comma-separated list of file extensions to filter by, overriding `target_extensions` from `specre.toml` for this invocation
@@ -113,6 +113,37 @@ Coverage is a key metric for assessing traceability health. If most source files
    ```
 3. The `--json` output includes all fields: `uncovered` (truncated to 30 items), `uncovered_total` (actual count), and `truncated` (boolean)
 4. When `truncated` is false, `uncovered_total` is omitted from JSON output
+
+### Dot files are always excluded
+
+1. A project has `source_dirs = ["src"]` without `target_extensions`
+2. `src/` contains `.keep`, `.gitignore`, and `main.rs`
+3. User runs `specre coverage`
+4. Only `main.rs` is counted as a source file; `.keep` and `.gitignore` are excluded
+5. This also applies when `target_extensions` is set — dot files are never scanned
+
+### SVG files are always excluded
+
+1. A project has `source_dirs = ["src"]` without `target_extensions`
+2. `src/` contains `icon.svg` and `main.rs`
+3. User runs `specre coverage`
+4. Only `main.rs` is counted as a source file; `icon.svg` is excluded despite being valid UTF-8 text
+5. This also applies when `target_extensions` is set — SVG files are never scanned
+
+### exclude_patterns filters files from coverage
+
+1. User configures `exclude_patterns = ["*.test.ts"]` in `specre.toml`
+2. `src/` contains `app.ts` (tagged) and `app.test.ts` (untagged)
+3. User runs `specre coverage`
+4. Only `app.ts` is counted; `app.test.ts` is excluded by the glob pattern
+5. Coverage is 100.0%
+
+### Invalid exclude_patterns are skipped with a warning
+
+1. User configures `exclude_patterns = ["[invalid"]` in `specre.toml`
+2. User runs `specre coverage`
+3. CLI prints a warning to stderr about the invalid pattern and skips it
+4. Remaining valid patterns and other filters still apply
 
 ### Paths use forward slashes
 

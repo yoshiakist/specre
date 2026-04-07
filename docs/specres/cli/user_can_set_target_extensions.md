@@ -2,7 +2,7 @@
 id: "01KHFD5R1G3C5R34XMQXQTTMM9"
 name: "user_can_set_target_extensions"
 status: "stable"
-last_verified: "2026-02-22"
+last_verified: "2026-04-07"
 ---
 
 ## Related Files
@@ -39,7 +39,7 @@ Beyond the binary-file check, some text files are clearly not source code. Dot f
 ### Default behavior (no target_extensions setting)
 
 1. User runs `specre init` without `--ext`
-2. `specre.toml` is created without a `target_extensions` field
+2. `specre.toml` is created without an active `target_extensions` field; a commented-out hint `# target_extensions = ["rb", "js", "ts"]` is appended for discoverability
 3. User runs `specre index`
 4. CLI reads `specre.toml`, finds no `target_extensions` field
 5. CLI scans all text files in `source_dirs` for `@specre` markers; binary (non-UTF-8) files, dot files, and SVG files are skipped silently
@@ -47,7 +47,7 @@ Beyond the binary-file check, some text files are clearly not source code. Dot f
 ### Init with target extensions
 
 1. User runs `specre init --ext rs,ts`
-2. `specre.toml` is created with `target_extensions = ["rs", "ts"]` in addition to `specre_dir` and `source_dirs`
+2. `specre.toml` is created with `target_extensions = ["rs", "ts"]` as an active field in addition to `specre_dir` and `source_dirs`. Other optional settings (`exclude_patterns`, `language`, `[health_check]`) appear as commented-out hints.
 3. User runs `specre index`
 4. CLI reads `specre.toml`, finds `target_extensions = ["rs", "ts"]`
 5. CLI scans only `.rs` and `.ts` files in `source_dirs` for `@specre` markers

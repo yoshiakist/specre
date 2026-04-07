@@ -2,7 +2,7 @@
 id: "01KHG0A2V4YXE918WMJCY7WFE8"
 name: "specre_commands_support_json_output"
 status: "stable"
-last_verified: "2026-02-17"
+last_verified: "2026-04-07"
 ---
 
 ## Related Files
@@ -18,11 +18,13 @@ last_verified: "2026-02-17"
 - `src/commands/new.rs`
 - `src/commands/tag.rs`
 - `src/commands/index.rs`
+- `src/commands/drift.rs`
+- `src/commands/destroy.rs`
 - `tests/cli_json_output.rs` (Test)
 
 ## Functional Overview
 
-All specre CLI commands support a `--json` flag that switches output from human-readable text to structured JSON on stdout. This enables AI agents and scripts to consume specre output programmatically without parsing free-form text. Commands that already output JSON (`search`, `health-check`) accept the flag but their output is unchanged. The flag is defined as a global option on the top-level CLI struct and propagated to each subcommand handler.
+All specre CLI commands support a `--json` flag that switches output from human-readable text to structured JSON on stdout. This enables AI agents and scripts to consume specre output programmatically without parsing free-form text. Commands that already output JSON (`search`, `health-check`) accept the flag but their output is unchanged. The `destroy` command is interactive and does not support `--json` (the flag is accepted but ignored). The flag is defined as a global option on the top-level CLI struct and propagated to each subcommand handler.
 
 ## Design Intent
 
@@ -221,6 +223,38 @@ The v0.3 roadmap targets agent integration. Agents need machine-readable output 
    }
    ```
 3. CLI exits with exit code 0
+
+### drift --json outputs structured JSON
+
+1. User runs `specre drift --json`
+2. CLI outputs JSON to stdout:
+   ```json
+   {
+     "drifted": [
+       {
+         "id": "01HZYPMZRK8F9R2DGBGGMM2N8T",
+         "name": "user_can_sign_up_with_email",
+         "path": "docs/specres/auth/user_can_sign_up_with_email.md",
+         "domain": "auth",
+         "last_verified": "2026-01-15",
+         "changed_files": [
+           { "file": "src/auth/signup.rs", "last_modified": "2026-03-01", "diff_stat": "+10 -2" }
+         ]
+       }
+     ],
+     "clean": 5,
+     "total": 6,
+     "grace_days": 7
+   }
+   ```
+3. CLI exits with exit code 1 when drifted items exist, exit code 0 when none
+
+### destroy does not support --json
+
+1. User runs `specre destroy --json`
+2. The `--json` flag is accepted (global option) but does not change the output
+3. `destroy` is interactive (prompts `[y/N]`) and always outputs human-readable text
+4. The command does not receive the `json` flag in its handler
 
 ### search --json is accepted but output is unchanged
 

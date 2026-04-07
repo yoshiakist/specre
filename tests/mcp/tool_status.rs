@@ -126,6 +126,50 @@ fn mcp_tool_status_custom_threshold() {
 }
 
 // ============================================================
+// mcp_tool_status_reports_project_health — Scenario: Custom threshold (explicit)
+// ============================================================
+
+#[test]
+fn mcp_tool_status_custom_threshold_triggers_stale() {
+    let dir = setup_project("docs/specres");
+    // Card with last_verified set to 10 days ago
+    let ten_days_ago = (Utc::now().date_naive() - chrono::Duration::days(10))
+        .format("%Y-%m-%d")
+        .to_string();
+    let content = format!(
+        "---\nid: \"01AAAAAAAAAAAAAAAAAAAAAAAA\"\nname: \"aging_card\"\nstatus: \"stable\"\nlast_verified: \"{ten_days_ago}\"\n---\n\n## Functional Overview\n\nTest.\n"
+    );
+    dir.child("docs/specres/cli/aging.md")
+        .write_str(&content)
+        .unwrap();
+
+    let mut child = spawn_mcp(dir.path());
+    let mut stdin = child.stdin.take().unwrap();
+    let mut reader = BufReader::new(child.stdout.take().unwrap());
+    initialize(&mut stdin, &mut reader);
+
+    // With default threshold (30 days), card is NOT stale
+    let response = call_status(&mut stdin, &mut reader, 2, &json!({}));
+    let payload: Value =
+        serde_json::from_str(response["result"]["content"][0]["text"].as_str().unwrap()).unwrap();
+    assert!(
+        payload["stale"].as_array().unwrap().is_empty(),
+        "should not be stale with default 30-day threshold"
+    );
+
+    // With custom threshold of 7 days, card IS stale
+    let response = call_status(&mut stdin, &mut reader, 3, &json!({"threshold": 7}));
+    let payload: Value =
+        serde_json::from_str(response["result"]["content"][0]["text"].as_str().unwrap()).unwrap();
+    let stale = payload["stale"].as_array().unwrap();
+    assert_eq!(stale.len(), 1, "should be stale with 7-day threshold");
+    assert_eq!(stale[0]["name"], "aging_card");
+
+    drop(reader);
+    shutdown(stdin, child);
+}
+
+// ============================================================
 // mcp_tool_status_reports_project_health — Scenario: Empty specre directory
 // ============================================================
 
