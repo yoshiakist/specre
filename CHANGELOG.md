@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] - 2026-04-07
+
+### Added
+
+- `specre drift` — detect specification-implementation divergence by comparing `last_verified` dates against source file modification times; configurable `grace_days` in `specre.toml`
+- `specre verify` — bulk-update `last_verified` dates for specre cards, streamlining the drift triage workflow
+- `specre reopen` — transition stable specre cards back to in-development status when re-work is needed
+- `specre health-check`: now includes drifts count in the health report, giving AI agents a more complete preflight picture
+- `specre init`: generated `specre.toml` now includes drift configuration hints (e.g. `grace_days`) as commented-out defaults
+- CI integration guide and health-check step added to CI workflow documentation
+
+### Changed
+
+- Drift triage workflow added as Phase 5 to the SDD workflow documentation
+- Refactored test helpers: extracted `write_config_with_exclude` into shared test utilities
+
 ## [0.4.0] - 2026-03-05
 
 ### Added
@@ -129,6 +145,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Bidirectional traceability via `@specre <ULID>` source markers
 - specre card format with YAML front-matter (`id`, `name`, `status`, `last_verified`)
 
+[0.5.0]: https://github.com/yoshiakist/specre/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/yoshiakist/specre/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/yoshiakist/specre/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/yoshiakist/specre/compare/v0.3.0...v0.3.1
