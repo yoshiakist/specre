@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-04-07T04:19:56Z",
+  "generated_at": "2026-04-07T04:26:22Z",
   "specres": [
     {
       "id": "01JMBJK7QRVX3N4P5G6H8W9Y0Z",
@@ -88,7 +88,7 @@
       "status": "stable",
       "domain": "cli",
       "path": "docs/specres/cli/specre_cli_dispatches_commands_and_handles_errors.md",
-      "last_verified": "2026-02-15"
+      "last_verified": "2026-04-07"
     },
     {
       "id": "01KHFGVXWP100JXYBZTRJGMB9H",
