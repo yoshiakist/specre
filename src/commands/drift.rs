@@ -283,6 +283,47 @@ fn print_human_output(drifted_list: &[DriftedSpecre], clean: usize, total: usize
     }
 }
 
+/// Count the number of drifted stable specre cards.
+///
+/// Returns `None` if git is not available (not a git repo or git not installed).
+/// Uses the grace period from `[drift] grace_days` in config (default: 0).
+#[must_use]
+pub fn count_drifts(cfg: &config::Config) -> Option<usize> {
+    if verify_git_repo().is_err() {
+        return None;
+    }
+
+    let grace_days = cfg.drift.as_ref().and_then(|d| d.grace_days).unwrap_or(0);
+    let specre_dir = Path::new(&cfg.specre_dir);
+    let all_cards = card::scan_specre_cards(specre_dir, &cfg.specre_dir);
+
+    let stable_cards: Vec<&SpecreCard> = all_cards
+        .iter()
+        .filter(|c| c.status == Status::Stable)
+        .collect();
+
+    let marker_links = collect_marker_links(cfg);
+    let mut count = 0usize;
+
+    for card in &stable_cards {
+        let card_content = fs::read_to_string(&card.path).unwrap_or_default();
+        let mut related: HashSet<String> =
+            extract_related_files(&card_content).into_iter().collect();
+
+        if let Some(marker_files) = marker_links.get(&card.id) {
+            for f in marker_files {
+                related.insert(f.clone());
+            }
+        }
+
+        if check_card_drift(card, &related, grace_days).is_some() {
+            count += 1;
+        }
+    }
+
+    Some(count)
+}
+
 /// # Errors
 ///
 /// Returns [`SpecreError`] on config, I/O, serialization, or git failure.

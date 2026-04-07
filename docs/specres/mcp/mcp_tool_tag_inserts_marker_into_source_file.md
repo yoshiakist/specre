@@ -2,7 +2,7 @@
 id: "01KHQJG96BS5STGSENPNDHEH1H"
 name: "mcp_tool_tag_inserts_marker_into_source_file"
 status: "stable"
-last_verified: "2026-02-18"
+last_verified: "2026-04-07"
 ---
 
 ## Related Files

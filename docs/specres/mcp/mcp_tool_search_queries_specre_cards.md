@@ -2,7 +2,7 @@
 id: "01KHQKZ6H8FB46ESFXB03N85AN"
 name: "mcp_tool_search_queries_specre_cards"
 status: "stable"
-last_verified: "2026-02-18"
+last_verified: "2026-04-07"
 ---
 
 ## Related Files

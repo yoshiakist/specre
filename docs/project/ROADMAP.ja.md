@@ -7,10 +7,9 @@ specre カードと実装コードの乖離を検知し、検知後の対応パ�
 - [x] `specre drift` — 関連ファイルの git 履歴に対して `last_verified` の日付を比較し、最後の検証以降にソースが変更された specre を報告できる
 - [x] `specre verify` — 確認済みの specre の `last_verified` を今日の日付に一括更新できる（偽陽性の高速パス）
 - [x] `specre reopen` — 真のドリフトが見つかった specre を `stable` から `in-development` に戻せる
-- [ ] `specre ci` — ドリフトまたは孤立が検出された場合に非ゼロステータスで終了（CI 統合用）
-- [ ] `specre init` 拡張 — 生成される `specre.toml` に `[drift] grace_days = 7` をコメントアウトで含める
-- [ ] `specre health-check` 拡張 — `drifted` 数をヘルスチェック報告に追加（grace 適用済み）
+- [x] `specre health-check` 拡張 — `drifted` 数をヘルスチェック報告に追加（grace 適用済み）
 - [ ] GitHub Actions ワークフローテンプレートを利用できる
+- [ ] `specre init` 拡張 — 生成される `specre.toml` に `[drift] grace_days = 7` をコメントアウトで含める
 
 ### drift コマンド設計
 

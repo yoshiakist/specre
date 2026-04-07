@@ -2,6 +2,7 @@
 // @specre 01KHFGVXWP100JXYBZTRJGMB9H
 use crate::card;
 use crate::commands::coverage::coverage_from_scan_ref;
+use crate::commands::drift;
 use crate::commands::orphans::orphans_from_scan_ref;
 use crate::config;
 use crate::error::SpecreError;
@@ -16,6 +17,7 @@ struct HealthCheckResult {
     healthy: bool,
     coverage: f64,
     orphans: usize,
+    drifts: Option<usize>,
     index_age_hours: Option<f64>,
     thresholds: Thresholds,
 }
@@ -24,6 +26,7 @@ struct HealthCheckResult {
 struct Thresholds {
     coverage: f64,
     orphans: usize,
+    drifts: usize,
     index_age_hours: f64,
 }
 
@@ -114,6 +117,7 @@ pub fn execute() -> Result<(), SpecreError> {
     let threshold_coverage = hc.and_then(|h| h.coverage).unwrap_or(0.90);
     let threshold_orphans = hc.and_then(|h| h.orphans).unwrap_or(5);
     let threshold_index_age = hc.and_then(|h| h.index_age_hours).unwrap_or(24.0);
+    let threshold_drifts = hc.and_then(|h| h.drifts).unwrap_or(0);
 
     // Single scan for both coverage and orphans
     let scan = scan_source_markers(
@@ -135,6 +139,9 @@ pub fn execute() -> Result<(), SpecreError> {
     let orphan_result = orphans_from_scan_ref(&cfg.specre_dir, &scan);
     let orphan_count = orphan_result.orphan_count() + orphan_result.dangling_count();
 
+    // Drift count (None if git unavailable)
+    let drifts = drift::count_drifts(&cfg);
+
     // Index freshness (two-stage: timestamp check, then content comparison)
     let index_info = load_index(&cfg.specre_dir);
     let index_age_hours = index_info.as_ref().map(|i| i.age_hours);
@@ -142,21 +149,24 @@ pub fn execute() -> Result<(), SpecreError> {
     // Healthy check
     let coverage_ok = coverage_ratio >= threshold_coverage;
     let orphans_ok = orphan_count <= threshold_orphans;
+    let drifts_ok = drifts.is_none_or(|d| d <= threshold_drifts);
     let index_ok = match &index_info {
         Some(info) if info.age_hours <= threshold_index_age => true,
         Some(info) => is_index_content_current(&cfg, &scan, &info.json),
         None => false,
     };
-    let healthy = coverage_ok && orphans_ok && index_ok;
+    let healthy = coverage_ok && orphans_ok && drifts_ok && index_ok;
 
     let result = HealthCheckResult {
         healthy,
         coverage: coverage_ratio,
         orphans: orphan_count,
+        drifts,
         index_age_hours,
         thresholds: Thresholds {
             coverage: threshold_coverage,
             orphans: threshold_orphans,
+            drifts: threshold_drifts,
             index_age_hours: threshold_index_age,
         },
     };

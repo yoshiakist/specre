@@ -2,7 +2,7 @@
 id: "01KHQKZ633JHVDK0WADPPVP3CM"
 name: "mcp_tool_trace_looks_up_traceability"
 status: "stable"
-last_verified: "2026-02-18"
+last_verified: "2026-04-07"
 ---
 
 ## Related Files

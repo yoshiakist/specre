@@ -2,7 +2,7 @@
 id: "01KHQKZ5M6N304YYJNW8VDKT4W"
 name: "mcp_tool_index_regenerates_index"
 status: "stable"
-last_verified: "2026-02-18"
+last_verified: "2026-04-07"
 ---
 
 ## Related Files
