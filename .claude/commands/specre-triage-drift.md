@@ -72,8 +72,8 @@ Based on the subagent's returned verdict:
 
 **`no_drift`:**
 
-Update the specre card's `last_verified` to today's date by editing the YAML front-matter. Report to the user:
-> [check] `<name>` — false positive. Updated `last_verified` to <today>.
+Record the ULID for bulk verification later (Phase 2). Report to the user:
+> [check] `<name>` — false positive. Will update `last_verified` in bulk.
 > Reason: <subagent's SUMMARY>
 
 **`drift_spec_stale`:**
@@ -119,6 +119,12 @@ Uncertain:         W (needs manual review)
 ────────────────────────────────────────
 ```
 
+If there are any `no_drift` items collected during Phase 1, run `specre verify` with all their ULIDs in a single command:
+```
+specre verify <ULID1> <ULID2> <ULID3> ...
+```
+Report the result to the user.
+
 If any items were NOT auto-resolved (spec stale, impl regression, or uncertain), list them with their suggested actions as a concise action list.
 
 If ALL items were false positives:
@@ -133,6 +139,6 @@ Run `specre index` to regenerate the index after any `last_verified` updates.
 - **Subagent isolation is mandatory.** Never read specre cards or their related source files in the parent agent's context. All spec-vs-code comparison happens in subagents.
 - **One item at a time.** Do not batch multiple drifted items into a single subagent. Each specre card gets its own subagent with a fresh context.
 - **Only update `last_verified` for `no_drift` verdicts.** Never update for other verdicts.
-- **Do not modify source code.** This workflow only updates `last_verified` dates in specre card front-matter.
-- **Do not modify specre card content** (Scenarios, Functional Overview, etc.). Only the `last_verified` field in the YAML front-matter may be changed.
+- **Use `specre verify` for updates.** Do not edit specre card front-matter directly. Collect all `no_drift` ULIDs during Phase 1, then run a single `specre verify <ULID>...` command in Phase 2.
+- **Do not modify source code or specre card content.** This workflow only updates `last_verified` via the `specre verify` command.
 - **Respect the `language` setting.** All user-facing prose follows `specre.toml`'s `language` field. Technical tokens remain untranslated.
