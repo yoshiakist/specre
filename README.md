@@ -34,6 +34,8 @@ Most SDD tools (GitHub Spec Kit, Amazon Kiro, BMAD) treat specifications as larg
 
 For retrofitting specre into a project that already has code and tests, also see the **[Adoption Strategy Guide](docs/guides/adoption-strategy.md)**.
 
+For integrating specre into your CI pipeline, see the **[CI Integration Guide](docs/guides/CI-INTEGRATION.md)**.
+
 ## specre Card Format
 
 Every specre follows this structure:

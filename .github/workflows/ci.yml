@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       code: ${{ steps.filter.outputs.code }}
+      specre: ${{ steps.filter.outputs.specre }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -25,6 +26,11 @@ jobs:
               - "**/*.rs"
               - "Cargo.toml"
               - "Cargo.lock"
+              - ".github/workflows/ci.yml"
+            specre:
+              - "**/*.rs"
+              - "docs/specres/**"
+              - "specre.toml"
               - ".github/workflows/ci.yml"
 
   test:
@@ -72,17 +78,34 @@ jobs:
       - name: Check formatting
         run: cargo fmt --all -- --check
 
+  specre:
+    name: specre health-check
+    needs: changes
+    if: needs.changes.outputs.specre == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install specre
+        run: curl --proto '=https' --tlsv1.2 -LsSf https://github.com/yoshiakist/specre/releases/latest/download/specre-installer.sh | sh
+      - name: Regenerate index
+        run: specre index
+      - name: Run health-check
+        run: specre health-check
+
   ci-gate:
     name: CI Gate
     if: always()
-    needs: [test, clippy, fmt]
+    needs: [test, clippy, fmt, specre]
     runs-on: ubuntu-latest
     steps:
       - name: Check results
         run: |
           if [[ "${{ needs.test.result }}" == "failure" || \
                 "${{ needs.clippy.result }}" == "failure" || \
-                "${{ needs.fmt.result }}" == "failure" ]]; then
+                "${{ needs.fmt.result }}" == "failure" || \
+                "${{ needs.specre.result }}" == "failure" ]]; then
             echo "CI failed"
             exit 1
           fi
