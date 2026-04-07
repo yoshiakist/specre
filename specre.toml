@@ -5,3 +5,6 @@ source_dirs = ["src", "tests"]
 coverage = 1.0
 orphans = 3
 index_age_hours = 48.0
+
+[drift]
+grace_days = 7
