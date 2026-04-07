@@ -1,3 +1,4 @@
+// @specre 01KJ4NJW28F072X64SS68P3N08
 // @specre 01KHAKAYN5WPTDVR99D5Q5TMJE
 // @specre 01KHG0A2V4YXE918WMJCY7WFE8
 use crate::card::{self, SpecreCard, to_forward_slash};
