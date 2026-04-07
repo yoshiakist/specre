@@ -1,3 +1,4 @@
+// @specre 01KJ4NJW28F072X64SS68P3N08
 // @specre 01KHFGVXWP100JXYBZTRJGMB9H
 use crate::card;
 use crate::commands::coverage::coverage_from_scan_ref;

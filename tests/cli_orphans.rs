@@ -1,3 +1,4 @@
+// @specre 01KJ4NJW28F072X64SS68P3N08
 // @specre 01KHB48EES4FR5TFV6ZP2W3MGT
 mod common;
 use assert_cmd::cargo::cargo_bin_cmd;
